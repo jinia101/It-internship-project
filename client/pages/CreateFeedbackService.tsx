@@ -199,9 +199,9 @@ export default function CreateFeedbackService() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/contact-service">
+                <Link to="/feedback-service">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Contact Service
+                  Back to Feedback Service
                 </Link>
               </Button>
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">

@@ -17,7 +17,6 @@ import {
   Clock,
   CheckCircle,
   Eye,
-  Edit,
   Trash2,
   Activity,
   Users,
@@ -268,10 +267,7 @@ export default function ContactService() {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
+                        
                         <Button
                           size="sm"
                           variant="outline"

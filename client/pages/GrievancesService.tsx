@@ -17,7 +17,6 @@ import {
   Clock,
   CheckCircle,
   Eye,
-  Edit,
   Trash2,
   Activity,
   Users,
@@ -202,9 +201,9 @@ export default function GrievancesService() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/edit-grievances-service/${service.id}`}>
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
+                          <Link to={`/admin/service-details/${service.id}`}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
                           </Link>
                         </Button>
                         <Button
@@ -263,10 +262,7 @@ export default function GrievancesService() {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
+                        
                         <Button
                           size="sm"
                           variant="outline"

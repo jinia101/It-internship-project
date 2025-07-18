@@ -16,7 +16,6 @@ import {
   Clock,
   CheckCircle,
   Eye,
-  Edit,
   Trash2,
   Activity,
   Users,
@@ -183,9 +182,9 @@ export default function CertificateService() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/edit-certificate-service/${service.id}`}>
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
+                          <Link to={`/admin/service-details/${service.id}`}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
                           </Link>
                         </Button>
                         
@@ -234,9 +233,9 @@ export default function CertificateService() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline" asChild>
-                          <Link to={`/admin/edit-certificate-service/${service.id}`}>
+                          <Link to={`/admin/service-details/${service.id}`}>
                             <Eye className="h-4 w-4 mr-1" />
-                            View/Edit
+                            View
                           </Link>
                         </Button>
                         

@@ -25,9 +25,7 @@ import CreateContactService from "./pages/CreateContactService";
 import CreateGrievancesService from "./pages/CreateGrievancesService";
 import CreateEmergencyService from "./pages/CreateEmergencyService";
 import CreateFeedbackService from "./pages/CreateFeedbackService";
-import EditCertificateService from "./pages/EditCertificateService";
-import EditContactService from "./pages/EditContactService";
-import EditGrievancesService from "./pages/EditGrievancesService";
+
 
 const queryClient = new QueryClient();
 
@@ -57,9 +55,6 @@ const App = () => (
           <Route path="/admin/create-grievances-service" element={<CreateGrievancesService />} />
           <Route path="/admin/create-emergency-service" element={<CreateEmergencyService />} />
           <Route path="/admin/create-feedback-service" element={<CreateFeedbackService />} />
-          <Route path="/admin/edit-certificate-service/:id" element={<EditCertificateService />} />
-          <Route path="/admin/edit-contact-service/:id" element={<EditContactService />} />
-          <Route path="/admin/edit-grievances-service/:id" element={<EditGrievancesService />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

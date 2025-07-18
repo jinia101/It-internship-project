@@ -8,7 +8,9 @@ import {
   ToastViewport,
 } from "@/components/ui/toast";
 
-export function Toaster() {
+interface ToasterProps {}
+
+export function Toaster(props: ToasterProps) {
   const { toasts } = useToast();
 
   return (
