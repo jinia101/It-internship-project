@@ -8,10 +8,29 @@ import {
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function ServiceDetails() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [service] = useState<any>({
+    id: id,
+    title: "Dummy Service Name",
+    description: "This is a dummy service description.",
+    details: "These are dummy service details.",
+    applicationMode: "Online",
+    views: 123,
+    provider: "Dummy Provider",
+    status: "Active",
+  });
+  const [loading] = useState(false);
+  const [error] = useState("");
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+  if (!service) return <div>No service found.</div>;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -30,23 +49,19 @@ export default function ServiceDetails() {
             <div>
               <Label>Service Name *</Label>
               <div className="border rounded px-3 py-2 bg-gray-50">
-                Market Research Analytics
+                {service.title}
               </div>
             </div>
             <div>
               <Label>Service Summary *</Label>
               <div className="border rounded px-3 py-2 bg-gray-50">
-                Quick insights for your business.
+                {service.description}
               </div>
             </div>
             <div>
-              <Label>Application Mode *</Label>
-              <div className="border rounded px-3 py-2 bg-gray-50">Online</div>
-            </div>
-            <div>
-              <Label>Eligibility *</Label>
+              <Label>Service Details *</Label>
               <div className="border rounded px-3 py-2 bg-gray-50">
-                All registered users
+                {service.details}
               </div>
             </div>
           </CardContent>

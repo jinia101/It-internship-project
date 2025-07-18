@@ -17,6 +17,37 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+// SidebarMenu: Custom menu for dashboard pages
+import { Link, useLocation } from "react-router-dom";
+
+export function ServicesMenu() {
+  const location = useLocation();
+  const menuItems = [
+    { label: "Scheme Service", path: "/scheme-service" },
+    { label: "Certificate Service", path: "/certificate-service" },
+    { label: "Contact Service", path: "/contact-service" },
+    { label: "Grievances Service", path: "/grievances-service" },
+    { label: "Emergency Service", path: "/emergency-service" },
+    { label: "Feedback Service", path: "/feedback-service" },
+  ];
+  return (
+    <nav className="flex flex-col gap-2 p-4 bg-blue-900 min-h-screen w-64 text-white font-medium border-r border-blue-800">
+      <div className="text-lg font-bold mb-6 text-yellow-400 tracking-wide">
+        Services Menu
+      </div>
+      {menuItems.map((item) => (
+        <Link
+          key={item.path}
+          to={item.path}
+          className={`rounded px-4 py-2 transition-colors hover:bg-blue-800 hover:text-yellow-300 ${location.pathname === item.path ? "bg-blue-800 text-yellow-300" : ""}`}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
@@ -491,19 +522,6 @@ const SidebarGroupContent = React.forwardRef<
 ));
 SidebarGroupContent.displayName = "SidebarGroupContent";
 
-const SidebarMenu = React.forwardRef<
-  HTMLUListElement,
-  React.ComponentProps<"ul">
->(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    data-sidebar="menu"
-    className={cn("flex w-full min-w-0 flex-col gap-1", className)}
-    {...props}
-  />
-));
-SidebarMenu.displayName = "SidebarMenu";
-
 const SidebarMenuItem = React.forwardRef<
   HTMLLIElement,
   React.ComponentProps<"li">
@@ -752,7 +770,6 @@ export {
   SidebarHeader,
   SidebarInput,
   SidebarInset,
-  SidebarMenu,
   SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuButton,

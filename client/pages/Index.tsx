@@ -90,18 +90,6 @@ export default function Index() {
               >
                 Dashboard
               </Link>
-              <Link
-                to="/services"
-                className="text-gray-600 hover:text-primary transition-colors"
-              >
-                Services
-              </Link>
-              <Link
-                to="/about"
-                className="text-gray-600 hover:text-primary transition-colors"
-              >
-                About
-              </Link>
               <Button asChild>
                 <Link to="/admin/login">Admin</Link>
               </Button>
@@ -264,14 +252,6 @@ export default function Index() {
                     className="hover:text-white transition-colors"
                   >
                     Admin Portal
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/services"
-                    className="hover:text-white transition-colors"
-                  >
-                    All Services
                   </Link>
                 </li>
               </ul>

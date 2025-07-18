@@ -17,18 +17,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Plus,
+  X,
   Save,
   Eye,
+  Upload,
   CheckCircle,
+  AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { saveService } from "../lib/localStorageUtils";
 
-export default function CreateService() {
+export default function CreateCertificateService() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
@@ -39,8 +45,58 @@ export default function CreateService() {
     summary: "",
     applicationMode: "",
     eligibility: "",
+    contactName: "",
+    designation: "",
+    contact: "",
+    email: "",
+    district: "",
+    subDistrict: "",
+    block: "",
+    serviceDetails: "",
     status: "active",
+    processNew: "",
+    processUpdate: "",
+    processLost: "",
+    processSurrender: "",
+    docNew: "",
+    docUpdate: "",
+    docLost: "",
+    docSurrender: "",
+    onlineUrl: "",
+    offlineAddress: "",
   });
+
+  const [documents, setDocuments] = useState([
+    { slNo: "1", documentType: "", validProof: "" },
+  ]);
+
+  const [processSteps, setProcessSteps] = useState([
+    { slNo: "1", stepDetails: "" },
+  ]);
+
+  const categories = [
+    "Research",
+    "Documentation",
+    "Design",
+    "Analytics",
+    "Legal",
+    "Marketing",
+    "Technology",
+    "Finance",
+    "Consulting",
+    "Education",
+  ];
+
+  const addTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove));
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -59,7 +115,49 @@ export default function CreateService() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleDocumentChange = (
+    index: number,
+    field: string,
+    value: string,
+  ) => {
+    setDocuments((prev) =>
+      prev.map((doc, i) => (i === index ? { ...doc, [field]: value } : doc)),
+    );
+  };
+
+  const handleAddDocument = () => {
+    setDocuments((prev) => [
+      ...prev,
+      { slNo: String(prev.length + 1), documentType: "", validProof: "" },
+    ]);
+  };
+
+  const handleRemoveLastDocument = () => {
+    setDocuments((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+  };
+
+  const handleAddProcessStep = () => {
+    setProcessSteps((prev) => [
+      ...prev,
+      { slNo: String(prev.length + 1), stepDetails: "" },
+    ]);
+  };
+
+  const handleRemoveLastProcessStep = () => {
+    setProcessSteps((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
+  };
+
+  const handleProcessStepChange = (
+    index: number,
+    field: string,
+    value: string,
+  ) => {
+    setProcessSteps((prev) =>
+      prev.map((step, i) => (i === index ? { ...step, [field]: value } : step)),
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -74,10 +172,11 @@ export default function CreateService() {
       });
       toast({
         title: "Service Created Successfully!",
-        description: "Your new service has been added to the platform as pending.",
+        description:
+          "Your new service has been added to the platform as pending.",
       });
       setIsSubmitting(false);
-      navigate("/admin"); // Navigate back to admin dashboard or a relevant page
+      navigate("/certificate-service");
     } catch (error) {
       toast({
         title: "Error",
@@ -89,18 +188,7 @@ export default function CreateService() {
   };
 
   const handleSaveDraft = () => {
-    saveService({
-      name: formData.name,
-      summary: formData.summary,
-      applicationMode: formData.applicationMode,
-      eligibility: formData.eligibility,
-      tags,
-      status: "pending",
-    });
-    toast({
-      title: "Draft Saved",
-      description: "Your service draft has been saved for later.",
-    });
+    console.log("Draft saved (simulated)");
   };
 
   return (
@@ -111,15 +199,17 @@ export default function CreateService() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/admin">
+                <Link to="/certificate-service">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Admin Dashboard
+                  Back to Certificate Service
                 </Link>
               </Button>
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                 <Plus className="h-4 w-4 text-white" />
               </div>
-              <span className="text-xl font-bold">Create New Service</span>
+              <span className="text-xl font-bold">
+                Create New Certificate Service
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={handleSaveDraft}>
@@ -142,7 +232,7 @@ export default function CreateService() {
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
               <CardDescription>
-                Provide the essential details about your new service
+                Provide the essential details about your certificate service
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -204,6 +294,35 @@ export default function CreateService() {
                   />
                 </div>
               </div>
+              {/* Conditionally show URL/Address fields based on Application Mode */}
+              {(formData.applicationMode === "Online" ||
+                formData.applicationMode === "Both") && (
+                <div className="space-y-2">
+                  <Label htmlFor="onlineUrl">Online Service URL</Label>
+                  <Input
+                    id="onlineUrl"
+                    name="onlineUrl"
+                    value={formData.onlineUrl}
+                    onChange={handleInputChange}
+                    placeholder="Enter the online service URL"
+                  />
+                </div>
+              )}
+              {(formData.applicationMode === "Offline" ||
+                formData.applicationMode === "Both") && (
+                <div className="space-y-2">
+                  <Label htmlFor="offlineAddress">
+                    Offline Service Address
+                  </Label>
+                  <Input
+                    id="offlineAddress"
+                    name="offlineAddress"
+                    value={formData.offlineAddress}
+                    onChange={handleInputChange}
+                    placeholder="Enter the offline service address"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -212,7 +331,7 @@ export default function CreateService() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/admin")}
+              onClick={() => navigate("/certificate-service")}
             >
               Cancel
             </Button>
