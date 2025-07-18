@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { getServices, updateService, deleteService } from "../lib/localStorageUtils";
+import {
+  getServices,
+  updateService,
+  deleteService,
+} from "../lib/localStorageUtils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -51,7 +55,7 @@ export function DashboardHome() {
   }, []);
 
   const approveService = (id: string) => {
-    const serviceToApprove = getServices().find(s => s.id === id);
+    const serviceToApprove = getServices().find((s) => s.id === id);
     if (serviceToApprove) {
       updateService({ ...serviceToApprove, status: "published" });
       setServices(getServices());
@@ -148,7 +152,11 @@ export function DashboardHome() {
 
       {/* Admin Actions */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="create" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create Service
+          </TabsTrigger>
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Pending Services
@@ -158,6 +166,40 @@ export function DashboardHome() {
             Published Services
           </TabsTrigger>
         </TabsList>
+        {/* Create Service Tab */}
+        <TabsContent value="create" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Create New Service
+              </CardTitle>
+              <CardDescription>
+                Add a new information service to the platform
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <Plus className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">
+                  Ready to create a new service?
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Use our service creation form to add new offerings to the
+                  platform
+                </p>
+                <Button size="lg" asChild>
+                  <Link to="/admin/create-service">
+                    Create New Service
+                    <Plus className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
         {/* Pending Services Tab */}
         <TabsContent value="pending" className="space-y-6">
           <Card>

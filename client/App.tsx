@@ -31,7 +31,7 @@ import UserContactService from "./pages/UserContactService";
 import UserGrievancesService from "./pages/UserGrievancesService";
 import UserEmergencyService from "./pages/UserEmergencyService";
 import UserFeedbackService from "./pages/UserFeedbackService";
-import { DashboardHome } from "./pages/AdminDashboard";
+import AdminLayout, { DashboardHome } from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +45,14 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<DashboardHome />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminLayout>
+                <DashboardHome />
+              </AdminLayout>
+            }
+          />
 
           <Route path="/service/:id" element={<ServiceDetails />} />
           <Route path="/admin/profile" element={<AdminProfile />} />
