@@ -29,8 +29,6 @@ export default function UserDashboard() {
   const [services, setServices] = useState([]);
   const navigate = useNavigate();
 
-  
-
   const stats = {
     published: 156,
     active: 23,

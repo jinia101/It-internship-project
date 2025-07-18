@@ -25,7 +25,13 @@ import CreateContactService from "./pages/CreateContactService";
 import CreateGrievancesService from "./pages/CreateGrievancesService";
 import CreateEmergencyService from "./pages/CreateEmergencyService";
 import CreateFeedbackService from "./pages/CreateFeedbackService";
-
+import UserSchemeService from "./pages/UserSchemeService";
+import UserCertificateService from "./pages/UserCertificateService";
+import UserContactService from "./pages/UserContactService";
+import UserGrievancesService from "./pages/UserGrievancesService";
+import UserEmergencyService from "./pages/UserEmergencyService";
+import UserFeedbackService from "./pages/UserFeedbackService";
+import { DashboardHome } from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -39,8 +45,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          
+          <Route path="/admin" element={<DashboardHome />} />
+
           <Route path="/service/:id" element={<ServiceDetails />} />
           <Route path="/admin/profile" element={<AdminProfile />} />
           <Route path="/scheme-service" element={<SchemeService />} />
@@ -49,12 +55,52 @@ const App = () => (
           <Route path="/emergency-service" element={<EmergencyService />} />
           <Route path="/feedback-service" element={<FeedbackService />} />
           <Route path="/certificate-service" element={<CertificateService />} />
-          <Route path="/admin/create-scheme-service" element={<CreateSchemeService />} />
-          <Route path="/admin/create-certificate-service" element={<CreateCertificateService />} />
-          <Route path="/admin/create-contact-service" element={<CreateContactService />} />
-          <Route path="/admin/create-grievances-service" element={<CreateGrievancesService />} />
-          <Route path="/admin/create-emergency-service" element={<CreateEmergencyService />} />
-          <Route path="/admin/create-feedback-service" element={<CreateFeedbackService />} />
+          <Route
+            path="/admin/create-scheme-service"
+            element={<CreateSchemeService />}
+          />
+          <Route
+            path="/admin/create-certificate-service"
+            element={<CreateCertificateService />}
+          />
+          <Route
+            path="/admin/create-contact-service"
+            element={<CreateContactService />}
+          />
+          <Route
+            path="/admin/create-grievances-service"
+            element={<CreateGrievancesService />}
+          />
+          <Route
+            path="/admin/create-emergency-service"
+            element={<CreateEmergencyService />}
+          />
+          <Route
+            path="/admin/create-feedback-service"
+            element={<CreateFeedbackService />}
+          />
+          {/* User-specific service pages */}
+          <Route path="/user-scheme-service" element={<UserSchemeService />} />
+          <Route
+            path="/user-certificate-service"
+            element={<UserCertificateService />}
+          />
+          <Route
+            path="/user-contact-service"
+            element={<UserContactService />}
+          />
+          <Route
+            path="/user-grievances-service"
+            element={<UserGrievancesService />}
+          />
+          <Route
+            path="/user-emergency-service"
+            element={<UserEmergencyService />}
+          />
+          <Route
+            path="/user-feedback-service"
+            element={<UserFeedbackService />}
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
