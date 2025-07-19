@@ -169,6 +169,7 @@ export default function CreateCertificateService() {
         eligibility: formData.eligibility,
         tags,
         status: "pending",
+        type: "certificate",
       });
       toast({
         title: "Service Created Successfully!",
@@ -176,7 +177,7 @@ export default function CreateCertificateService() {
           "Your new service has been added to the platform as pending.",
       });
       setIsSubmitting(false);
-      navigate("/certificate-service");
+      navigate("/admin-certificate-service");
     } catch (error) {
       toast({
         title: "Error",

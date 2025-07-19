@@ -66,7 +66,9 @@ export default function CreateFeedbackService() {
     offlineAddress: "",
   });
 
-  const [processSteps, setProcessSteps] = useState([{ slNo: "", stepDetails: "" }]);
+  const [processSteps, setProcessSteps] = useState([
+    { slNo: "", stepDetails: "" },
+  ]);
   const [documents, setDocuments] = useState([
     { slNo: "", documentType: "", validProof: "" },
   ]);
@@ -90,7 +92,10 @@ export default function CreateFeedbackService() {
   };
 
   const handleAddDocument = () => {
-    setDocuments([...documents, { slNo: "", documentType: "", validProof: "" }]);
+    setDocuments([
+      ...documents,
+      { slNo: "", documentType: "", validProof: "" },
+    ]);
   };
 
   const handleRemoveLastDocument = () => {
@@ -139,13 +144,15 @@ export default function CreateFeedbackService() {
         tags,
         documents,
         processSteps,
+        type: "feedback",
       });
       toast({
         title: "Service Created Successfully!",
-        description: "Your new service has been added to the platform as pending.",
+        description:
+          "Your new service has been added to the platform as pending.",
       });
       setIsSubmitting(false);
-      navigate("/feedback-service");
+      navigate("/admin-feedback-service");
     } catch (error) {
       toast({
         title: "Error",
@@ -207,7 +214,9 @@ export default function CreateFeedbackService() {
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                 <Plus className="h-4 w-4 text-white" />
               </div>
-              <span className="text-xl font-bold">Create New Feedback Service</span>
+              <span className="text-xl font-bold">
+                Create New Feedback Service
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={handleSaveDraft}>

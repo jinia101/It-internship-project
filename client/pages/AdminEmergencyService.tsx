@@ -42,10 +42,10 @@ export default function AdminEmergencyService() {
   }, []);
 
   const publishedDepartments = departments.filter(
-    (d) => d.status === "published" && d.category,
+    (d) => d.status === "published" && d.type === "emergency",
   );
   const pendingDepartments = departments.filter(
-    (d) => d.status === "pending" && d.category,
+    (d) => d.status === "pending" && d.type === "emergency",
   );
 
   const stats = {

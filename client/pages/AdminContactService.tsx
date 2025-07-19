@@ -23,7 +23,7 @@ export default function AdminContactService() {
   }, []);
 
   // Only show contact services (not emergency, etc.)
-  const isContactService = (s) => !s.category || s.category === "Contact";
+  const isContactService = (s) => s.type === "contact";
   const pendingServices = services.filter(
     (s) => s.status === "pending" && isContactService(s),
   );

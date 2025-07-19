@@ -55,11 +55,12 @@ export default function CreateContactService() {
       saveService({
         name: formData.name,
         summary: formData.summary,
-        type: formData.type,
+        serviceType: formData.type, // regular/irregular
         status: "pending",
         tags: [],
         applicationMode: "",
         eligibility: "",
+        type: "contact",
       });
       toast({
         title: "Service Created Successfully!",

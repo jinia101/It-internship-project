@@ -21,8 +21,12 @@ export default function AdminSchemeService() {
   useEffect(() => {
     setSchemes(getServices());
   }, []);
-  const pendingSchemes = schemes.filter((s) => s.status === "pending");
-  const publishedSchemes = schemes.filter((s) => s.status === "published");
+  const pendingSchemes = schemes.filter(
+    (s) => s.status === "pending" && s.type === "scheme",
+  );
+  const publishedSchemes = schemes.filter(
+    (s) => s.status === "published" && s.type === "scheme",
+  );
   const stats = {
     published: publishedSchemes.length,
     active: 0,

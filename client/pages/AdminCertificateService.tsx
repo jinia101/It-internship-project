@@ -21,8 +21,12 @@ export default function AdminCertificateService() {
   useEffect(() => {
     setCerts(getServices());
   }, []);
-  const pendingCerts = certs.filter((s) => s.status === "pending");
-  const publishedCerts = certs.filter((s) => s.status === "published");
+  const pendingCerts = certs.filter(
+    (s) => s.status === "pending" && s.type === "certificate",
+  );
+  const publishedCerts = certs.filter(
+    (s) => s.status === "published" && s.type === "certificate",
+  );
   const stats = {
     published: publishedCerts.length,
     active: 0,

@@ -96,7 +96,12 @@ export default function AdminGrievancesService() {
     grievances.filter((g) => g.status === status);
 
   const newCount = grievances.filter((g) => g.status === "new").length;
-  const pendingCount = grievances.filter((g) => g.status === "pending").length;
+  const pendingGrievances = grievances.filter(
+    (s) => s.status === "pending" && s.type === "grievances",
+  );
+  const publishedGrievances = grievances.filter(
+    (s) => s.status === "published" && s.type === "grievances",
+  );
   const resolvedCount = grievances.filter(
     (g) => g.status === "resolved",
   ).length;
@@ -135,7 +140,7 @@ export default function AdminGrievancesService() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-yellow-600">
-                  {pendingCount}
+                  {pendingGrievances.length}
                 </div>
                 <p className="text-xs text-muted-foreground">Saved for later</p>
               </CardContent>

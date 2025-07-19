@@ -53,6 +53,7 @@ export default function CreateEmergencyService() {
       tags: [],
       applicationMode: "",
       eligibility: "",
+      type: "emergency",
     });
     toast({
       title: "Department Created Successfully!",

@@ -38,13 +38,14 @@ export default function CreateSchemeService() {
       tags: [],
       applicationMode: "",
       eligibility: "",
+      type: "scheme",
     });
     toast({
       title: "Scheme Created Successfully!",
       description: "Your new scheme has been added to the platform as pending.",
     });
     setIsSubmitting(false);
-    navigate("/scheme-service");
+    navigate("/admin-scheme-service");
   };
 
   return (
@@ -59,16 +60,16 @@ export default function CreateSchemeService() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <div className="space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="name">Scheme Name *</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
                   placeholder="Enter scheme name"
-                    required
-                  />
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="summary">Scheme Summary *</Label>
