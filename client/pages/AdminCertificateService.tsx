@@ -5,21 +5,44 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getServices, deleteService } from "../lib/localStorageUtils";
 
 export default function AdminCertificateService() {
   const [activeTab, setActiveTab] = useState("create");
+  const [certs, setCerts] = useState([]);
+  const navigate = useNavigate();
+  useEffect(() => {
+    setCerts(getServices());
+  }, []);
+  const pendingCerts = certs.filter((s) => s.status === "pending");
+  const publishedCerts = certs.filter((s) => s.status === "published");
   const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-    users: 1234,
-    pending: 2,
+    published: publishedCerts.length,
+    active: 0,
+    total: certs.length,
+    users: 0,
+    pending: pendingCerts.length,
+  };
+  const handleEdit = (cert) => {
+    navigate(
+      `/admin/edit-certificate-service/${encodeURIComponent(cert.name)}`,
+    );
+  };
+  const handleView = (cert) => {
+    navigate(
+      `/admin/edit-certificate-service/${encodeURIComponent(cert.name)}`,
+    );
+  };
+  const handleDelete = (cert) => {
+    deleteService(cert.id);
+    setCerts(getServices());
   };
   return (
     <div className="flex min-h-screen">
@@ -150,41 +173,102 @@ export default function AdminCertificateService() {
               </Card>
             </TabsContent>
             <TabsContent value="pending" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Pending Services (0)
-                  </CardTitle>
-                  <CardDescription>
-                    Review and approve submitted certificate services
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 text-center text-gray-500">
-                    No pending services.
-                  </div>
-                </CardContent>
-              </Card>
+              {pendingCerts.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No pending certificates.
+                  </CardContent>
+                </Card>
+              ) : (
+                pendingCerts.map((cert) => (
+                  <Card
+                    key={cert.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {cert.name}
+                      </CardTitle>
+                      <CardDescription>{cert.summary}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Add more details if needed */}
+                    </CardContent>
+                    <CardFooter className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleView(cert)}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(cert)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(cert)}
+                      >
+                        Delete
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
             </TabsContent>
             <TabsContent value="published" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5" />
-                    Published Services (0)
-                  </CardTitle>
-                  <CardDescription>
-                    Manage your live certificate services and monitor
-                    performance
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 text-center text-gray-500">
-                    No published services.
-                  </div>
-                </CardContent>
-              </Card>
+              {publishedCerts.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No published certificates.
+                  </CardContent>
+                </Card>
+              ) : (
+                publishedCerts.map((cert) => (
+                  <Card
+                    key={cert.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {cert.name}
+                      </CardTitle>
+                      <CardDescription>{cert.summary}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Add more details if needed */}
+                    </CardContent>
+                    <CardFooter className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleView(cert)}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(cert)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(cert)}
+                      >
+                        Delete
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
             </TabsContent>
           </Tabs>
         </div>

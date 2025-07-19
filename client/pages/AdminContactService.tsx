@@ -9,18 +9,47 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getServices, deleteService } from "../lib/localStorageUtils";
 
 export default function AdminContactService() {
   const [activeTab, setActiveTab] = useState("create");
-  const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-    users: 1234,
-    pending: 2,
+  const [services, setServices] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setServices(getServices());
+  }, []);
+
+  // Only show contact services (not emergency, etc.)
+  const isContactService = (s) => !s.category || s.category === "Contact";
+  const pendingServices = services.filter(
+    (s) => s.status === "pending" && isContactService(s),
+  );
+  const publishedServices = services.filter(
+    (s) => s.status === "published" && isContactService(s),
+  );
+
+  const handleDelete = (service) => {
+    deleteService(service.id);
+    setServices(getServices());
   };
+
+  const handleEdit = (service) => {
+    navigate(
+      `/admin/edit-contact-department/${encodeURIComponent(service.name)}`,
+    );
+  };
+
+  const stats = {
+    published: publishedServices.length,
+    active: 0,
+    total: services.filter(isContactService).length,
+    users: 0,
+    pending: pendingServices.length,
+  };
+
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
@@ -150,40 +179,90 @@ export default function AdminContactService() {
               </Card>
             </TabsContent>
             <TabsContent value="pending" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Pending Services (0)
-                  </CardTitle>
-                  <CardDescription>
-                    Review and approve submitted contact services
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 text-center text-gray-500">
+              {pendingServices.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
                     No pending services.
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ) : (
+                pendingServices.map((service) => (
+                  <Card
+                    key={service.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {service.name}
+                      </CardTitle>
+                      <CardDescription>{service.summary}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div>Type: {service.type}</div>
+                    </CardContent>
+                    <div className="flex gap-2 p-4">
+                      <Button size="sm" variant="outline">
+                        View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(service)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(service)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </Card>
+                ))
+              )}
             </TabsContent>
             <TabsContent value="published" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5" />
-                    Published Services (0)
-                  </CardTitle>
-                  <CardDescription>
-                    Manage your live contact services and monitor performance
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 text-center text-gray-500">
+              {publishedServices.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
                     No published services.
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ) : (
+                publishedServices.map((service) => (
+                  <Card
+                    key={service.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {service.name}
+                      </CardTitle>
+                      <CardDescription>{service.summary}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div>Type: {service.type}</div>
+                    </CardContent>
+                    <div className="flex gap-2 p-4">
+                      <Button size="sm" variant="outline">
+                        View
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(service)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </Card>
+                ))
+              )}
             </TabsContent>
           </Tabs>
         </div>

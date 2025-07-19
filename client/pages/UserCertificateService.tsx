@@ -8,56 +8,36 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ServicesMenu } from "@/components/ui/sidebar";
-import { Search } from "lucide-react";
-
-const dummyCertificates = [
-  {
-    id: 1,
-    title: "Birth Certificate",
-    description: "Apply for birth certificate",
-  },
-  {
-    id: 2,
-    title: "Domicile Certificate",
-    description: "Apply for domicile certificate",
-  },
-  {
-    id: 3,
-    title: "Caste Certificate",
-    description: "Apply for caste certificate",
-  },
-];
+import { getServices } from "../lib/localStorageUtils";
 
 export default function UserCertificateService() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("");
-  const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-  };
-  const filteredCertificates = dummyCertificates.filter((c) =>
-    c.title.toLowerCase().includes(search.toLowerCase()),
+  const [modalCert, setModalCert] = useState(null);
+  const publishedCerts = getServices().filter((s) => s.status === "published");
+  const filteredCerts = publishedCerts.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase()),
   );
+  const stats = {
+    published: publishedCerts.length,
+    active: 0,
+    total: publishedCerts.length,
+  };
 
   return (
     <div className="flex min-h-screen">
       <ServicesMenu />
       <div className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-2">Certificate Service</h1>
+          <h1 className="text-3xl font-bold mb-2">Certificates</h1>
           <p className="text-gray-600 mb-8">
-            Browse and apply for certificates.
+            Browse available certificates and view details.
           </p>
-
-          {/* Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Published Services
+                  Published Certificates
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -65,14 +45,14 @@ export default function UserCertificateService() {
                   {stats.published}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  +12% from last month
+                  +0% from last month
                 </p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Services
+                  Active Certificates
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -87,7 +67,7 @@ export default function UserCertificateService() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Services
+                  Total Certificates
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -100,52 +80,148 @@ export default function UserCertificateService() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Search and Filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8 items-center">
-            <div className="relative w-full md:w-1/2">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search certificates..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <select
-              className="border rounded px-3 py-2 text-sm"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="">All Types</option>
-              <option value="type1">Type 1</option>
-              <option value="type2">Type 2</option>
-            </select>
+          <div className="mb-8 flex items-center gap-4">
+            <Input
+              type="text"
+              placeholder="Search certificates..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full md:w-1/2"
+            />
           </div>
-
-          {/* Certificates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCertificates.map((cert) => (
+            {filteredCerts.map((cert) => (
               <Card
                 key={cert.id}
                 className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
               >
                 <CardHeader>
-                  <CardTitle>{cert.title}</CardTitle>
-                  <CardDescription>{cert.description}</CardDescription>
+                  <CardTitle>{cert.name}</CardTitle>
+                  <CardDescription>{cert.summary}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button className="w-full">Apply</Button>
+                  <Button
+                    onClick={() => setModalCert(cert)}
+                    className="w-full mt-2 bg-blue-600 text-white"
+                  >
+                    View Details
+                  </Button>
                 </CardContent>
               </Card>
             ))}
-            {filteredCertificates.length === 0 && (
+            {filteredCerts.length === 0 && (
               <div className="col-span-full text-center text-gray-500 py-8">
                 No certificates found.
               </div>
             )}
           </div>
+          {/* Modal for Certificate Details */}
+          {modalCert && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 relative animate-fade-in overflow-y-auto max-h-[90vh]">
+                <button
+                  onClick={() => setModalCert(null)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+                <h2 className="text-2xl font-bold mb-4">{modalCert.name}</h2>
+                <p className="mb-2 text-gray-700">{modalCert.summary}</p>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Process Steps</h3>
+                  <ul className="list-disc pl-6">
+                    {modalCert.processSteps &&
+                      modalCert.processSteps.map((step, idx) => (
+                        <li key={idx}>
+                          <span className="font-medium">{step.slNo}.</span>{" "}
+                          {step.stepDetails}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Supportive Documents</h3>
+                  <ul className="list-disc pl-6">
+                    {modalCert.documents &&
+                      modalCert.documents.map((doc, idx) => (
+                        <li key={idx}>
+                          <span className="font-medium">{doc.slNo}.</span>{" "}
+                          {doc.documentType} (Valid Proof: {doc.validProof})
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Contact Person</h3>
+                  {modalCert.contact && (
+                    <ul className="list-disc pl-6">
+                      <li>
+                        <span className="font-medium">Service Name:</span>{" "}
+                        {modalCert.contact.serviceName}
+                      </li>
+                      <li>
+                        <span className="font-medium">District:</span>{" "}
+                        {modalCert.contact.district}
+                      </li>
+                      <li>
+                        <span className="font-medium">Sub District:</span>{" "}
+                        {modalCert.contact.subDistrict}
+                      </li>
+                      <li>
+                        <span className="font-medium">Block:</span>{" "}
+                        {modalCert.contact.block}
+                      </li>
+                      <li>
+                        <span className="font-medium">Name:</span>{" "}
+                        {modalCert.contact.name}
+                      </li>
+                      <li>
+                        <span className="font-medium">Designation:</span>{" "}
+                        {modalCert.contact.designation}
+                      </li>
+                      <li>
+                        <span className="font-medium">Contact:</span>{" "}
+                        {modalCert.contact.contact}
+                      </li>
+                      <li>
+                        <span className="font-medium">Email:</span>{" "}
+                        {modalCert.contact.email}
+                      </li>
+                    </ul>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Service Details</h3>
+                  <p>{modalCert.serviceDetails}</p>
+                </div>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Status</h3>
+                  <p>{modalCert.status}</p>
+                </div>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Process Info</h3>
+                  <ul className="list-disc pl-6">
+                    <li>
+                      <span className="font-medium">New:</span>{" "}
+                      {modalCert.processNew}
+                    </li>
+                    <li>
+                      <span className="font-medium">Update:</span>{" "}
+                      {modalCert.processUpdate}
+                    </li>
+                    <li>
+                      <span className="font-medium">Lost:</span>{" "}
+                      {modalCert.processLost}
+                    </li>
+                    <li>
+                      <span className="font-medium">Surrender:</span>{" "}
+                      {modalCert.processSurrender}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

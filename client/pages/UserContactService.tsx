@@ -1,34 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getServices } from "../lib/localStorageUtils";
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ServicesMenu } from "@/components/ui/sidebar";
-import { Search } from "lucide-react";
-
-const dummyContacts = [
-  { id: 1, name: "John Doe", role: "Officer", phone: "123-456-7890" },
-  { id: 2, name: "Jane Smith", role: "Support", phone: "987-654-3210" },
-  { id: 3, name: "Alice Brown", role: "Manager", phone: "555-123-4567" },
-];
 
 export default function UserContactService() {
+  const [services, setServices] = useState([]);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("");
-  const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-  };
-  const filteredContacts = dummyContacts.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase()),
+  const [modalService, setModalService] = useState(null);
+
+  useEffect(() => {
+    setServices(getServices());
+  }, []);
+
+  // Only show published contact services
+  const isContactService = (s) => !s.category || s.category === "Contact";
+  const publishedServices = services.filter(
+    (s) => s.status === "published" && isContactService(s),
   );
+  const filteredServices = publishedServices.filter((s) =>
+    s.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const stats = {
+    published: publishedServices.length,
+    active: 0,
+    total: publishedServices.length,
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -39,13 +44,12 @@ export default function UserContactService() {
           <p className="text-gray-600 mb-8">
             Find contact information for service officers.
           </p>
-
           {/* Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Published Services
+                  Published Contact Services
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -53,14 +57,14 @@ export default function UserContactService() {
                   {stats.published}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  +12% from last month
+                  +0% from last month
                 </p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Services
+                  Active Contact Services
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -75,7 +79,7 @@ export default function UserContactService() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Services
+                  Total Contact Services
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -88,56 +92,131 @@ export default function UserContactService() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Search and Filter */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8 items-center">
-            <div className="relative w-full md:w-1/2">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search contacts..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <select
-              className="border rounded px-3 py-2 text-sm"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="">All Roles</option>
-              <option value="officer">Officer</option>
-              <option value="support">Support</option>
-              <option value="manager">Manager</option>
-            </select>
+          {/* Search Bar */}
+          <div className="mb-8 flex items-center gap-4">
+            <Input
+              type="text"
+              placeholder="Search contact services..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full md:w-1/2"
+            />
           </div>
-
-          {/* Contacts Grid */}
+          {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredContacts.map((contact) => (
+            {filteredServices.map((service) => (
               <Card
-                key={contact.id}
+                key={service.id}
                 className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
               >
                 <CardHeader>
-                  <CardTitle>{contact.name}</CardTitle>
-                  <CardDescription>{contact.role}</CardDescription>
+                  <CardTitle>{service.name}</CardTitle>
+                  <CardDescription>{service.summary}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Phone:</span>
-                    <span>{contact.phone}</span>
-                  </div>
+                  <Button
+                    onClick={() => setModalService(service)}
+                    className="w-full mt-2 bg-blue-600 text-white"
+                  >
+                    View Details
+                  </Button>
                 </CardContent>
               </Card>
             ))}
-            {filteredContacts.length === 0 && (
+            {filteredServices.length === 0 && (
               <div className="col-span-full text-center text-gray-500 py-8">
-                No contacts found.
+                No contact services found.
               </div>
             )}
           </div>
+          {/* Modal for Contact Service Details */}
+          {modalService && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 relative animate-fade-in overflow-y-auto max-h-[90vh]">
+                <button
+                  onClick={() => setModalService(null)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+                <h2 className="text-2xl font-bold mb-4">{modalService.name}</h2>
+                <p className="mb-2 text-gray-700">{modalService.summary}</p>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Type</h3>
+                  <p>{modalService.type}</p>
+                </div>
+                {modalService.offices && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold mb-2">Offices</h3>
+                    <ul className="list-disc pl-6">
+                      {modalService.offices.map((office, idx) => (
+                        <li key={idx}>
+                          <span className="font-medium">
+                            {office.officeName}
+                          </span>
+                          {office.address && `, ${office.address}`}
+                          {office.district && `, ${office.district}`}
+                          {office.block && `, ${office.block}`}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {modalService.posts && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold mb-2">Posts</h3>
+                    <ul className="list-disc pl-6">
+                      {modalService.posts.map((post, idx) => (
+                        <li key={idx}>
+                          <span className="font-medium">{post.postName}</span>
+                          {modalService.offices &&
+                            modalService.offices[post.officeIndex] && (
+                              <span>
+                                {" "}
+                                (Office:{" "}
+                                {
+                                  modalService.offices[post.officeIndex]
+                                    .officeName
+                                }
+                                )
+                              </span>
+                            )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {modalService.employees && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold mb-2">Employees</h3>
+                    <ul className="list-disc pl-6">
+                      {modalService.employees.map((emp, idx) => (
+                        <li key={idx}>
+                          <span className="font-medium">
+                            {emp.employeeName}
+                          </span>
+                          {modalService.posts &&
+                            modalService.posts[emp.postIndex] && (
+                              <span>
+                                {" "}
+                                (Post:{" "}
+                                {modalService.posts[emp.postIndex].postName})
+                              </span>
+                            )}
+                          {emp.email && <span>, Email: {emp.email}</span>}
+                          {emp.phone && <span>, Phone: {emp.phone}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Status</h3>
+                  <p>{modalService.status}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

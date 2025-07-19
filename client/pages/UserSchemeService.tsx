@@ -36,49 +36,53 @@ export default function UserSchemeService() {
           <p className="text-gray-600 mb-8">
             Browse available government schemes and view details.
           </p>
-          {publishedSchemes.length === 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Published Schemes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    +0% from last month
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Active Schemes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    Currently in use
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Schemes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    Across all categories
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Published Schemes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.published}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  +0% from last month
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Active Schemes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.active}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Currently in use
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Schemes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {stats.total}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Across all categories
+                </p>
+              </CardContent>
+            </Card>
+          </div>
           <div className="mb-8 flex items-center gap-4">
             <Input
               type="text"

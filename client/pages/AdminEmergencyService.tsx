@@ -38,73 +38,6 @@ export default function AdminEmergencyService() {
   useEffect(() => {
     let loaded = getServices();
     // If there are no published departments, add realistic dummy data
-    if (!loaded.some((d) => d.status === "published" && d.category)) {
-      const fireDept = {
-        name: "Fire & Rescue Department",
-        category: "Fire",
-        summary: "Handles fire emergencies and rescue operations.",
-        status: "published",
-        tags: [],
-        applicationMode: "",
-        eligibility: "",
-        offices: [
-          {
-            officeName: "Central Fire Station",
-            address: "123 Main St, City Center",
-            district: "Central",
-            block: "A",
-          },
-          {
-            officeName: "Northside Fire Post",
-            address: "456 North Ave",
-            district: "North",
-            block: "B",
-          },
-        ],
-        posts: [
-          { postName: "Fire Officer", officeIndex: 0 },
-          { postName: "Rescue Specialist", officeIndex: 1 },
-        ],
-        employees: [
-          { employeeName: "Ramesh Kumar", postIndex: 0 },
-          { employeeName: "Sita Devi", postIndex: 1 },
-        ],
-      };
-      const policeDept = {
-        name: "Police Department",
-        category: "Safety",
-        summary: "Ensures public safety and law enforcement.",
-        status: "published",
-        tags: [],
-        applicationMode: "",
-        eligibility: "",
-        offices: [
-          {
-            officeName: "City Police HQ",
-            address: "789 Police Rd",
-            district: "Central",
-            block: "HQ",
-          },
-          {
-            officeName: "Westside Police Post",
-            address: "321 West St",
-            district: "West",
-            block: "C",
-          },
-        ],
-        posts: [
-          { postName: "Inspector", officeIndex: 0 },
-          { postName: "Constable", officeIndex: 1 },
-        ],
-        employees: [
-          { employeeName: "Amit Singh", postIndex: 0 },
-          { employeeName: "Priya Sharma", postIndex: 1 },
-        ],
-      };
-      saveService(fireDept);
-      saveService(policeDept);
-      loaded = getServices();
-    }
     setDepartments(loaded);
   }, []);
 
@@ -123,20 +56,6 @@ export default function AdminEmergencyService() {
     pending: 2,
   };
   // Dummy pending departments for display
-  // const pendingDepartments = dummyDepartments;
-  // Dummy published departments for display
-  // const publishedDepartments = [
-  //   {
-  //     name: "Fire & Rescue Department",
-  //     category: "Fire",
-  //     summary: "Handles fire emergencies and rescue operations.",
-  //   },
-  //   {
-  //     name: "Police Department",
-  //     category: "Safety",
-  //     summary: "Ensures public safety and law enforcement.",
-  //   },
-  // ];
 
   const handleEdit = (dept) => {
     navigate(`/admin/edit-department/${encodeURIComponent(dept.name)}`);

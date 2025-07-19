@@ -13,20 +13,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Plus,
-  ArrowLeft,
   Clock,
   CheckCircle,
-  Eye,
   Edit,
   Trash2,
   Activity,
   Users,
-  Settings,
-  User,
 } from "lucide-react";
 import AdminSidebar from "@/components/ui/AdminSidebar";
 
@@ -46,7 +40,6 @@ export default function AdminLayout({
 }
 
 export function DashboardHome() {
-  const [activeTab, setActiveTab] = useState("create");
   const [services, setServices] = useState([]);
   const navigate = useNavigate();
 
@@ -62,19 +55,20 @@ export function DashboardHome() {
     }
   };
 
-  const deleteService = (id: string) => {
+  const handleDelete = (id: string) => {
     deleteService(id);
     setServices(getServices());
   };
 
-  const pendingServices = services.filter((s: any) => !s.approved);
-  const publishedServices = services.filter((s: any) => s.approved);
+  const pendingServices = services.filter((s: any) => s.status === "pending");
+  const publishedServices = services.filter(
+    (s: any) => s.status === "published",
+  );
 
   const stats = {
     published: publishedServices.length,
-    active: 23, // This will need to be updated based on actual active services
+    active: 0, // Update if you have an 'active' field
     total: services.length,
-    users: 1234, // This will need to be updated based on actual users
     pending: pendingServices.length,
   };
 
@@ -101,9 +95,7 @@ export function DashboardHome() {
             <div className="text-2xl font-bold text-green-600">
               {stats.published}
             </div>
-            <p className="text-xs text-muted-foreground">
-              +12% from last month
-            </p>
+            <p className="text-xs text-muted-foreground">+0% from last month</p>
           </CardContent>
         </Card>
         <Card className="hover:shadow-lg transition-shadow">
@@ -136,187 +128,105 @@ export function DashboardHome() {
         </Card>
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Users</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Services
+            </CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {stats.users}
+              {stats.total}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Users who saw service details
-            </p>
+            <p className="text-xs text-muted-foreground">All services</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Admin Actions */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="create" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Create Service
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Pending Services
-          </TabsTrigger>
-          <TabsTrigger value="published" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Published Services
-          </TabsTrigger>
-        </TabsList>
-        {/* Create Service Tab */}
-        <TabsContent value="create" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Create New Service
-              </CardTitle>
-              <CardDescription>
-                Add a new information service to the platform
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <Plus className="h-8 w-8 text-primary" />
+      {/* Pending Services */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold mb-4">Pending Services</h2>
+        <div className="space-y-4">
+          {pendingServices.length === 0 && (
+            <div className="text-gray-500">No pending services.</div>
+          )}
+          {pendingServices.map((service: any) => (
+            <div
+              key={service.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex-1">
+                <h4 className="font-medium">{service.name}</h4>
+                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                  {service.category && (
+                    <Badge variant="outline">{service.category}</Badge>
+                  )}
                 </div>
-                <h3 className="text-lg font-medium mb-2">
-                  Ready to create a new service?
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Use our service creation form to add new offerings to the
-                  platform
-                </p>
-                <Button size="lg" asChild>
-                  <Link to="/admin/create-service">
-                    Create New Service
-                    <Plus className="ml-2 h-4 w-4" />
-                  </Link>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Review
+                </Button>
+                <Button size="sm" onClick={() => approveService(service.id)}>
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDelete(service.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        {/* Pending Services Tab */}
-        <TabsContent value="pending" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Pending Services ({pendingServices.length})
-              </CardTitle>
-              <CardDescription>
-                Review and approve submitted services
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {pendingServices.map((service: any) => (
-                  <div
-                    key={service.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <h4 className="font-medium">{service.name}</h4>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                        <span>by {service.submittedBy}</span>
-                        <span>•</span>
-                        <span>{service.submittedDate}</span>
-                        <Badge variant="outline">{service.category}</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4 mr-1" />
-                        Review
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => approveService(service.id)}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => deleteService(service.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Published Services */}
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Published Services</h2>
+        <div className="space-y-4">
+          {publishedServices.length === 0 && (
+            <div className="text-gray-500">No published services.</div>
+          )}
+          {publishedServices.map((service: any) => (
+            <div
+              key={service.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex-1">
+                <h4 className="font-medium">{service.name}</h4>
+                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                  {service.category && (
+                    <Badge variant="outline">{service.category}</Badge>
+                  )}
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        {/* Published Services Tab */}
-        <TabsContent value="published" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
-                Published Services ({publishedServices.length})
-              </CardTitle>
-              <CardDescription>
-                Manage your live services and monitor performance
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {publishedServices.map((service: any) => (
-                  <div
-                    key={service.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <h4 className="font-medium">{service.name}</h4>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                        <span>Published {service.publishedDate}</span>
-                        <span>•</span>
-                        <Badge variant="outline">{service.category}</Badge>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {service.views} views
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {service.orders} orders
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => deleteService(service.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline">
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  View
+                </Button>
+                <Button size="sm" variant="outline">
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDelete(service.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Remove
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -23,6 +23,13 @@ export default function AdminSchemeService() {
   }, []);
   const pendingSchemes = schemes.filter((s) => s.status === "pending");
   const publishedSchemes = schemes.filter((s) => s.status === "published");
+  const stats = {
+    published: publishedSchemes.length,
+    active: 0,
+    total: schemes.length,
+    users: 0,
+    pending: pendingSchemes.length,
+  };
   const handleEdit = (scheme) => {
     navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
   };
@@ -32,13 +39,6 @@ export default function AdminSchemeService() {
   const handleDelete = (scheme) => {
     deleteService(scheme.id);
     setSchemes(getServices());
-  };
-  const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-    users: 1234,
-    pending: 2,
   };
   return (
     <div className="flex min-h-screen">

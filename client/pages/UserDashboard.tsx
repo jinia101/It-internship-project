@@ -13,33 +13,33 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   ArrowLeft,
-  FileText,
   Activity,
   TrendingUp,
-  Star,
-  Users,
-  Clock,
   CheckCircle,
-  X,
 } from "lucide-react";
 import { ServicesMenu } from "@/components/ui/sidebar";
+import { getServices } from "../lib/localStorageUtils";
 
 export default function UserDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [services, setServices] = useState([]);
   const navigate = useNavigate();
 
-  const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-  };
+  useEffect(() => {
+    setServices(getServices().filter((s) => s.status === "published"));
+  }, []);
 
   const filteredServices = services.filter(
-    (service: any) =>
-      service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchQuery.toLowerCase()),
+    (service) =>
+      service.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      service.summary?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const stats = {
+    published: services.length,
+    active: 0, // You can update this if you have an 'active' field
+    total: services.length,
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -88,7 +88,7 @@ export default function UserDashboard() {
                   {stats.published}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  +12% from last month
+                  +0% from last month
                 </p>
               </CardContent>
             </Card>
@@ -156,27 +156,19 @@ export default function UserDashboard() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-1">
-                        {service.title}
+                        {service.name}
                       </CardTitle>
-                      <CardDescription>{service.description}</CardDescription>
+                      <CardDescription>{service.summary}</CardDescription>
                     </div>
-                    <Badge variant="secondary">{service.applicationMode}</Badge>
+                    {service.applicationMode && (
+                      <Badge variant="secondary">
+                        {service.applicationMode}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-1">
-                        <Users className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium">
-                          {service.views} opened
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-gray-600">
-                        <Users className="h-4 w-4" />
-                        <span>{service.provider}</span>
-                      </div>
-                    </div>
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center space-x-2">
                         <div className="h-2 w-2 bg-green-500 rounded-full"></div>
