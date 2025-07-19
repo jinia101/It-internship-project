@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { getServices, updateService, deleteService } from "../lib/localStorageUtils";
+import {
+  getServices,
+  updateService,
+  deleteService,
+} from "../lib/localStorageUtils";
 import AdminLayout from "./AdminDashboard";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +12,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +27,7 @@ import {
   Activity,
   Users,
 } from "lucide-react";
+import AdminSidebar from "@/components/ui/AdminSidebar";
 
 export default function SchemeService() {
   const [activeTab, setActiveTab] = useState("create");
@@ -33,7 +39,7 @@ export default function SchemeService() {
   }, []);
 
   const approveService = (id: string) => {
-    const serviceToApprove = getServices().find(s => s.id === id);
+    const serviceToApprove = getServices().find((s) => s.id === id);
     if (serviceToApprove) {
       updateService({ ...serviceToApprove, status: "published" });
       setServices(getServices());
@@ -46,7 +52,9 @@ export default function SchemeService() {
   };
 
   const pendingServices = services.filter((s: any) => s.status === "pending");
-  const publishedServices = services.filter((s: any) => s.status === "published");
+  const publishedServices = services.filter(
+    (s: any) => s.status === "published",
+  );
 
   const stats = {
     published: publishedServices.length,
@@ -56,239 +64,259 @@ export default function SchemeService() {
     pending: pendingServices.length,
   };
 
+  const handleEdit = (scheme) => {
+    navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
+  };
+  const handleView = (scheme) => {
+    navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
+  };
+  const handleDelete = (scheme) => {
+    deleteService(scheme.id);
+    setServices(getServices());
+  };
+
   return (
-    <AdminLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Scheme Service</h1>
-          <p className="text-gray-600">
-            Manage and review all government schemes and their details here.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Published Services
-              </CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {stats.published}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                +12% from last month
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Active Services
-              </CardTitle>
-              <Activity className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.active}
-              </div>
-              <p className="text-xs text-muted-foreground">Currently in use</p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+    <div className="flex min-h-screen">
+      <AdminSidebar />
+      <div className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Scheme Service</h1>
+            <p className="text-gray-600">
+              Manage and review all government schemes and their details here.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Published Services
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.published}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  +12% from last month
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Active Services
+                </CardTitle>
+                <Activity className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.active}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Currently in use
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Pending Services
+                </CardTitle>
+                <Clock className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">
+                  {stats.pending}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Awaiting approval
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Users</CardTitle>
+                <Users className="h-4 w-4 text-purple-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">
+                  {stats.users}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Users who saw service details
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="create" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create Service
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
                 Pending Services
-              </CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {stats.pending}
-              </div>
-              <p className="text-xs text-muted-foreground">Awaiting approval</p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Users</CardTitle>
-              <Users className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {stats.users}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Users who saw service details
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="create" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create Service
-            </TabsTrigger>
-            <TabsTrigger value="pending" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Pending Services
-            </TabsTrigger>
-            <TabsTrigger value="published" className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Published Services
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="create" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Create New Service
-                </CardTitle>
-                <CardDescription>
-                  Add a new scheme service to the platform
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                    <Plus className="h-8 w-8 text-primary" />
+              </TabsTrigger>
+              <TabsTrigger
+                value="published"
+                className="flex items-center gap-2"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Published Services
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="create" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Create New Service
+                  </CardTitle>
+                  <CardDescription>
+                    Add a new scheme service to the platform
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                      <Plus className="h-8 w-8 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">
+                      Ready to create a new scheme service?
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Use our service creation form to add new offerings to the
+                      platform
+                    </p>
+                    <Button size="lg" asChild>
+                      <Link to="/admin/create-scheme-service">
+                        Create New Service
+                        <Plus className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">
-                    Ready to create a new scheme service?
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Use our service creation form to add new offerings to the
-                    platform
-                  </p>
-                  <Button size="lg" asChild>
-                    <Link to="/admin/create-scheme-service">
-                      Create New Service
-                      <Plus className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="pending" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Pending Services ({pendingServices.length})
-                </CardTitle>
-                <CardDescription>
-                  Review and approve submitted scheme services
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {pendingServices.map((service: any) => (
-                    <div
-                      key={service.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-medium">{service.name}</h4>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                          <span>by {service.submittedBy}</span>
-                          <span>•</span>
-                          <span>{service.submittedDate}</span>
-                          <Badge variant="outline">{service.category}</Badge>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="pending" className="space-y-6">
+              {pendingServices.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No pending schemes.
+                  </CardContent>
+                </Card>
+              ) : (
+                pendingServices.map((scheme) => (
+                  <Card
+                    key={scheme.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold">
+                        {scheme.name}
+                      </CardTitle>
+                      <CardDescription>{scheme.summary}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Add more details if needed */}
+                    </CardContent>
+                    <CardFooter className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleView(scheme)}
+                      >
+                        View
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(scheme)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(scheme)}
+                      >
+                        Delete
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+            <TabsContent value="published" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Published Services ({publishedServices.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your live scheme services and monitor performance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {publishedServices.map((service: any) => (
+                      <div
+                        key={service.id}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <h4 className="font-medium">{service.name}</h4>
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                            <span>Published {service.publishedDate}</span>
+                            <span>•</span>
+                            <Badge variant="outline">{service.category}</Badge>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {service.views} views
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              {service.orders} orders
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => deleteService(service.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Review
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => approveService(service.id)}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteService(service.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="published" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5" />
-                  Published Services ({publishedServices.length})
-                </CardTitle>
-                <CardDescription>
-                  Manage your live scheme services and monitor performance
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {publishedServices.map((service: any) => (
-                    <div
-                      key={service.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-medium">{service.name}</h4>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                          <span>Published {service.publishedDate}</span>
-                          <span>•</span>
-                          <Badge variant="outline">{service.category}</Badge>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            {service.views} views
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            {service.orders} orders
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => deleteService(service.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Remove
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </div>
-    </AdminLayout>
   );
 }

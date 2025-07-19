@@ -10,23 +10,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ServicesMenu } from "@/components/ui/sidebar";
 import { Search } from "lucide-react";
-
-const dummyEmergencies = [
-  { id: 1, service: "Police", phone: "100", office: "Central Police Station" },
-  { id: 2, service: "Fire Brigade", phone: "101", office: "Main Fire Station" },
-  { id: 3, service: "Ambulance", phone: "102", office: "City Hospital" },
-];
+import { getServices } from "../lib/localStorageUtils";
 
 export default function UserEmergencyService() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("");
+  const [modalDept, setModalDept] = useState(null);
   const stats = {
     published: 156,
     active: 23,
     total: 179,
   };
-  const filteredEmergencies = dummyEmergencies.filter((e) =>
-    e.service.toLowerCase().includes(search.toLowerCase()),
+  const publishedDepartments = getServices().filter(
+    (d) => d.status === "published" && d.category,
+  );
+  const filteredDepartments = publishedDepartments.filter((d) =>
+    d.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -112,31 +111,106 @@ export default function UserEmergencyService() {
             </select>
           </div>
 
-          {/* Emergency Services Grid */}
+          {/* Emergency Departments Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEmergencies.map((e) => (
+            {filteredDepartments.map((dept) => (
               <Card
-                key={e.id}
+                key={dept.id}
                 className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
               >
                 <CardHeader>
-                  <CardTitle>{e.service}</CardTitle>
-                  <CardDescription>Office: {e.office}</CardDescription>
+                  <CardTitle>{dept.name}</CardTitle>
+                  <CardDescription>{dept.summary}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Phone:</span>
-                    <span>{e.phone}</span>
-                  </div>
+                  <Button
+                    onClick={() => setModalDept(dept)}
+                    className="w-full mt-2 bg-blue-600 text-white"
+                  >
+                    View Details
+                  </Button>
                 </CardContent>
               </Card>
             ))}
-            {filteredEmergencies.length === 0 && (
+            {filteredDepartments.length === 0 && (
               <div className="col-span-full text-center text-gray-500 py-8">
                 No emergency services found.
               </div>
             )}
           </div>
+
+          {/* Modal for Department Details */}
+          {modalDept && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 relative animate-fade-in overflow-y-auto max-h-[90vh]">
+                <button
+                  onClick={() => setModalDept(null)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl"
+                >
+                  &times;
+                </button>
+                <h2 className="text-2xl font-bold mb-4">{modalDept.name}</h2>
+                <p className="mb-2 text-gray-700">{modalDept.summary}</p>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Offices</h3>
+                  <ul className="list-disc pl-6">
+                    {modalDept.offices &&
+                      modalDept.offices.map((office, idx) => (
+                        <li key={idx} className="mb-1">
+                          <span className="font-medium">
+                            {office.officeName}
+                          </span>{" "}
+                          - {office.address}, {office.district}, Block:{" "}
+                          {office.block}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Posts</h3>
+                  <ul className="list-disc pl-6">
+                    {modalDept.posts &&
+                      modalDept.posts.map((post, idx) => (
+                        <li key={idx} className="mb-1">
+                          <span className="font-medium">{post.postName}</span>{" "}
+                          (Office:{" "}
+                          {modalDept.offices &&
+                            modalDept.offices[post.officeIndex]?.officeName}
+                          )
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Employees</h3>
+                  <ul className="list-disc pl-6">
+                    {modalDept.employees &&
+                      modalDept.employees.map((emp, idx) => (
+                        <li key={idx} className="mb-1">
+                          <span className="font-medium">
+                            {emp.employeeName}
+                          </span>{" "}
+                          (Post:{" "}
+                          {modalDept.posts &&
+                            modalDept.posts[emp.postIndex]?.postName}
+                          )
+                          {emp.email && (
+                            <span className="ml-2 text-xs text-gray-500">
+                              Email: {emp.email}
+                            </span>
+                          )}
+                          {emp.phone && (
+                            <span className="ml-2 text-xs text-gray-500">
+                              Phone: {emp.phone}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

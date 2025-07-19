@@ -1,77 +1,35 @@
-import { useState, useEffect } from "react";
-import {
-  getServices,
-  updateService,
-  deleteService,
-} from "../lib/localStorageUtils";
 import AdminSidebar from "@/components/ui/AdminSidebar";
-import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardContent,
+  CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  Plus,
-  Clock,
-  CheckCircle,
-  Eye,
-  Trash2,
-  Activity,
-  Users,
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 
-export default function GrievancesService() {
+export default function AdminCertificateService() {
   const [activeTab, setActiveTab] = useState("create");
-  const [services, setServices] = useState([]);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    setServices(getServices());
-  }, []);
-
-  const approveService = (id: string) => {
-    const serviceToApprove = getServices().find((s) => s.id === id);
-    if (serviceToApprove) {
-      updateService({ ...serviceToApprove, status: "published" });
-      setServices(getServices());
-    }
-  };
-
-  const handleDeleteService = (id: string) => {
-    deleteService(id);
-    setServices(getServices());
-  };
-
-  const pendingServices = services.filter((s: any) => s.status === "pending");
-  const publishedServices = services.filter(
-    (s: any) => s.status === "published",
-  );
-
   const stats = {
-    published: publishedServices.length,
-    active: 23, // This will need to be updated based on actual active services
-    total: services.length,
-    users: 1234, // This will need to be updated based on actual users
-    pending: pendingServices.length,
+    published: 156,
+    active: 23,
+    total: 179,
+    users: 1234,
+    pending: 2,
   };
-
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
       <div className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Grievances Service</h1>
-            <p className="text-gray-600">
-              Manage and review all grievances services and their details here.
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold mb-2">Certificate Service</h1>
+          <p className="text-gray-600 mb-8">
+            Manage and review all certificate services and their details here.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -166,7 +124,7 @@ export default function GrievancesService() {
                     Create New Service
                   </CardTitle>
                   <CardDescription>
-                    Add a new grievances service to the platform
+                    Add a new certificate service to the platform
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -175,14 +133,14 @@ export default function GrievancesService() {
                       <Plus className="h-8 w-8 text-primary" />
                     </div>
                     <h3 className="text-lg font-medium mb-2">
-                      Ready to create a new grievances service?
+                      Ready to create a new certificate service?
                     </h3>
                     <p className="text-gray-600 mb-6">
                       Use our service creation form to add new offerings to the
                       platform
                     </p>
                     <Button size="lg" asChild>
-                      <Link to="/admin/create-grievances-service">
+                      <Link to="/admin/create-certificate-service">
                         Create New Service
                         <Plus className="ml-2 h-4 w-4" />
                       </Link>
@@ -196,46 +154,15 @@ export default function GrievancesService() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Pending Services ({pendingServices.length})
+                    Pending Services (0)
                   </CardTitle>
                   <CardDescription>
-                    Review and approve submitted grievances services
+                    Review and approve submitted certificate services
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {pendingServices.map((service: any) => (
-                      <div
-                        key={service.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex-1">
-                          <h4 className="font-medium">{service.name}</h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                            <span>by {service.submittedBy}</span>
-                            <span>•</span>
-                            <span>{service.submittedDate}</span>
-                            <Badge variant="outline">{service.category}</Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link to={`/admin/service-details/${service.id}`}>
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Link>
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteService(service.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="space-y-4 text-center text-gray-500">
+                    No pending services.
                   </div>
                 </CardContent>
               </Card>
@@ -245,54 +172,16 @@ export default function GrievancesService() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
-                    Published Services ({publishedServices.length})
+                    Published Services (0)
                   </CardTitle>
                   <CardDescription>
-                    Manage your live grievances services and monitor performance
+                    Manage your live certificate services and monitor
+                    performance
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {publishedServices.map((service: any) => (
-                      <div
-                        key={service.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex-1">
-                          <h4 className="font-medium">{service.name}</h4>
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                            <span>Published {service.publishedDate}</span>
-                            <span>•</span>
-                            <Badge variant="outline">{service.category}</Badge>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              {service.views} views
-                            </span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {service.orders} orders
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteService(service.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="space-y-4 text-center text-gray-500">
+                    No published services.
                   </div>
                 </CardContent>
               </Card>

@@ -28,7 +28,7 @@ import {
   Settings,
   User,
 } from "lucide-react";
-import { ServicesMenu } from "@/components/ui/sidebar";
+import AdminSidebar from "@/components/ui/AdminSidebar";
 
 export default function AdminLayout({
   children,
@@ -37,7 +37,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex min-h-screen">
-      <ServicesMenu />
+      <AdminSidebar />
       <div className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         {children}
       </div>

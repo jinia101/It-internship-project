@@ -1,64 +1,153 @@
-import { useState, useEffect } from "react";
-import {
-  getServices,
-  updateService,
-  deleteService,
-} from "../lib/localStorageUtils";
 import AdminSidebar from "@/components/ui/AdminSidebar";
-import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardContent,
+  CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import {
-  Plus,
-  Clock,
-  CheckCircle,
-  Eye,
-  Trash2,
-  Activity,
-  Users,
-} from "lucide-react";
+  getServices,
+  deleteService,
+  saveService,
+} from "../lib/localStorageUtils";
 
-export default function GrievancesService() {
+const dummyDepartments = [
+  {
+    name: "Disaster Management Department",
+    category: "Disaster Management",
+    summary: "Handles disaster response and preparedness.",
+  },
+  {
+    name: "Healthcare Department",
+    category: "Healthcare",
+    summary: "Provides emergency medical services.",
+  },
+];
+
+export default function AdminEmergencyService() {
   const [activeTab, setActiveTab] = useState("create");
-  const [services, setServices] = useState([]);
   const navigate = useNavigate();
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
-    setServices(getServices());
+    let loaded = getServices();
+    // If there are no published departments, add realistic dummy data
+    if (!loaded.some((d) => d.status === "published" && d.category)) {
+      const fireDept = {
+        name: "Fire & Rescue Department",
+        category: "Fire",
+        summary: "Handles fire emergencies and rescue operations.",
+        status: "published",
+        tags: [],
+        applicationMode: "",
+        eligibility: "",
+        offices: [
+          {
+            officeName: "Central Fire Station",
+            address: "123 Main St, City Center",
+            district: "Central",
+            block: "A",
+          },
+          {
+            officeName: "Northside Fire Post",
+            address: "456 North Ave",
+            district: "North",
+            block: "B",
+          },
+        ],
+        posts: [
+          { postName: "Fire Officer", officeIndex: 0 },
+          { postName: "Rescue Specialist", officeIndex: 1 },
+        ],
+        employees: [
+          { employeeName: "Ramesh Kumar", postIndex: 0 },
+          { employeeName: "Sita Devi", postIndex: 1 },
+        ],
+      };
+      const policeDept = {
+        name: "Police Department",
+        category: "Safety",
+        summary: "Ensures public safety and law enforcement.",
+        status: "published",
+        tags: [],
+        applicationMode: "",
+        eligibility: "",
+        offices: [
+          {
+            officeName: "City Police HQ",
+            address: "789 Police Rd",
+            district: "Central",
+            block: "HQ",
+          },
+          {
+            officeName: "Westside Police Post",
+            address: "321 West St",
+            district: "West",
+            block: "C",
+          },
+        ],
+        posts: [
+          { postName: "Inspector", officeIndex: 0 },
+          { postName: "Constable", officeIndex: 1 },
+        ],
+        employees: [
+          { employeeName: "Amit Singh", postIndex: 0 },
+          { employeeName: "Priya Sharma", postIndex: 1 },
+        ],
+      };
+      saveService(fireDept);
+      saveService(policeDept);
+      loaded = getServices();
+    }
+    setDepartments(loaded);
   }, []);
 
-  const approveService = (id: string) => {
-    const serviceToApprove = getServices().find((s) => s.id === id);
-    if (serviceToApprove) {
-      updateService({ ...serviceToApprove, status: "published" });
-      setServices(getServices());
-    }
-  };
-
-  const handleDeleteService = (id: string) => {
-    deleteService(id);
-    setServices(getServices());
-  };
-
-  const pendingServices = services.filter((s: any) => s.status === "pending");
-  const publishedServices = services.filter(
-    (s: any) => s.status === "published",
+  const publishedDepartments = departments.filter(
+    (d) => d.status === "published" && d.category,
+  );
+  const pendingDepartments = departments.filter(
+    (d) => d.status === "pending" && d.category,
   );
 
   const stats = {
-    published: publishedServices.length,
-    active: 23, // This will need to be updated based on actual active services
-    total: services.length,
-    users: 1234, // This will need to be updated based on actual users
-    pending: pendingServices.length,
+    published: 156,
+    active: 23,
+    total: 179,
+    users: 1234,
+    pending: 2,
+  };
+  // Dummy pending departments for display
+  // const pendingDepartments = dummyDepartments;
+  // Dummy published departments for display
+  // const publishedDepartments = [
+  //   {
+  //     name: "Fire & Rescue Department",
+  //     category: "Fire",
+  //     summary: "Handles fire emergencies and rescue operations.",
+  //   },
+  //   {
+  //     name: "Police Department",
+  //     category: "Safety",
+  //     summary: "Ensures public safety and law enforcement.",
+  //   },
+  // ];
+
+  const handleEdit = (dept) => {
+    navigate(`/admin/edit-department/${encodeURIComponent(dept.name)}`);
+  };
+
+  const handleView = (dept) => {
+    navigate(`/admin/edit-department/${encodeURIComponent(dept.name)}`);
+  };
+  const handleDelete = (dept) => {
+    deleteService(dept.id);
+    setDepartments(getServices());
   };
 
   return (
@@ -66,12 +155,10 @@ export default function GrievancesService() {
       <AdminSidebar />
       <div className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Grievances Service</h1>
-            <p className="text-gray-600">
-              Manage and review all grievances services and their details here.
-            </p>
-          </div>
+          <h1 className="text-3xl font-bold mb-2">Emergency Service</h1>
+          <p className="text-gray-600 mb-8">
+            Manage and review all emergency services and their details here.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -166,7 +253,7 @@ export default function GrievancesService() {
                     Create New Service
                   </CardTitle>
                   <CardDescription>
-                    Add a new grievances service to the platform
+                    Add a new emergency service to the platform
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -175,14 +262,14 @@ export default function GrievancesService() {
                       <Plus className="h-8 w-8 text-primary" />
                     </div>
                     <h3 className="text-lg font-medium mb-2">
-                      Ready to create a new grievances service?
+                      Ready to create a new emergency service?
                     </h3>
                     <p className="text-gray-600 mb-6">
                       Use our service creation form to add new offerings to the
                       platform
                     </p>
                     <Button size="lg" asChild>
-                      <Link to="/admin/create-grievances-service">
+                      <Link to="/admin/create-emergency-service">
                         Create New Service
                         <Plus className="ml-2 h-4 w-4" />
                       </Link>
@@ -196,41 +283,42 @@ export default function GrievancesService() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Pending Services ({pendingServices.length})
+                    Pending Departments ({pendingDepartments.length})
                   </CardTitle>
                   <CardDescription>
-                    Review and approve submitted grievances services
+                    Review and manage submitted emergency departments
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {pendingServices.map((service: any) => (
+                    {pendingDepartments.map((dept, idx) => (
                       <div
-                        key={service.id}
+                        key={idx}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex-1">
-                          <h4 className="font-medium">{service.name}</h4>
+                          <h4 className="font-medium">{dept.name}</h4>
                           <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                            <span>by {service.submittedBy}</span>
-                            <span>•</span>
-                            <span>{service.submittedDate}</span>
-                            <Badge variant="outline">{service.category}</Badge>
+                            <span className="bg-gray-100 px-2 py-1 rounded text-xs">
+                              {dept.category}
+                            </span>
+                          </div>
+                          <div className="text-gray-500 text-sm mt-2">
+                            {dept.summary}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link to={`/admin/service-details/${service.id}`}>
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Link>
+                          <Button size="sm" variant="outline">
+                            View
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteService(service.id)}
+                            onClick={() => handleEdit(dept)}
                           >
-                            <Trash2 className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="outline">
                             Delete
                           </Button>
                         </div>
@@ -245,50 +333,52 @@ export default function GrievancesService() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5" />
-                    Published Services ({publishedServices.length})
+                    Published Departments ({publishedDepartments.length})
                   </CardTitle>
                   <CardDescription>
-                    Manage your live grievances services and monitor performance
+                    Manage your live emergency departments and monitor
+                    performance
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {publishedServices.map((service: any) => (
+                    {publishedDepartments.map((dept, idx) => (
                       <div
-                        key={service.id}
+                        key={dept.id || idx}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex-1">
-                          <h4 className="font-medium">{service.name}</h4>
+                          <h4 className="font-medium">{dept.name}</h4>
                           <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                            <span>Published {service.publishedDate}</span>
-                            <span>•</span>
-                            <Badge variant="outline">{service.category}</Badge>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />
-                              {service.views} views
+                            <span className="bg-gray-100 px-2 py-1 rounded text-xs">
+                              {dept.category}
                             </span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {service.orders} orders
-                            </span>
+                          </div>
+                          <div className="text-gray-500 text-sm mt-2">
+                            {dept.summary}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleDeleteService(service.id)}
+                            onClick={() => handleView(dept)}
                           >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Remove
+                            View
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(dept)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDelete(dept)}
+                          >
+                            Delete
                           </Button>
                         </div>
                       </div>

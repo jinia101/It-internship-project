@@ -5,10 +5,26 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ServicesMenu } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
+
+const previousFeedbacks = [
+  {
+    id: 1,
+    message: "Great service, but could be faster.",
+    date: "2024-07-20",
+    status: "Pending",
+  },
+  {
+    id: 2,
+    message: "Had trouble with the application form.",
+    date: "2024-07-19",
+    status: "Resolved",
+  },
+];
 
 export default function UserFeedbackService() {
   const [feedback, setFeedback] = useState("");
@@ -102,6 +118,39 @@ export default function UserFeedbackService() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Previous Feedbacks Section */}
+          <div className="mt-10">
+            <h2 className="text-2xl font-bold mb-4">Your Previous Feedbacks</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {previousFeedbacks.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No previous feedbacks.
+                  </CardContent>
+                </Card>
+              ) : (
+                previousFeedbacks.map((fb) => (
+                  <Card
+                    key={fb.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader>
+                      <CardTitle
+                        className={`text-base inline-block px-3 py-1 rounded-md font-semibold w-fit ${fb.status === "Pending" ? "bg-yellow-200 text-yellow-800" : "bg-green-200 text-green-800"}`}
+                      >
+                        {fb.status}
+                      </CardTitle>
+                      <CardDescription>{fb.date}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div>{fb.message}</div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
