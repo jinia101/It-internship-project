@@ -14,7 +14,9 @@ import { getServices } from "../lib/localStorageUtils";
 export default function UserCertificateService() {
   const [search, setSearch] = useState("");
   const [modalCert, setModalCert] = useState(null);
-  const publishedCerts = getServices().filter((s) => s.status === "published");
+  const publishedCerts = getServices().filter(
+    (s) => s.status === "published" && s.category === "Certificate",
+  );
   const filteredCerts = publishedCerts.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()),
   );

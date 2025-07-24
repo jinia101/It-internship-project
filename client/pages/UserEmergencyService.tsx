@@ -22,7 +22,7 @@ export default function UserEmergencyService() {
     total: 179,
   };
   const publishedDepartments = getServices().filter(
-    (d) => d.status === "published" && d.category,
+    (d) => d.status === "published" && d.category === "Emergency",
   );
   const filteredDepartments = publishedDepartments.filter((d) =>
     d.name.toLowerCase().includes(search.toLowerCase()),

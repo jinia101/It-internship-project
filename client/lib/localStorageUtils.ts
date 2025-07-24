@@ -43,7 +43,12 @@ export const saveService = (service: Omit<Service, 'id'>): Service => {
   return newService;
 };
 
-export const updateService = (updatedService: Service): Service => {
+export const getServiceByName = (name) => {
+  const services = getServices();
+  return services.find((s) => s.name === name) || null;
+};
+
+export const updateService = (updatedService) => {
   let services = getServices();
   services = services.map((service) =>
     service.id === updatedService.id ? updatedService : service

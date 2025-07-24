@@ -16,7 +16,7 @@ export default function UserSchemeService() {
   const [search, setSearch] = useState("");
   const [modalScheme, setModalScheme] = useState(null);
   const publishedSchemes = getServices().filter(
-    (s) => s.status === "published",
+    (s) => s.status === "published" && s.category === "Scheme",
   );
   const filteredSchemes = publishedSchemes.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()),

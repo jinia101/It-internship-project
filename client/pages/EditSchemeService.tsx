@@ -11,21 +11,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getServices, updateService } from "../lib/localStorageUtils";
+import { getServices, updateService, getServiceByName } from "../lib/localStorageUtils";
 
 export default function EditSchemeService() {
   const { name } = useParams();
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
   const [eligibility, setEligibility] = useState([""]);
   const [schemeDetails, setSchemeDetails] = useState([""]);
   const [whereToApply, setWhereToApply] = useState([""]);
   const [process, setProcess] = useState([""]);
 
   useEffect(() => {
-    const services = getServices();
-    const scheme = services.find(
-      (s) => s.name === decodeURIComponent(name || ""),
-    );
+    const scheme = getServiceByName(decodeURIComponent(name || ""));
     if (scheme) {
       if (scheme.eligibilityDetails) setEligibility(scheme.eligibilityDetails);
       if (scheme.schemeDetails) setSchemeDetails(scheme.schemeDetails);
@@ -40,31 +38,44 @@ export default function EditSchemeService() {
   const handleRemove = (setter, arr, idx) =>
     setter(arr.filter((_, i) => i !== idx));
 
-  const handlePublish = (e) => {
-    e.preventDefault();
+  const saveData = (status) => {
     const services = getServices();
     const idx = services.findIndex(
       (s) => s.name === decodeURIComponent(name || ""),
     );
     if (idx !== -1) {
-      services[idx].status = "published";
-      services[idx].eligibilityDetails = eligibility;
-      services[idx].schemeDetails = schemeDetails;
-      services[idx].whereToApply = whereToApply;
-      services[idx].processDetails = process;
-      updateService(services[idx]);
+      const serviceToUpdate = {
+        ...services[idx],
+        eligibilityDetails: eligibility,
+        schemeDetails: schemeDetails,
+        whereToApply: whereToApply,
+        processDetails: process,
+      };
+      if (status) {
+        serviceToUpdate.status = status;
+      }
+      updateService(serviceToUpdate);
     }
+  };
+
+  const handlePublish = (e) => {
+    e.preventDefault();
+    saveData("published");
     navigate("/admin-scheme-service");
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">
-          Edit Scheme: {decodeURIComponent(name || "")}
-        </h1>
-        <form onSubmit={handlePublish} className="max-w-2xl mx-auto space-y-8">
-          {/* Eligibility */}
+  const handleSaveForLater = () => {
+    saveData();
+    navigate("/admin-scheme-service");
+  };
+
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => prev - 1);
+
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Eligibility</CardTitle>
@@ -106,7 +117,9 @@ export default function EditSchemeService() {
               </Button>
             </CardContent>
           </Card>
-          {/* Scheme Details */}
+        );
+      case 2:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Scheme Details</CardTitle>
@@ -146,7 +159,9 @@ export default function EditSchemeService() {
               </Button>
             </CardContent>
           </Card>
-          {/* Where to Apply */}
+        );
+      case 3:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Where to Apply</CardTitle>
@@ -188,7 +203,9 @@ export default function EditSchemeService() {
               </Button>
             </CardContent>
           </Card>
-          {/* Process */}
+        );
+      case 4:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Process</CardTitle>
@@ -223,12 +240,66 @@ export default function EditSchemeService() {
               </Button>
             </CardContent>
           </Card>
-          <div className="flex justify-end">
-            <Button type="submit" className="bg-green-600 text-white">
-              Publish
-            </Button>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">
+          Edit Scheme: {decodeURIComponent(name || "")}
+        </h1>
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-4 flex items-center justify-center">
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>1</div>
+              <div className={`h-1 w-16 ${step > 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            </div>
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>2</div>
+              <div className={`h-1 w-16 ${step > 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            </div>
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>3</div>
+              <div className={`h-1 w-16 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            </div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>4</div>
           </div>
-        </form>
+          <form onSubmit={handlePublish} className="space-y-8">
+            {renderStep()}
+            <div className="flex justify-between mt-8">
+              <div>
+                <Button
+                  type="button"
+                  onClick={handleSaveForLater}
+                  className="bg-gray-500 text-white"
+                >
+                  Save for Later
+                </Button>
+              </div>
+              <div className="flex gap-4">
+                {step > 1 && (
+                  <Button type="button" onClick={prevStep}>
+                    Back
+                  </Button>
+                )}
+                {step < 4 && (
+                  <Button type="button" onClick={nextStep}>
+                    Next
+                  </Button>
+                )}
+                {step === 4 && (
+                  <Button type="submit" className="bg-green-600 text-white">
+                    Publish
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

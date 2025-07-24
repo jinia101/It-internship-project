@@ -18,22 +18,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getServices, updateService } from "../lib/localStorageUtils";
+import { getServices, updateService, getServiceByName } from "../lib/localStorageUtils";
 
 export default function EditCertificateService() {
   const { name } = useParams();
   const navigate = useNavigate();
-  // Add Process
+  const [step, setStep] = useState(1);
   const [serviceName, setServiceName] = useState("");
   const [processSteps, setProcessSteps] = useState([
     { slNo: "1", stepDetails: "" },
   ]);
-  // Add Supportive Document
   const [docServiceName, setDocServiceName] = useState("");
   const [documents, setDocuments] = useState([
     { slNo: "1", documentType: "", validProof: "" },
   ]);
-  // Add Contact Person
   const [contact, setContact] = useState({
     serviceName: "",
     district: "",
@@ -44,7 +42,6 @@ export default function EditCertificateService() {
     contact: "",
     email: "",
   });
-  // Publish Service Detail
   const [serviceDetails, setServiceDetails] = useState("");
   const [status, setStatus] = useState("Active");
   const [processNew, setProcessNew] = useState("");
@@ -53,10 +50,7 @@ export default function EditCertificateService() {
   const [processSurrender, setProcessSurrender] = useState("");
 
   useEffect(() => {
-    const services = getServices();
-    const cert = services.find(
-      (s) => s.name === decodeURIComponent(name || ""),
-    );
+    const cert = getServiceByName(decodeURIComponent(name || ""));
     if (cert) {
       setServiceName(cert.serviceName || "");
       setProcessSteps(cert.processSteps || [{ slNo: "1", stepDetails: "" }]);
@@ -85,7 +79,6 @@ export default function EditCertificateService() {
     }
   }, [name]);
 
-  // Handlers for dynamic fields
   const addProcessStep = () =>
     setProcessSteps([
       ...processSteps,
@@ -116,37 +109,50 @@ export default function EditCertificateService() {
   const handleContactChange = (e) =>
     setContact({ ...contact, [e.target.name]: e.target.value });
 
-  const handlePublish = (e) => {
-    e.preventDefault();
+  const saveData = (publishStatus) => {
     const services = getServices();
     const idx = services.findIndex(
       (s) => s.name === decodeURIComponent(name || ""),
     );
     if (idx !== -1) {
-      services[idx].serviceName = serviceName;
-      services[idx].processSteps = processSteps;
-      services[idx].docServiceName = docServiceName;
-      services[idx].documents = documents;
-      services[idx].contact = contact;
-      services[idx].serviceDetails = serviceDetails;
-      services[idx].status = "published";
-      services[idx].processNew = processNew;
-      services[idx].processUpdate = processUpdate;
-      services[idx].processLost = processLost;
-      services[idx].processSurrender = processSurrender;
-      updateService(services[idx]);
+      const serviceToUpdate = {
+        ...services[idx],
+        serviceName,
+        processSteps,
+        docServiceName,
+        documents,
+        contact,
+        serviceDetails,
+        processNew,
+        processUpdate,
+        processLost,
+        processSurrender,
+      };
+      if (publishStatus) {
+        serviceToUpdate.status = publishStatus;
+      }
+      updateService(serviceToUpdate);
     }
+  };
+
+  const handlePublish = (e) => {
+    e.preventDefault();
+    saveData("published");
     navigate("/admin-certificate-service");
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">
-          Edit Certificate Service: {decodeURIComponent(name || "")}
-        </h1>
-        <form onSubmit={handlePublish} className="max-w-2xl mx-auto space-y-8">
-          {/* Add Process */}
+  const handleSaveForLater = () => {
+    saveData();
+    navigate("/admin-certificate-service");
+  };
+
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => prev - 1);
+
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Add Process</CardTitle>
@@ -200,7 +206,9 @@ export default function EditCertificateService() {
               </div>
             </CardContent>
           </Card>
-          {/* Add Supportive Document */}
+        );
+      case 2:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Add Supportive Document</CardTitle>
@@ -258,7 +266,9 @@ export default function EditCertificateService() {
               </div>
             </CardContent>
           </Card>
-          {/* Add Contact Person */}
+        );
+      case 3:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Add Contact Person</CardTitle>
@@ -320,7 +330,9 @@ export default function EditCertificateService() {
               </div>
             </CardContent>
           </Card>
-          {/* Publish Service Detail */}
+        );
+      case 4:
+        return (
           <Card>
             <CardHeader>
               <CardTitle>Publish Service Detail</CardTitle>
@@ -381,12 +393,66 @@ export default function EditCertificateService() {
               </div>
             </CardContent>
           </Card>
-          <div className="flex justify-end">
-            <Button type="submit" className="bg-green-600 text-white">
-              Publish
-            </Button>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">
+          Edit Certificate Service: {decodeURIComponent(name || "")}
+        </h1>
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-4 flex items-center justify-center">
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>1</div>
+              <div className={`h-1 w-16 ${step > 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            </div>
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>2</div>
+              <div className={`h-1 w-16 ${step > 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            </div>
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>3</div>
+              <div className={`h-1 w-16 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            </div>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>4</div>
           </div>
-        </form>
+          <form onSubmit={handlePublish} className="space-y-8">
+            {renderStep()}
+            <div className="flex justify-between mt-8">
+              <div>
+                <Button
+                  type="button"
+                  onClick={handleSaveForLater}
+                  className="bg-gray-500 text-white"
+                >
+                  Save for Later
+                </Button>
+              </div>
+              <div className="flex gap-4">
+                {step > 1 && (
+                  <Button type="button" onClick={prevStep}>
+                    Back
+                  </Button>
+                )}
+                {step < 4 && (
+                  <Button type="button" onClick={nextStep}>
+                    Next
+                  </Button>
+                )}
+                {step === 4 && (
+                  <Button type="submit" className="bg-green-600 text-white">
+                    Publish
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
