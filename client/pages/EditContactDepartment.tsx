@@ -26,7 +26,7 @@ export default function EditContactDepartment() {
   const [offices, setOffices] = useState([
     { officeName: "", level: "", officePinCode: "", officeLandmark: "", district: "", block: "" },
   ]);
-  const [posts, setPosts] = useState([{ postName: "", officeIndex: 0 }]);
+  const [posts, setPosts] = useState([{ postName: "", rank: "", officeIndex: 0 }]);
   const [employees, setEmployees] = useState([
     { employeeName: "", postIndex: 0, email: "", phone: "" },
   ]);
@@ -63,7 +63,7 @@ export default function EditContactDepartment() {
   };
 
   // Post handlers
-  const addPost = () => setPosts([...posts, { postName: "", officeIndex: 0 }]);
+  const addPost = () => setPosts([...posts, { postName: "", rank: "", officeIndex: 0 }]);
   const handlePostChange = (idx, e) => {
     const { name, value } = e.target;
     setPosts(posts.map((p, i) => (i === idx ? { ...p, [name]: value } : p)));
@@ -161,12 +161,39 @@ export default function EditContactDepartment() {
                       />
                     </div>
                     <div>
-                      <Label>Address</Label>
+                      <Label>Level</Label>
+                      <Select
+                        value={office.level}
+                        onValueChange={(value) => handleOfficeSelectChange(idx, "level", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="state">State</SelectItem>
+                          <SelectItem value="district">District</SelectItem>
+                          <SelectItem value="sub division">Sub Division</SelectItem>
+                          <SelectItem value="nagar panchayat">Nagar Panchayat</SelectItem>
+                          <SelectItem value="AMC">AMC</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Office Pin Code</Label>
                       <Input
-                        name="address"
-                        value={office.address}
+                        name="officePinCode"
+                        value={office.officePinCode}
                         onChange={(e) => handleOfficeChange(idx, e)}
-                        placeholder="Enter address"
+                        placeholder="Enter office pin code"
+                      />
+                    </div>
+                    <div>
+                      <Label>Office Landmark</Label>
+                      <Input
+                        name="officeLandmark"
+                        value={office.officeLandmark}
+                        onChange={(e) => handleOfficeChange(idx, e)}
+                        placeholder="Enter office landmark"
                       />
                     </div>
                     <div>
@@ -223,6 +250,15 @@ export default function EditContactDepartment() {
                         value={post.postName}
                         onChange={(e) => handlePostChange(idx, e)}
                         placeholder="Enter post name"
+                      />
+                    </div>
+                    <div>
+                      <Label>Rank</Label>
+                      <Input
+                        name="rank"
+                        value={post.rank}
+                        onChange={(e) => handlePostChange(idx, e)}
+                        placeholder="Enter rank"
                       />
                     </div>
                     <div>
