@@ -170,7 +170,7 @@ export default function AdminContactService() {
                     </p>
                     <Button size="lg" asChild>
                       <Link to="/admin/create-contact-service">
-                        Create New Service
+                        Create New Contact
                         <Plus className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>

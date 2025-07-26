@@ -164,7 +164,7 @@ export default function AdminSchemeService() {
                     </p>
                     <Button size="lg" asChild>
                       <Link to="/admin/create-scheme-service">
-                        Create New Service
+                        Create New Scheme
                         <Plus className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>

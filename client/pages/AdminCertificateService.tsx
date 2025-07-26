@@ -168,7 +168,7 @@ export default function AdminCertificateService() {
                     </p>
                     <Button size="lg" asChild>
                       <Link to="/admin/create-certificate-service">
-                        Create New Service
+                        Create New Certificate
                         <Plus className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
