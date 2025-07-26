@@ -24,7 +24,7 @@ export default function EditContactDepartment() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [offices, setOffices] = useState([
-    { officeName: "", address: "", district: "", block: "" },
+    { officeName: "", level: "", officePinCode: "", officeLandmark: "", district: "", block: "" },
   ]);
   const [posts, setPosts] = useState([{ postName: "", officeIndex: 0 }]);
   const [employees, setEmployees] = useState([
@@ -44,8 +44,14 @@ export default function EditContactDepartment() {
   const addOffice = () =>
     setOffices([
       ...offices,
-      { officeName: "", address: "", district: "", block: "" },
+      { officeName: "", level: "", officePinCode: "", officeLandmark: "", district: "", block: "" },
     ]);
+  const handleOfficeSelectChange = (idx, name, value) => {
+    setOffices(
+      offices.map((o, i) => (i === idx ? { ...o, [name]: value } : o)),
+    );
+  };
+
   const handleOfficeChange = (idx, e) => {
     const { name, value } = e.target;
     setOffices(
