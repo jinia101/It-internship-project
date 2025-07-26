@@ -196,7 +196,7 @@ export default function AdminCertificateService() {
                       <CardDescription>{cert.summary}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {/* Add more details if needed */}
+                      <p className="text-sm text-gray-500">{cert.certificateType}</p>
                     </CardContent>
                     <CardFooter className="flex gap-2">
                       <Button
@@ -245,7 +245,7 @@ export default function AdminCertificateService() {
                       <CardDescription>{cert.summary}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {/* Add more details if needed */}
+                      <p className="text-sm text-gray-500">{cert.certificateType}</p>
                     </CardContent>
                     <CardFooter className="flex gap-2">
                       <Button

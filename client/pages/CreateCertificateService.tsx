@@ -64,6 +64,7 @@ export default function CreateCertificateService() {
     docSurrender: "",
     onlineUrl: "",
     offlineAddress: "",
+    certificateType: "",
   });
 
   const [documents, setDocuments] = useState([
@@ -170,6 +171,7 @@ export default function CreateCertificateService() {
         tags,
         status: "pending",
         type: "certificate",
+        certificateType: formData.certificateType,
       });
       toast({
         title: "Service Created Successfully!",
@@ -249,6 +251,25 @@ export default function CreateCertificateService() {
                     required
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="certificateType">Certificate Type *</Label>
+                <Select
+                  value={formData.certificateType}
+                  onValueChange={(value) =>
+                    handleSelectChange("certificateType", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select certificate type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="New Certificate">New Certificate</SelectItem>
+                    <SelectItem value="Update Certificate">Update Certificate</SelectItem>
+                    <SelectItem value="Surrender Certificate">Surrender Certificate</SelectItem>
+                    <SelectItem value="Lost Certificate">Lost Certificate</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="summary">Service Summary *</Label>

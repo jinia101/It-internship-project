@@ -146,8 +146,8 @@ export default function CreateContactService() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Regular">Regular</SelectItem>
-                    <SelectItem value="Irregular">Irregular</SelectItem>
+                    <SelectItem value="Emergency Contacts">Emergency Contacts</SelectItem>
+                    <SelectItem value="General Contacts">General Contacts</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
