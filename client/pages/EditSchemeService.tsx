@@ -253,20 +253,22 @@ export default function EditSchemeService() {
           Edit Scheme: {decodeURIComponent(name || "")}
         </h1>
         <div className="max-w-2xl mx-auto">
-          <div className="mb-4 flex items-center justify-center">
-            <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>1</div>
-              <div className={`h-1 w-16 ${step > 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+          <div className="mb-4 flex items-center justify-center space-x-4">
+            <div className="flex flex-col items-center">
+              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Eligibility</div>
+              <div className={`h-1 w-16 mt-2 ${step > 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
             </div>
-            <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>2</div>
-              <div className={`h-1 w-16 ${step > 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            <div className="flex flex-col items-center">
+              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Scheme Details</div>
+              <div className={`h-1 w-16 mt-2 ${step > 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
             </div>
-            <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>3</div>
-              <div className={`h-1 w-16 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+            <div className="flex flex-col items-center">
+              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Where to Apply</div>
+              <div className={`h-1 w-16 mt-2 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
             </div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>4</div>
+            <div className="flex flex-col items-center">
+              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Process</div>
+            </div>
           </div>
           <form onSubmit={handlePublish} className="space-y-8">
             {renderStep()}
