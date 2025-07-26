@@ -23,8 +23,7 @@ interface Service {
   docUpdate?: string;
   docLost?: string;
   docSurrender?: string;
-  onlineUrl?: string;
-  offlineAddress?: string;
+  applicationLocation?: string;
   tags: string[];
 }
 

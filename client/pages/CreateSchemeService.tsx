@@ -12,6 +12,13 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { saveService } from "../lib/localStorageUtils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function CreateSchemeService() {
   const navigate = useNavigate();
@@ -19,10 +26,13 @@ export default function CreateSchemeService() {
   const [formData, setFormData] = useState({
     name: "",
     summary: "",
+    applicationMode: "",
+    onlineUrl: "",
+    offlineAddress: "",
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -36,7 +46,11 @@ export default function CreateSchemeService() {
       summary: formData.summary,
       status: "pending",
       tags: [],
-      applicationMode: "",
+      applicationMode: formData.applicationMode,
+      applicationLocation: formData.applicationLocation,
+      applicationMode: formData.applicationMode,
+      onlineUrl: formData.onlineUrl,
+      offlineAddress: formData.offlineAddress,
       eligibility: "",
       type: "scheme",
     });
@@ -82,6 +96,58 @@ export default function CreateSchemeService() {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="applicationMode">Where to Apply *</Label>
+                <Select
+                  name="applicationMode"
+                  onValueChange={(value) =>
+                    handleInputChange({
+                      target: { name: "applicationMode", value },
+                    } as any)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Online">Online</SelectItem>
+                    <SelectItem value="Offline">Offline</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(formData.applicationMode === "Online" ||
+                formData.applicationMode === "Both") && (
+                <div className="space-y-2">
+                  <Label htmlFor="onlineUrl">Website URL *</Label>
+                  <Input
+                    id="onlineUrl"
+                    name="onlineUrl"
+                    value={formData.onlineUrl}
+                    onChange={handleInputChange}
+                    placeholder="Enter website URL"
+                    required
+                  />
+                </div>
+              )}
+
+              {(formData.applicationMode === "Offline" ||
+                formData.applicationMode === "Both") && (
+                <div className="space-y-2">
+                  <Label htmlFor="offlineAddress">
+                    Offline Address *
+                  </Label>
+                  <Input
+                    id="offlineAddress"
+                    name="offlineAddress"
+                    value={formData.offlineAddress}
+                    onChange={handleInputChange}
+                    placeholder="Enter offline address"
+                    required
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
           <div className="flex justify-end">
