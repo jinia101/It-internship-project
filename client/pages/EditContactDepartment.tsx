@@ -354,6 +354,7 @@ export default function EditContactDepartment() {
             </div>
             <div className="flex flex-col items-center">
               <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Employees</div>
+              <div className={`h-1 w-16 mt-2 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
             </div>
           </div>
           <form onSubmit={handlePublish} className="space-y-8">
