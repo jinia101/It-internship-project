@@ -28,7 +28,7 @@ export default function EditContactDepartment() {
   ]);
   const [posts, setPosts] = useState([{ postName: "", rank: "", officeIndex: 0 }]);
   const [employees, setEmployees] = useState([
-    { employeeName: "", postIndex: 0, email: "", phone: "" },
+    { employeeName: "", officeIndex: 0, postIndex: 0, email: "", phone: "" },
   ]);
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function EditContactDepartment() {
   const addEmployee = () =>
     setEmployees([
       ...employees,
-      { employeeName: "", postIndex: 0, email: "", phone: "" },
+      { employeeName: "", officeIndex: 0, postIndex: 0, email: "", phone: "" },
     ]);
   const handleEmployeeChange = (idx, e) => {
     const { name, value } = e.target;
@@ -91,6 +91,14 @@ export default function EditContactDepartment() {
       employees.map((emp, i) => (i === idx ? { ...emp, [name]: value } : emp)),
     );
   };
+  const handleEmployeeOfficeChange = (idx, value) => {
+    setEmployees(
+      employees.map((emp, i) =>
+        i === idx ? { ...emp, officeIndex: Number(value), postIndex: 0 } : emp,
+      ),
+    );
+  };
+
   const handleEmployeePostChange = (idx, value) => {
     setEmployees(
       employees.map((emp, i) =>
@@ -318,6 +326,24 @@ export default function EditContactDepartment() {
                       />
                     </div>
                     <div>
+                      <Label>Office</Label>
+                      <Select
+                        value={String(emp.officeIndex)}
+                        onValueChange={(val) => handleEmployeeOfficeChange(idx, val)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select office" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {offices.map((office, oidx) => (
+                            <SelectItem key={oidx} value={String(oidx)}>
+                              {office.officeName || `Office ${oidx + 1}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
                       <Label>Post</Label>
                       <Select
                         value={String(emp.postIndex)}
@@ -329,11 +355,13 @@ export default function EditContactDepartment() {
                           <SelectValue placeholder="Select post" />
                         </SelectTrigger>
                         <SelectContent>
-                          {posts.map((post, pidx) => (
-                            <SelectItem key={pidx} value={String(pidx)}>
-                              {post.postName || `Post ${pidx + 1}`}
-                            </SelectItem>
-                          ))}
+                          {posts
+                            .filter((post) => post.officeIndex === emp.officeIndex)
+                            .map((post, pidx) => (
+                              <SelectItem key={pidx} value={String(pidx)}>
+                                {post.postName || `Post ${pidx + 1}`}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>
