@@ -12,6 +12,7 @@ interface Employee {
   name: string;
   email: string;
   phone: string;
+  designation: string;
 }
 
 interface Post {
@@ -27,7 +28,7 @@ const OfficeDetails: React.FC = () => {
   const [newPost, setNewPost] = useState<Omit<Post, 'id' | 'employees'>>({ postName: '', rank: '' });
   const [showAddPostForm, setShowAddPostForm] = useState(false);
   const [currentPostId, setCurrentPostId] = useState<string | null>(null);
-  const [newEmployee, setNewEmployee] = useState<Omit<Employee, 'id'>>({ name: '', email: '', phone: '' });
+  const [newEmployee, setNewEmployee] = useState<Omit<Employee, 'id'>>({ name: '', email: '', phone: '', designation: '' });
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const handleAddPost = () => {
@@ -39,7 +40,7 @@ const OfficeDetails: React.FC = () => {
   };
 
   const handleAddEmployee = () => {
-    if (currentPostId && newEmployee.name && newEmployee.email && newEmployee.phone) {
+    if (currentPostId && newEmployee.name && newEmployee.email && newEmployee.phone && newEmployee.designation) {
       setPosts(posts.map(post =>
         post.id === currentPostId
           ? {
@@ -130,6 +131,7 @@ const OfficeDetails: React.FC = () => {
                           <TableHead>Name</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Phone</TableHead>
+                          <TableHead>Designation</TableHead>
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -139,6 +141,7 @@ const OfficeDetails: React.FC = () => {
                             <TableCell>{employee.name}</TableCell>
                             <TableCell>{employee.email}</TableCell>
                             <TableCell>{employee.phone}</TableCell>
+                            <TableCell>{employee.designation}</TableCell>
                             <TableCell>
                               <Dialog onOpenChange={(open) => !open && setEditingEmployee(null)}>
                                 <DialogTrigger asChild>
@@ -174,6 +177,15 @@ const OfficeDetails: React.FC = () => {
                                           id="editPhone"
                                           value={editingEmployee.phone}
                                           onChange={(e) => setEditingEmployee({ ...editingEmployee, phone: e.target.value })}
+                                          className="col-span-3"
+                                        />
+                                      </div>
+                                      <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="editDesignation" className="text-right">Designation</Label>
+                                        <Input
+                                          id="editDesignation"
+                                          value={editingEmployee.designation}
+                                          onChange={(e) => setEditingEmployee({ ...editingEmployee, designation: e.target.value })}
                                           className="col-span-3"
                                         />
                                       </div>
@@ -229,6 +241,15 @@ const OfficeDetails: React.FC = () => {
                             id="employeePhone"
                             value={newEmployee.phone}
                             onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="employeeDesignation" className="text-right">Designation</Label>
+                          <Input
+                            id="employeeDesignation"
+                            value={newEmployee.designation}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, designation: e.target.value })}
                             className="col-span-3"
                           />
                         </div>
