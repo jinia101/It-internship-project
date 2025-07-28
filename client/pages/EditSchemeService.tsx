@@ -78,6 +78,9 @@ export default function EditSchemeService() {
     navigate("/admin-scheme-service");
   };
 
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => prev - 1);
+
   
 
   
@@ -328,38 +331,50 @@ export default function EditSchemeService() {
           Edit Scheme: {decodeURIComponent(name || "")}
         </h1>
         <div className="max-w-2xl mx-auto">
-          <div className="mb-4 border-b border-gray-200">
-            <div className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setStep(1)}
-                className={`py-4 px-1 border-b-2 ${step === 1 ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                Eligibility
-              </button>
-              <button
-                onClick={() => setStep(2)}
-                className={`py-4 px-1 border-b-2 ${step === 2 ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                Scheme Details
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                className={`py-4 px-1 border-b-2 ${step === 3 ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                Application Process
-              </button>
-              <button
-                onClick={() => setStep(4)}
-                className={`py-4 px-1 border-b-2 ${step === 4 ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>
-                Contact Service
-              </button>
-            </div>
+          <div className="mb-4 flex items-center justify-center space-x-4">
+            <button
+              onClick={() => setStep(1)}
+              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
+              Eligibility
+            </button>
+            <button
+              onClick={() => setStep(2)}
+              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
+              Scheme Details
+            </button>
+            <button
+              onClick={() => setStep(3)}
+              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
+              Application Process
+            </button>
+            <button
+              onClick={() => setStep(4)}
+              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
+              Contact Service
+            </button>
           </div>
           
           {renderStep()}
-          <div className="flex justify-end mt-8">
-            {step === 4 && (
-              <Button type="submit" className="bg-green-600 text-white" onClick={handlePublish}>
-                Publish
-              </Button>
-            )}
+          <div className="flex justify-between mt-8">
+            <div>
+              {step > 1 && (
+                <Button type="button" onClick={prevStep}>
+                  Back
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-4">
+              {step < 4 && (
+                <Button type="button" onClick={nextStep}>
+                  Save and Next
+                </Button>
+              )}
+              {step === 4 && (
+                <Button type="submit" className="bg-green-600 text-white" onClick={handlePublish}>
+                  Publish
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
