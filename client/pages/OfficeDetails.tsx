@@ -20,6 +20,7 @@ interface Post {
   postName: string;
   rank: string;
   employees: Employee[];
+  isExpanded: boolean;
 }
 
 const OfficeDetails: React.FC = () => {
@@ -33,7 +34,7 @@ const OfficeDetails: React.FC = () => {
 
   const handleAddPost = () => {
     if (newPost.postName && newPost.rank) {
-      setPosts([...posts, { ...newPost, id: Date.now().toString(), employees: [] }]);
+      setPosts([...posts, { ...newPost, id: Date.now().toString(), employees: [], isExpanded: true }]);
       setNewPost({ postName: '', rank: '' });
       setShowAddPostForm(false);
     }
@@ -64,6 +65,12 @@ const OfficeDetails: React.FC = () => {
       })));
       setEditingEmployee(null);
     }
+  };
+
+  const toggleExpansion = (postId: string) => {
+    setPosts(posts.map(post =>
+      post.id === postId ? { ...post, isExpanded: !post.isExpanded } : post
+    ));
   };
 
   return (
@@ -117,11 +124,17 @@ const OfficeDetails: React.FC = () => {
             )}
             {posts.map((post) => (
               <Card key={post.id}>
-                <CardHeader>
-                  <CardTitle>{post.postName} (Rank: {post.rank})</CardTitle>
-                  <p className="text-sm text-gray-500">Employees: {post.employees.length}</p>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div>
+                    <CardTitle>{post.postName} (Rank: {post.rank})</CardTitle>
+                    <p className="text-sm text-gray-500">Employees: {post.employees.length}</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => toggleExpansion(post.id)}>
+                    {post.isExpanded ? "Minimize" : "Maximize"}
+                  </Button>
                 </CardHeader>
-                <CardContent>
+                {post.isExpanded && (
+                  <CardContent>
                   <h3 className="text-lg font-semibold mb-2">Employees:</h3>
                   {post.employees.length === 0 ? (
                     <p className="text-gray-500 text-sm mb-4">No employees added for this post.</p>
@@ -261,6 +274,7 @@ const OfficeDetails: React.FC = () => {
                     </DialogContent>
                   </Dialog>
                 </CardContent>
+                )}
               </Card>
             ))}
           </>
