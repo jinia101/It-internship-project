@@ -17,448 +17,279 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getServices, updateService, getServiceByName } from "../lib/localStorageUtils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { getServices, updateService, getServiceById } from "../lib/localStorageUtils";
 
 export default function EditContactDepartment() {
-  const { name } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [offices, setOffices] = useState([
-    { officeName: "", level: "", officePinCode: "", officeLandmark: "", district: "", block: "" },
-  ]);
-  const [posts, setPosts] = useState([{ postName: "", rank: "", officeIndex: 0 }]);
-  const [employees, setEmployees] = useState([
-    { employeeName: "", officeIndex: 0, postIndex: 0, email: "", phone: "" },
-  ]);
+  const [serviceDetails, setServiceDetails] = useState(null);
+  const [offices, setOffices] = useState([]);
+  const [isAddOfficeDialogOpen, setIsAddOfficeDialogOpen] = useState(false);
+  const [isViewOfficeDialogOpen, setIsViewOfficeDialogOpen] = useState(false);
+  const [selectedOffice, setSelectedOffice] = useState(null);
+  const [newOffice, setNewOffice] = useState({
+    officeName: "",
+    level: "",
+    officePinCode: "",
+    district: "",
+    block: "",
+  });
 
   useEffect(() => {
-    const dept = getServiceByName(decodeURIComponent(name || ""));
+    const dept = getServiceById(id || "");
     if (dept) {
+      setServiceDetails(dept);
       if (dept.offices) setOffices(dept.offices);
-      if (dept.posts) setPosts(dept.posts);
-      if (dept.employees) setEmployees(dept.employees);
     }
-  }, [name]);
+  }, [id]);
 
-  // Office handlers
-  const addOffice = () =>
-    setOffices([
-      ...offices,
-      { officeName: "", level: "", officePinCode: "", officeLandmark: "", district: "", block: "" },
-    ]);
-  const handleOfficeSelectChange = (idx, name, value) => {
-    setOffices(
-      offices.map((o, i) => (i === idx ? { ...o, [name]: value } : o)),
-    );
-  };
-
-  const handleOfficeChange = (idx, e) => {
+  const handleNewOfficeChange = (e) => {
     const { name, value } = e.target;
-    setOffices(
-      offices.map((o, i) => (i === idx ? { ...o, [name]: value } : o)),
-    );
-  };
-  const removeOffice = (idx) => {
-    if (offices.length > 1) setOffices(offices.filter((_, i) => i !== idx));
+    setNewOffice((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Post handlers
-  const addPost = () => setPosts([...posts, { postName: "", rank: "", officeIndex: 0 }]);
-  const handlePostChange = (idx, e) => {
-    const { name, value } = e.target;
-    setPosts(posts.map((p, i) => (i === idx ? { ...p, [name]: value } : p)));
-  };
-  const handlePostOfficeChange = (idx, value) => {
-    setPosts(
-      posts.map((p, i) =>
-        i === idx ? { ...p, officeIndex: Number(value) } : p,
-      ),
-    );
-  };
-  const removePost = (idx) => {
-    if (posts.length > 1) setPosts(posts.filter((_, i) => i !== idx));
+  const handleNewOfficeSelectChange = (name, value) => {
+    setNewOffice((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Employee handlers
-  const addEmployee = () =>
-    setEmployees([
-      ...employees,
-      { employeeName: "", officeIndex: 0, postIndex: 0, email: "", phone: "" },
-    ]);
-  const handleEmployeeChange = (idx, e) => {
-    const { name, value } = e.target;
-    setEmployees(
-      employees.map((emp, i) => (i === idx ? { ...emp, [name]: value } : emp)),
-    );
-  };
-  const handleEmployeeOfficeChange = (idx, value) => {
-    setEmployees(
-      employees.map((emp, i) =>
-        i === idx ? { ...emp, officeIndex: Number(value), postIndex: 0 } : emp,
-      ),
-    );
-  };
+  const handleAddOffice = () => {
+    const updatedOffices = [...offices, { ...newOffice, status: "active" }]; // Default to active
+    setOffices(updatedOffices);
+    if (serviceDetails) {
+      updateService({ ...serviceDetails, offices: updatedOffices });
+    }
+    setNewOffice({
+      officeName: "",
+      level: "",
+      officePinCode: "",
+      district: "",
+      block: "",
+    });
 
-  const handleEmployeePostChange = (idx, value) => {
-    setEmployees(
-      employees.map((emp, i) =>
-        i === idx ? { ...emp, postIndex: Number(value) } : emp,
-      ),
+  const handleToggleOfficeStatus = (index) => {
+    const updatedOffices = offices.map((office, i) =>
+      i === index
+        ? {
+            ...office,
+            status: office.status === "active" ? "inactive" : "active",
+          }
+        : office,
     );
-  };
-  const removeEmployee = (idx) => {
-    if (employees.length > 1)
-      setEmployees(employees.filter((_, i) => i !== idx));
-  };
-
-  const saveData = (status) => {
-    const services = getServices();
-    const idx = services.findIndex(
-      (s) => s.name === decodeURIComponent(name || ""),
-    );
-    if (idx !== -1) {
-      const serviceToUpdate = {
-        ...services[idx],
-        offices,
-        posts,
-        employees,
-      };
-      if (status) {
-        serviceToUpdate.status = status;
-      }
-      updateService(serviceToUpdate);
+    setOffices(updatedOffices);
+    if (serviceDetails) {
+      updateService({ ...serviceDetails, offices: updatedOffices });
     }
   };
 
-  const handlePublish = (e) => {
-    e.preventDefault();
-    saveData("published");
-    navigate("/admin-contact-service");
-  };
-
-  const handleSaveForLater = () => {
-    saveData();
-    navigate("/admin-contact-service");
-  };
-
-  const nextStep = () => setStep((prev) => prev + 1);
-  const prevStep = () => setStep((prev) => prev - 1);
-
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Offices</CardTitle>
-              <CardDescription>
-                Add offices under this department.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {offices.map((office, idx) => (
-                <div key={idx} className="mb-4 border-b pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-                    <div>
-                      <Label>Office Name</Label>
-                      <Input
-                        name="officeName"
-                        value={office.officeName}
-                        onChange={(e) => handleOfficeChange(idx, e)}
-                        placeholder="Enter office name"
-                      />
-                    </div>
-                    <div>
-                      <Label>Level</Label>
-                      <Select
-                        value={office.level}
-                        onValueChange={(value) => handleOfficeSelectChange(idx, "level", value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="state">State</SelectItem>
-                          <SelectItem value="district">District</SelectItem>
-                          <SelectItem value="sub division">Sub Division</SelectItem>
-                          <SelectItem value="nagar panchayat">Nagar Panchayat</SelectItem>
-                          <SelectItem value="AMC">AMC</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Office Pin Code</Label>
-                      <Input
-                        name="officePinCode"
-                        value={office.officePinCode}
-                        onChange={(e) => handleOfficeChange(idx, e)}
-                        placeholder="Enter office pin code"
-                      />
-                    </div>
-                    <div>
-                      <Label>Office Landmark</Label>
-                      <Input
-                        name="officeLandmark"
-                        value={office.officeLandmark}
-                        onChange={(e) => handleOfficeChange(idx, e)}
-                        placeholder="Enter office landmark"
-                      />
-                    </div>
-                    <div>
-                      <Label>District</Label>
-                      <Input
-                        name="district"
-                        value={office.district}
-                        onChange={(e) => handleOfficeChange(idx, e)}
-                        placeholder="Enter district"
-                      />
-                    </div>
-                    <div>
-                      <Label>Block</Label>
-                      <Input
-                        name="block"
-                        value={office.block}
-                        onChange={(e) => handleOfficeChange(idx, e)}
-                        placeholder="Enter block"
-                      />
-                    </div>
-                  </div>
-                  {offices.length > 1 && (
-                    <Button
-                      type="button"
-                      onClick={() => removeOffice(idx)}
-                      className="mt-2 bg-blue-100 text-blue-700"
-                    >
-                      -
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button type="button" onClick={addOffice} className="mt-2">
-                + Add Office
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      case 2:
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Posts</CardTitle>
-              <CardDescription>Create posts under each office.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {posts.map((post, idx) => (
-                <div key={idx} className="mb-4 border-b pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-                    <div>
-                      <Label>Post Name</Label>
-                      <Input
-                        name="postName"
-                        value={post.postName}
-                        onChange={(e) => handlePostChange(idx, e)}
-                        placeholder="Enter post name"
-                      />
-                    </div>
-                    <div>
-                      <Label>Rank</Label>
-                      <Input
-                        name="rank"
-                        value={post.rank}
-                        onChange={(e) => handlePostChange(idx, e)}
-                        placeholder="Enter rank"
-                      />
-                    </div>
-                    <div>
-                      <Label>Office</Label>
-                      <Select
-                        value={String(post.officeIndex)}
-                        onValueChange={(val) => handlePostOfficeChange(idx, val)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select office" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {offices.map((office, oidx) => (
-                            <SelectItem key={oidx} value={String(oidx)}>
-                              {office.officeName || `Office ${oidx + 1}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  {posts.length > 1 && (
-                    <Button
-                      type="button"
-                      onClick={() => removePost(idx)}
-                      className="mt-2 bg-blue-100 text-blue-700"
-                    >
-                      -
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button type="button" onClick={addPost} className="mt-2">
-                + Add Post
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      case 3:
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Employees</CardTitle>
-              <CardDescription>Add employees to specific posts.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {employees.map((emp, idx) => (
-                <div key={idx} className="mb-4 border-b pb-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-                    <div>
-                      <Label>Employee Name</Label>
-                      <Input
-                        name="employeeName"
-                        value={emp.employeeName}
-                        onChange={(e) => handleEmployeeChange(idx, e)}
-                        placeholder="Enter employee name"
-                      />
-                    </div>
-                    <div>
-                      <Label>Office</Label>
-                      <Select
-                        value={String(emp.officeIndex)}
-                        onValueChange={(val) => handleEmployeeOfficeChange(idx, val)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select office" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {offices.map((office, oidx) => (
-                            <SelectItem key={oidx} value={String(oidx)}>
-                              {office.officeName || `Office ${oidx + 1}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Post</Label>
-                      <Select
-                        value={String(emp.postIndex)}
-                        onValueChange={(val) =>
-                          handleEmployeePostChange(idx, val)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select post" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {posts
-                            .filter((post) => post.officeIndex === emp.officeIndex)
-                            .map((post, pidx) => (
-                              <SelectItem key={pidx} value={String(pidx)}>
-                                {post.postName || `Post ${pidx + 1}`}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Email</Label>
-                      <Input
-                        name="email"
-                        value={emp.email}
-                        onChange={(e) => handleEmployeeChange(idx, e)}
-                        placeholder="Enter email address"
-                      />
-                    </div>
-                    <div>
-                      <Label>Phone Number</Label>
-                      <Input
-                        name="phone"
-                        value={emp.phone}
-                        onChange={(e) => handleEmployeeChange(idx, e)}
-                        placeholder="Enter phone number"
-                      />
-                    </div>
-                  </div>
-                  {employees.length > 1 && (
-                    <Button
-                      type="button"
-                      onClick={() => removeEmployee(idx)}
-                      className="mt-2 bg-blue-100 text-blue-700"
-                    >
-                      -
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button type="button" onClick={addEmployee} className="mt-2">
-                + Add Employee
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      default:
-        return null;
-    }
+  const handleViewOffice = (office) => {
+    setSelectedOffice(office);
+    setIsViewOfficeDialogOpen(true);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">
-          Edit Department: {decodeURIComponent(name || "")}
+          Edit Department: {serviceDetails?.name || ""}
         </h1>
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-4 flex items-center justify-center space-x-4">
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Offices</div>
-              <div className={`h-1 w-16 mt-2 ${step > 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Posts</div>
-              <div className={`h-1 w-16 mt-2 ${step > 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Employees</div>
-              <div className={`h-1 w-16 mt-2 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Left Column: Service Details */}
+          <div className="md:w-1/3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Service Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <Label className="text-gray-600">Name:</Label>
+                  <p className="font-medium">{serviceDetails?.name}</p>
+                </div>
+                <div className="mb-4">
+                  <Label className="text-gray-600">Type:</Label>
+                  <p className="font-medium">{serviceDetails?.type}</p>
+                </div>
+                <div className="mb-4">
+                  <Label className="text-gray-600">Summary:</Label>
+                  <p className="font-medium">{serviceDetails?.summary}</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <form onSubmit={handlePublish} className="space-y-8">
-            {renderStep()}
-            <div className="flex justify-between mt-8">
-              <div>
-                <Button
-                  type="button"
-                  onClick={handleSaveForLater}
-                  className="bg-gray-500 text-white"
-                >
-                  Save for Later
+
+          {/* Right Column: Office Management */}
+          <div className="md:w-2/3">
+            <Card>
+              <CardHeader className="flex flex-row justify-between items-center">
+                <CardTitle>Offices</CardTitle>
+                <Button onClick={() => setIsAddOfficeDialogOpen(true)}>
+                  + Add Office
                 </Button>
+              </CardHeader>
+              <CardContent>
+                {offices.length === 0 ? (
+                  <p className="text-gray-500">No offices added yet.</p>
+                ) : (
+                  <div className="grid gap-4">
+                    {offices.map((office, index) => (
+                      <Card key={index} className="flex justify-between items-center p-4">
+                        <div>
+                          <CardTitle className="text-lg">{office.officeName}</CardTitle>
+                          <CardDescription>{office.level} - {office.district}</CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleViewOffice(office)}>
+                            View
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleToggleOfficeStatus(index)}
+                          >
+                            {office.status === "active" ? "Deactivate" : "Activate"}
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Add Office Dialog */}
+        <Dialog open={isAddOfficeDialogOpen} onOpenChange={setIsAddOfficeDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Office</DialogTitle>
+              <DialogDescription>
+                Enter the details for the new office.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="officeName" className="text-right">
+                  Office Name
+                </Label>
+                <Input
+                  id="officeName"
+                  name="officeName"
+                  value={newOffice.officeName}
+                  onChange={handleNewOfficeChange}
+                  className="col-span-3"
+                />
               </div>
-              <div className="flex gap-4">
-                {step > 1 && (
-                  <Button type="button" onClick={prevStep}>
-                    Back
-                  </Button>
-                )}
-                {step < 3 && (
-                  <Button type="button" onClick={nextStep}>
-                    Next
-                  </Button>
-                )}
-                {step === 3 && (
-                  <Button type="submit" className="bg-green-600 text-white">
-                    Publish
-                  </Button>
-                )}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="level" className="text-right">
+                  Level
+                </Label>
+                <Select
+                  name="level"
+                  value={newOffice.level}
+                  onValueChange={(value) => handleNewOfficeSelectChange("level", value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="state">State</SelectItem>
+                    <SelectItem value="district">District</SelectItem>
+                    <SelectItem value="sub division">Sub Division</SelectItem>
+                    <SelectItem value="nagar panchayat">Nagar Panchayat</SelectItem>
+                    <SelectItem value="AMC">AMC</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="officePinCode" className="text-right">
+                  Pincode
+                </Label>
+                <Input
+                  id="officePinCode"
+                  name="officePinCode"
+                  value={newOffice.officePinCode}
+                  onChange={handleNewOfficeChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="district" className="text-right">
+                  District
+                </Label>
+                <Input
+                  id="district"
+                  name="district"
+                  value={newOffice.district}
+                  onChange={handleNewOfficeChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="block" className="text-right">
+                  Block
+                </Label>
+                <Input
+                  id="block"
+                  name="block"
+                  value={newOffice.block}
+                  onChange={handleNewOfficeChange}
+                  className="col-span-3"
+                />
               </div>
             </div>
-          </form>
-        </div>
+            <div className="flex justify-end">
+              <Button onClick={handleAddOffice}>Save Office</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Office Dialog */}
+        <Dialog open={isViewOfficeDialogOpen} onOpenChange={setIsViewOfficeDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Office Details</DialogTitle>
+              <DialogDescription>
+                Details of the selected office.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedOffice && (
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Office Name:</Label>
+                  <p className="col-span-3">{selectedOffice.officeName}</p>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Level:</Label>
+                  <p className="col-span-3">{selectedOffice.level}</p>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Pincode:</Label>
+                  <p className="col-span-3">{selectedOffice.officePinCode}</p>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">District:</Label>
+                  <p className="col-span-3">{selectedOffice.district}</p>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Block:</Label>
+                  <p className="col-span-3">{selectedOffice.block}</p>
+                
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Status:</Label>
+                  <p className="col-span-3">{selectedOffice.status}</p>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -40,7 +40,7 @@ export default function AdminContactService() {
 
   const handleEdit = (service) => {
     navigate(
-      `/admin/edit-contact-department/${encodeURIComponent(service.name)}`,
+      `/admin/edit-contact-department/${service.id}`,
     );
   };
 
