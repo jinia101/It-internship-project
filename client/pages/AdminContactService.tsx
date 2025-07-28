@@ -206,9 +206,6 @@ export default function AdminContactService() {
                       <div>Type: {service.type}</div>
                     </CardContent>
                     <div className="flex gap-2 p-4 ml-auto">
-                      <Button size="sm" variant="outline">
-                        View
-                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
