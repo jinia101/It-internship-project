@@ -10,9 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2, PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getServices, updateService, getServiceByName } from "../lib/localStorageUtils";
+import {
+  getServices,
+  updateService,
+  getServiceByName,
+} from "../lib/localStorageUtils";
 
 export default function EditSchemeService() {
   const { name } = useParams();
@@ -81,15 +84,13 @@ export default function EditSchemeService() {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
-  
-
-  
-
   const handleContactChange = (idx, e) => {
     const { name, value } = e.target;
-    setContacts(contacts.map((contact, i) =>
-      i === idx ? { ...contact, [name]: value } : contact
-    ));
+    setContacts(
+      contacts.map((contact, i) =>
+        i === idx ? { ...contact, [name]: value } : contact,
+      ),
+    );
   };
 
   const addContact = () => {
@@ -200,7 +201,7 @@ export default function EditSchemeService() {
             </CardContent>
           </Card>
         );
-      
+
       case 3:
         return (
           <Card>
@@ -216,7 +217,9 @@ export default function EditSchemeService() {
                   key={idx}
                   className="flex items-start gap-4 p-4 border rounded-lg bg-gray-50"
                 >
-                  <span className="text-lg font-bold text-gray-500">{idx + 1}</span>
+                  <span className="text-lg font-bold text-gray-500">
+                    {idx + 1}
+                  </span>
                   <Textarea
                     value={item}
                     onChange={(e) =>
@@ -261,7 +264,6 @@ export default function EditSchemeService() {
             <CardContent className="space-y-4">
               {contacts.map((contact, idx) => (
                 <div key={idx} className="space-y-4 border p-4 rounded-md">
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       name="district"
@@ -330,50 +332,95 @@ export default function EditSchemeService() {
         <h1 className="text-3xl font-bold mb-6">
           Edit Scheme: {decodeURIComponent(name || "")}
         </h1>
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-4 flex items-center justify-center space-x-4">
-            <button
-              onClick={() => setStep(1)}
-              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
-              Eligibility
-            </button>
-            <button
-              onClick={() => setStep(2)}
-              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
-              Scheme Details
-            </button>
-            <button
-              onClick={() => setStep(3)}
-              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
-              Application Process
-            </button>
-            <button
-              onClick={() => setStep(4)}
-              className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
-              Contact Service
-            </button>
-          </div>
-          
-          {renderStep()}
-          <div className="flex justify-between mt-8">
-            <div>
-              {step > 1 && (
-                <Button type="button" onClick={prevStep}>
-                  Back
-                </Button>
-              )}
+        <div className="flex flex-col items-center justify-center">
+          <div className="grid grid-cols-2 gap-4 place-content-center bg-white p-6 rounded-lg shadow-md">
+            <div className="border p-4 mb-6 rounded-md bg-white shadow-md">
+              <div className="font-semibold">
+                1. Scheme Name:
+                <p className="border-b mb-2 text-gray-500">
+                  {decodeURIComponent(name || "")}
+                </p>
+              </div>{" "}
+              <div className="font-semibold">
+                2. Scheme Summary:
+                <p className="border-b mb-2 text-gray-500">
+                  This is scheme summary
+                </p>
+              </div>
+              <div className="font-semibold">
+                3. Scheme Type:
+                <p className="border-b mb-2 text-gray-500">Central</p>
+              </div>
+              <div className="font-semibold">
+                4. Target Audience:
+                <p className="border-b mb-2 text-gray-500">Everyone</p>
+              </div>
+              <div className="font-semibold">
+                5. Where to Apply:
+                <p className="border-b mb-2 text-gray-500">
+                  Online (https://example.com)
+                </p>
+              </div>
+              <div className="flex justify-around mt-4">
+                <Button>Edit</Button>
+                <Button className="bg-green-500">Activate</Button>
+                <Button variant="destructive">Deactivate</Button>
+              </div>
             </div>
-            <div className="flex gap-4">
-              {step < 4 && (
-                <Button type="button" onClick={nextStep}>
-                  Save and Next
-                </Button>
-              )}
-              {step === 4 && (
-                <Button type="submit" className="bg-green-600 text-white" onClick={handlePublish}>
-                  Publish
-                </Button>
-              )}
+            <div className="max-w-2xl mx-auto">
+              <div className="mb-4 flex items-center justify-center space-x-4">
+                <button
+                  onClick={() => setStep(1)}
+                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 1 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                >
+                  Eligibility
+                </button>
+                <button
+                  onClick={() => setStep(2)}
+                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 2 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                >
+                  Scheme Details
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 3 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                >
+                  Application Process
+                </button>
+                <button
+                  onClick={() => setStep(4)}
+                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 4 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                >
+                  Contact Service
+                </button>
+              </div>
+
+              {renderStep()}
+              <div className="flex justify-between mt-8">
+                <div>
+                  {step > 1 && (
+                    <Button type="button" onClick={prevStep}>
+                      Back
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-4">
+                  {step < 4 && (
+                    <Button type="button" onClick={nextStep}>
+                      Save and Next
+                    </Button>
+                  )}
+                  {(step === 3 || step === 4) && (
+                    <Button
+                      type="submit"
+                      className="bg-green-600 text-white"
+                      onClick={handlePublish}
+                    >
+                      Publish
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
