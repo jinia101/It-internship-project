@@ -94,7 +94,8 @@ const OfficeDetails: React.FC = () => {
                 placeholder="e.g., Senior"
               />
             </div>
-            <div className="md:col-span-3 flex justify-end">
+            <div className="md:col-span-3 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAddPostForm(false)}>Cancel</Button>
               <Button onClick={handleAddPost}>Add Post</Button>
             </div>
           </CardContent>
