@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -18,23 +18,22 @@ interface Post {
   id: string;
   postName: string;
   rank: string;
-  noOfEmployees: number;
   employees: Employee[];
 }
 
 const OfficeDetails: React.FC = () => {
   const { officeName } = useParams<{ officeName: string }>();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [newPost, setNewPost] = useState<Omit<Post, 'id' | 'employees'>>({ postName: '', rank: '', noOfEmployees: 0 });
+  const [newPost, setNewPost] = useState<Omit<Post, 'id' | 'employees'>>({ postName: '', rank: '' });
   const [showAddPostForm, setShowAddPostForm] = useState(false);
   const [currentPostId, setCurrentPostId] = useState<string | null>(null);
   const [newEmployee, setNewEmployee] = useState<Omit<Employee, 'id'>>({ name: '', email: '', phone: '' });
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const handleAddPost = () => {
-    if (newPost.postName && newPost.rank && newPost.noOfEmployees > 0) {
+    if (newPost.postName && newPost.rank) {
       setPosts([...posts, { ...newPost, id: Date.now().toString(), employees: [] }]);
-      setNewPost({ postName: '', rank: '', noOfEmployees: 0 });
+      setNewPost({ postName: '', rank: '' });
       setShowAddPostForm(false);
     }
   };
@@ -43,11 +42,14 @@ const OfficeDetails: React.FC = () => {
     if (currentPostId && newEmployee.name && newEmployee.email && newEmployee.phone) {
       setPosts(posts.map(post =>
         post.id === currentPostId
-          ? { ...post, employees: [...post.employees, { ...newEmployee, id: Date.now().toString() }] }
+          ? {
+              ...post,
+              employees: [...post.employees, { ...newEmployee, id: Date.now().toString() }]
+            }
           : post
       ));
       setNewEmployee({ name: '', email: '', phone: '' });
-      setCurrentPostId(null); // Close the dialog
+      setCurrentPostId(null);
     }
   };
 
@@ -59,7 +61,7 @@ const OfficeDetails: React.FC = () => {
           emp.id === editingEmployee.id ? editingEmployee : emp
         )
       })));
-      setEditingEmployee(null); // Close the dialog
+      setEditingEmployee(null);
     }
   };
 
@@ -91,16 +93,6 @@ const OfficeDetails: React.FC = () => {
                 placeholder="e.g., Senior"
               />
             </div>
-            <div>
-              <Label htmlFor="noOfEmployees">No. of Employees</Label>
-              <Input
-                id="noOfEmployees"
-                type="number"
-                value={newPost.noOfEmployees}
-                onChange={(e) => setNewPost({ ...newPost, noOfEmployees: parseInt(e.target.value) || 0 })}
-                placeholder="e.g., 5"
-              />
-            </div>
             <div className="md:col-span-3 flex justify-end">
               <Button onClick={handleAddPost}>Add Post</Button>
             </div>
@@ -108,7 +100,6 @@ const OfficeDetails: React.FC = () => {
         </Card>
       )}
 
-      {/* Display Posts Section */}
       <div className="grid grid-cols-1 gap-6">
         {posts.length === 0 && !showAddPostForm ? (
           <div className="text-center py-8">
@@ -116,134 +107,141 @@ const OfficeDetails: React.FC = () => {
             <Button onClick={() => setShowAddPostForm(true)}>Add Post</Button>
           </div>
         ) : (
-          posts.map((post) => (
-            <Card key={post.id}>
-              <CardHeader>
-                <CardTitle>{post.postName} (Rank: {post.rank})</CardTitle>
-                <p className="text-sm text-gray-500">Expected Employees: {post.noOfEmployees}</p>
-              </CardHeader>
-              <CardContent>
-                <h3 className="text-lg font-semibold mb-2">Employees:</h3>
-                {post.employees.length === 0 ? (
-                  <p className="text-gray-500 text-sm mb-4">No employees added for this post.</p>
-                ) : (
-                  <Table className="mb-4">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {post.employees.map((employee) => (
-                        <TableRow key={employee.id}>
-                          <TableCell>{employee.name}</TableCell>
-                          <TableCell>{employee.email}</TableCell>
-                          <TableCell>{employee.phone}</TableCell>
-                          <TableCell>
-                            <Dialog onOpenChange={(open) => !open && setEditingEmployee(null)}>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" onClick={() => setEditingEmployee(employee)}>Edit</Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Edit Employee</DialogTitle>
-                                </DialogHeader>
-                                {editingEmployee && (
-                                  <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                      <Label htmlFor="editName" className="text-right">Name</Label>
-                                      <Input
-                                        id="editName"
-                                        value={editingEmployee.name}
-                                        onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
-                                        className="col-span-3"
-                                      />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                      <Label htmlFor="editEmail" className="text-right">Email</Label>
-                                      <Input
-                                        id="editEmail"
-                                        value={editingEmployee.email}
-                                        onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
-                                        className="col-span-3"
-                                      />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                      <Label htmlFor="editPhone" className="text-right">Phone</Label>
-                                      <Input
-                                        id="editPhone"
-                                        value={editingEmployee.phone}
-                                        onChange={(e) => setEditingEmployee({ ...editingEmployee, phone: e.target.value })}
-                                        className="col-span-3"
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-                                <DialogFooter>
-                                  <Button type="submit" onClick={handleEditEmployee}>Save changes</Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </TableCell>
+          <>
+            {posts.length > 0 && !showAddPostForm && (
+              <div className="flex justify-end mb-4">
+                <Button onClick={() => setShowAddPostForm(true)}>Add More Posts</Button>
+              </div>
+            )}
+            {posts.map((post) => (
+              <Card key={post.id}>
+                <CardHeader>
+                  <CardTitle>{post.postName} (Rank: {post.rank})</CardTitle>
+                  <p className="text-sm text-gray-500">Employees: {post.employees.length}</p>
+                </CardHeader>
+                <CardContent>
+                  <h3 className="text-lg font-semibold mb-2">Employees:</h3>
+                  {post.employees.length === 0 ? (
+                    <p className="text-gray-500 text-sm mb-4">No employees added for this post.</p>
+                  ) : (
+                    <Table className="mb-4">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
+                      </TableHeader>
+                      <TableBody>
+                        {post.employees.map((employee) => (
+                          <TableRow key={employee.id}>
+                            <TableCell>{employee.name}</TableCell>
+                            <TableCell>{employee.email}</TableCell>
+                            <TableCell>{employee.phone}</TableCell>
+                            <TableCell>
+                              <Dialog onOpenChange={(open) => !open && setEditingEmployee(null)}>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm" onClick={() => setEditingEmployee(employee)}>Edit</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Edit Employee</DialogTitle>
+                                  </DialogHeader>
+                                  {editingEmployee && (
+                                    <div className="grid gap-4 py-4">
+                                      <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="editName" className="text-right">Name</Label>
+                                        <Input
+                                          id="editName"
+                                          value={editingEmployee.name}
+                                          onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
+                                          className="col-span-3"
+                                        />
+                                      </div>
+                                      <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="editEmail" className="text-right">Email</Label>
+                                        <Input
+                                          id="editEmail"
+                                          value={editingEmployee.email}
+                                          onChange={(e) => setEditingEmployee({ ...editingEmployee, email: e.target.value })}
+                                          className="col-span-3"
+                                        />
+                                      </div>
+                                      <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="editPhone" className="text-right">Phone</Label>
+                                        <Input
+                                          id="editPhone"
+                                          value={editingEmployee.phone}
+                                          onChange={(e) => setEditingEmployee({ ...editingEmployee, phone: e.target.value })}
+                                          className="col-span-3"
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  <DialogFooter>
+                                    <Button type="submit" onClick={handleEditEmployee}>Save changes</Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
 
-                <Dialog onOpenChange={(open) => {
-                  if (!open) {
-                    setCurrentPostId(null);
-                    setNewEmployee({ name: '', email: '', phone: '' });
-                  }
-                }}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={() => setCurrentPostId(post.id)}>Add Employee</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Employee to {post.postName}</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="employeeName" className="text-right">Name</Label>
-                        <Input
-                          id="employeeName"
-                          value={newEmployee.name}
-                          onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-                          className="col-span-3"
-                        />
+                  <Dialog onOpenChange={(open) => {
+                    if (!open) {
+                      setCurrentPostId(null);
+                      setNewEmployee({ name: '', email: '', phone: '' });
+                    }
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" onClick={() => setCurrentPostId(post.id)}>Add Employee</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add Employee to {post.postName}</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="employeeName" className="text-right">Name</Label>
+                          <Input
+                            id="employeeName"
+                            value={newEmployee.name}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="employeeEmail" className="text-right">Email</Label>
+                          <Input
+                            id="employeeEmail"
+                            value={newEmployee.email}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="employeePhone" className="text-right">Phone</Label>
+                          <Input
+                            id="employeePhone"
+                            value={newEmployee.phone}
+                            onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
+                            className="col-span-3"
+                          />
+                        </div>
                       </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="employeeEmail" className="text-right">Email</Label>
-                        <Input
-                          id="employeeEmail"
-                          value={newEmployee.email}
-                          onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
-                          className="col-span-3"
-                        />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="employeePhone" className="text-right">Phone</Label>
-                        <Input
-                          id="employeePhone"
-                          value={newEmployee.phone}
-                          onChange={(e) => setNewEmployee({ ...newEmployee, phone: e.target.value })}
-                          className="col-span-3"
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button type="submit" onClick={handleAddEmployee}>Add Employee</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-          ))
+                      <DialogFooter>
+                        <Button type="submit" onClick={handleAddEmployee}>Add Employee</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+            ))}
+          </>
         )}
       </div>
     </div>
