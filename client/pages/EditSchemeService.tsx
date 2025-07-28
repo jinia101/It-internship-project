@@ -19,7 +19,6 @@ export default function EditSchemeService() {
   const [step, setStep] = useState(1);
   const [eligibility, setEligibility] = useState([""]);
   const [schemeDetails, setSchemeDetails] = useState([""]);
-  const [whereToApply, setWhereToApply] = useState([""]);
   const [process, setProcess] = useState([""]);
   const [contacts, setContacts] = useState([
     {
@@ -39,7 +38,6 @@ export default function EditSchemeService() {
     if (scheme) {
       if (scheme.eligibilityDetails) setEligibility(scheme.eligibilityDetails);
       if (scheme.schemeDetails) setSchemeDetails(scheme.schemeDetails);
-      if (scheme.whereToApply) setWhereToApply(scheme.whereToApply);
       if (scheme.processDetails) setProcess(scheme.processDetails);
       if (scheme.contacts) {
         setContacts(scheme.contacts);
@@ -63,7 +61,6 @@ export default function EditSchemeService() {
         ...services[idx],
         eligibilityDetails: eligibility,
         schemeDetails: schemeDetails,
-        whereToApply: whereToApply,
         processDetails: process,
         contacts: contacts,
       };
@@ -203,51 +200,8 @@ export default function EditSchemeService() {
             </CardContent>
           </Card>
         );
+      
       case 3:
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Where to Apply</CardTitle>
-              <CardDescription>
-                Add application locations or methods.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {whereToApply.map((item, idx) => (
-                <div key={idx} className="flex gap-2 mb-2">
-                  <Input
-                    value={item}
-                    onChange={(e) =>
-                      handleChange(
-                        setWhereToApply,
-                        whereToApply,
-                        idx,
-                        e.target.value,
-                      )
-                    }
-                    placeholder="Enter location or method"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      handleRemove(setWhereToApply, whereToApply, idx)
-                    }
-                    disabled={whereToApply.length === 1}
-                  >
-                    -
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                onClick={() => handleAdd(setWhereToApply, whereToApply)}
-              >
-                + Add Location/Method
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      case 4:
         return (
           <Card>
             <CardHeader>
@@ -284,7 +238,7 @@ export default function EditSchemeService() {
             </CardContent>
           </Card>
         );
-      case 5:
+      case 4:
         return (
           <Card>
             <CardHeader>
@@ -375,10 +329,7 @@ export default function EditSchemeService() {
               <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Scheme Details</div>
               <div className={`h-1 w-16 mt-2 ${step > 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
             </div>
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Where to Apply</div>
-              <div className={`h-1 w-16 mt-2 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
+            
             <div className="flex flex-col items-center">
               <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Process</div>
               <div className={`h-1 w-16 mt-2 ${step > 4 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
@@ -391,27 +342,19 @@ export default function EditSchemeService() {
           <form onSubmit={handlePublish} className="space-y-8">
             {renderStep()}
             <div className="flex justify-between mt-8">
-              <div>
-                <Button
-                  type="button"
-                  onClick={handleSaveForLater}
-                  className="bg-gray-500 text-white"
-                >
-                  Save for Later
-                </Button>
-              </div>
+              
               <div className="flex gap-4">
                 {step > 1 && (
                   <Button type="button" onClick={prevStep}>
                     Back
                   </Button>
                 )}
-                {step < 5 && (
+                {step < 4 && (
                   <Button type="button" onClick={nextStep}>
-                    Next
+                    Save and Next
                   </Button>
                 )}
-                {step === 5 && (
+                {step === 4 && (
                   <Button type="submit" className="bg-green-600 text-white">
                     Publish
                   </Button>
