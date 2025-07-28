@@ -11,7 +11,7 @@ import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getServices, deleteService } from "../lib/localStorageUtils";
+import { getServices, updateService } from "../lib/localStorageUtils";
 
 export default function AdminContactService() {
   const [activeTab, setActiveTab] = useState("create");
@@ -28,11 +28,13 @@ export default function AdminContactService() {
     (s) => s.status === "pending" && isContactService(s),
   );
   const publishedServices = services.filter(
-    (s) => s.status === "published" && isContactService(s),
+    (s) => (s.status === "published" || s.status === "active") && isContactService(s),
   );
 
-  const handleDelete = (service) => {
-    deleteService(service.id);
+  const handleToggleActive = (service) => {
+    const newStatus = service.status === "active" ? "pending" : "active";
+    const updatedService = { ...service, status: newStatus };
+    updateService(updatedService);
     setServices(getServices());
   };
 
@@ -203,7 +205,7 @@ export default function AdminContactService() {
                     <CardContent>
                       <div>Type: {service.type}</div>
                     </CardContent>
-                    <div className="flex gap-2 p-4">
+                    <div className="flex gap-2 p-4 ml-auto">
                       <Button size="sm" variant="outline">
                         View
                       </Button>
@@ -217,9 +219,9 @@ export default function AdminContactService() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDelete(service)}
+                        onClick={() => handleToggleActive(service)}
                       >
-                        Delete
+                        {service.status === "active" ? "Deactivate" : "Activate"}
                       </Button>
                     </div>
                   </Card>
@@ -248,7 +250,7 @@ export default function AdminContactService() {
                     <CardContent>
                       <div>Type: {service.type}</div>
                     </CardContent>
-                    <div className="flex gap-2 p-4">
+                    <div className="flex gap-2 p-4 ml-auto">
                       <Button size="sm" variant="outline">
                         View
                       </Button>
@@ -258,9 +260,9 @@ export default function AdminContactService() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleDelete(service)}
+                        onClick={() => handleToggleActive(service)}
                       >
-                        Delete
+                        {service.status === "active" ? "Deactivate" : "Activate"}
                       </Button>
                     </div>
                   </Card>
