@@ -26,6 +26,7 @@ const OfficeDetails: React.FC = () => {
   const { officeName } = useParams<{ officeName: string }>();
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState<Omit<Post, 'id' | 'employees'>>({ postName: '', rank: '', noOfEmployees: 0 });
+  const [showAddPostForm, setShowAddPostForm] = useState(false);
   const [currentPostId, setCurrentPostId] = useState<string | null>(null);
   const [newEmployee, setNewEmployee] = useState<Omit<Employee, 'id'>>({ name: '', email: '', phone: '' });
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -34,6 +35,7 @@ const OfficeDetails: React.FC = () => {
     if (newPost.postName && newPost.rank && newPost.noOfEmployees > 0) {
       setPosts([...posts, { ...newPost, id: Date.now().toString(), employees: [] }]);
       setNewPost({ postName: '', rank: '', noOfEmployees: 0 });
+      setShowAddPostForm(false);
     }
   };
 
@@ -65,50 +67,54 @@ const OfficeDetails: React.FC = () => {
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Office Details for {officeName}</h1>
 
-      {/* Add New Post Section */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Add New Post</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="postName">Post Name</Label>
-            <Input
-              id="postName"
-              value={newPost.postName}
-              onChange={(e) => setNewPost({ ...newPost, postName: e.target.value })}
-              placeholder="e.g., Manager"
-            />
-          </div>
-          <div>
-            <Label htmlFor="rank">Rank</Label>
-            <Input
-              id="rank"
-              value={newPost.rank}
-              onChange={(e) => setNewPost({ ...newPost, rank: e.target.value })}
-              placeholder="e.g., Senior"
-            />
-          </div>
-          <div>
-            <Label htmlFor="noOfEmployees">No. of Employees</Label>
-            <Input
-              id="noOfEmployees"
-              type="number"
-              value={newPost.noOfEmployees}
-              onChange={(e) => setNewPost({ ...newPost, noOfEmployees: parseInt(e.target.value) || 0 })}
-              placeholder="e.g., 5"
-            />
-          </div>
-          <div className="md:col-span-3 flex justify-end">
-            <Button onClick={handleAddPost}>Add Post</Button>
-          </div>
-        </CardContent>
-      </Card>
+      {showAddPostForm && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Add New Post</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="postName">Post Name</Label>
+              <Input
+                id="postName"
+                value={newPost.postName}
+                onChange={(e) => setNewPost({ ...newPost, postName: e.target.value })}
+                placeholder="e.g., Manager"
+              />
+            </div>
+            <div>
+              <Label htmlFor="rank">Rank</Label>
+              <Input
+                id="rank"
+                value={newPost.rank}
+                onChange={(e) => setNewPost({ ...newPost, rank: e.target.value })}
+                placeholder="e.g., Senior"
+              />
+            </div>
+            <div>
+              <Label htmlFor="noOfEmployees">No. of Employees</Label>
+              <Input
+                id="noOfEmployees"
+                type="number"
+                value={newPost.noOfEmployees}
+                onChange={(e) => setNewPost({ ...newPost, noOfEmployees: parseInt(e.target.value) || 0 })}
+                placeholder="e.g., 5"
+              />
+            </div>
+            <div className="md:col-span-3 flex justify-end">
+              <Button onClick={handleAddPost}>Add Post</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Display Posts Section */}
       <div className="grid grid-cols-1 gap-6">
-        {posts.length === 0 ? (
-          <p className="text-center text-gray-500">No posts added yet.</p>
+        {posts.length === 0 && !showAddPostForm ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-lg mb-4">No posts added yet.</p>
+            <Button onClick={() => setShowAddPostForm(true)}>Add Post</Button>
+          </div>
         ) : (
           posts.map((post) => (
             <Card key={post.id}>

@@ -40,6 +40,7 @@ export default function EditContactDepartment() {
     officePinCode: "",
     district: "",
     block: "",
+    subdivision: "",
   });
 
   useEffect(() => {
@@ -72,6 +73,7 @@ export default function EditContactDepartment() {
       district: "",
       block: "",
     });
+    setIsAddOfficeDialogOpen(false);
   };
 
   const handleToggleOfficeStatus = (index) => {
@@ -239,6 +241,18 @@ export default function EditContactDepartment() {
                   id="block"
                   name="block"
                   value={newOffice.block}
+                  onChange={handleNewOfficeChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="subdivision" className="text-right">
+                  Subdivision
+                </Label>
+                <Input
+                  id="subdivision"
+                  name="subdivision"
+                  value={newOffice.subdivision}
                   onChange={handleNewOfficeChange}
                   className="col-span-3"
                 />
