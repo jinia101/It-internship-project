@@ -42,6 +42,7 @@ import EditDepartment from "./pages/EditDepartment";
 import EditSchemeService from "./pages/EditSchemeService";
 import EditCertificateService from "./pages/EditCertificateService";
 import EditContactDepartment from "./pages/EditContactDepartment";
+import ViewSchemeService from "./pages/ViewSchemeService";
 
 const queryClient = new QueryClient();
 
@@ -111,6 +112,10 @@ const App = () => (
           <Route
             path="/admin/edit-contact-department/:name"
             element={<EditContactDepartment />}
+          />
+          <Route
+            path="/admin/view-scheme-service/:name"
+            element={<ViewSchemeService />}
           />
           {/* User-specific service pages */}
           <Route path="/user-scheme-service" element={<UserSchemeService />} />

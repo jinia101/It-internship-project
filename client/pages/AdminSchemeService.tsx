@@ -38,7 +38,7 @@ export default function AdminSchemeService() {
     navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
   };
   const handleView = (scheme) => {
-    navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
+    navigate(`/admin/view-scheme-service/${encodeURIComponent(scheme.name)}`);
   };
   const handleDelete = (scheme) => {
     deleteService(scheme.id);
