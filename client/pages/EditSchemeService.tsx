@@ -361,9 +361,9 @@ export default function EditSchemeService() {
                   Online (https://example.com)
                 </p>
               </div>
-              <div className="flex justify-around mt-4">
-                <Button>Edit</Button>
-                <Button className="bg-green-500">Activate</Button>
+              <div className="flex justify-center gap-2 mt-4">
+                <Button variant="outline">Edit</Button>
+                <Button className="bg-green-600 hover:bg-green-700 text-white">Activate</Button>
                 <Button variant="destructive">Deactivate</Button>
               </div>
             </div>
