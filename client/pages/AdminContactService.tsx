@@ -55,15 +55,18 @@ export default function AdminContactService() {
       <AdminSidebar />
       <div className="flex-1 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-2">Contact Service</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            Department Contact Service
+          </h1>
           <p className="text-gray-600 mb-8">
-            Manage and review all contact services and their details here.
+            Manage and review all Department contact services and their details
+            here.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Published Services
+                  Published Department
                 </CardTitle>
                 <CheckCircle className="h-4 w-4 text-green-600" />
               </CardHeader>
@@ -79,7 +82,7 @@ export default function AdminContactService() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Services
+                  Active Department
                 </CardTitle>
                 <Activity className="h-4 w-4 text-blue-600" />
               </CardHeader>
@@ -95,7 +98,7 @@ export default function AdminContactService() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Pending Services
+                  Pending Department
                 </CardTitle>
                 <Clock className="h-4 w-4 text-orange-600" />
               </CardHeader>
@@ -118,7 +121,7 @@ export default function AdminContactService() {
                   {stats.users}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Users who saw service details
+                  Users who saw Department Contact Service details
                 </p>
               </CardContent>
             </Card>
@@ -131,18 +134,18 @@ export default function AdminContactService() {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="create" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Create Service
+                Create Department
               </TabsTrigger>
               <TabsTrigger value="pending" className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Pending Services
+                Pending Department ({stats.pending})
               </TabsTrigger>
               <TabsTrigger
                 value="published"
                 className="flex items-center gap-2"
               >
                 <CheckCircle className="h-4 w-4" />
-                Published Services
+                Published Department ({stats.published})
               </TabsTrigger>
             </TabsList>
             <TabsContent value="create" className="space-y-6">
@@ -150,10 +153,10 @@ export default function AdminContactService() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="h-5 w-5" />
-                    Create New Service
+                    Create New Department
                   </CardTitle>
                   <CardDescription>
-                    Add a new contact service to the platform
+                    Add a new Department contact service to the platform
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -162,7 +165,7 @@ export default function AdminContactService() {
                       <Plus className="h-8 w-8 text-primary" />
                     </div>
                     <h3 className="text-lg font-medium mb-2">
-                      Ready to create a new contact service?
+                      Ready to create a new Department contact service?
                     </h3>
                     <p className="text-gray-600 mb-6">
                       Use our service creation form to add new offerings to the
@@ -170,7 +173,7 @@ export default function AdminContactService() {
                     </p>
                     <Button size="lg" asChild>
                       <Link to="/admin/create-contact-service">
-                        Create New Contact
+                        Create New Department
                         <Plus className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
@@ -182,7 +185,7 @@ export default function AdminContactService() {
               {pendingServices.length === 0 ? (
                 <Card>
                   <CardContent className="py-8 text-center text-gray-500">
-                    No pending services.
+                    No pending Department.
                   </CardContent>
                 </Card>
               ) : (
@@ -227,7 +230,7 @@ export default function AdminContactService() {
               {publishedServices.length === 0 ? (
                 <Card>
                   <CardContent className="py-8 text-center text-gray-500">
-                    No published services.
+                    No published Department.
                   </CardContent>
                 </Card>
               ) : (

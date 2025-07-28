@@ -106,14 +106,14 @@ export default function CreateContactService() {
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>Department Basic Information</CardTitle>
               <CardDescription>
-                Provide the essential details about your contact service
+                Provide the essential details about your Department
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name">Contact Service Dept Name *</Label>
+                <Label htmlFor="name">Department Name *</Label>
                 <Input
                   id="name"
                   name="name"
@@ -124,7 +124,7 @@ export default function CreateContactService() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="summary">Summary *</Label>
+                <Label htmlFor="summary">Department Summary *</Label>
                 <Textarea
                   id="summary"
                   name="summary"
@@ -136,7 +136,7 @@ export default function CreateContactService() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="type">Type *</Label>
+                <Label htmlFor="type">Department Type *</Label>
                 <Select
                   value={formData.type}
                   onValueChange={handleSelectChange}
@@ -146,8 +146,12 @@ export default function CreateContactService() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Emergency Contacts">Emergency Contacts</SelectItem>
-                    <SelectItem value="General Contacts">General Contacts</SelectItem>
+                    <SelectItem value="Emergency Contacts">
+                      Emergency Service Provider
+                    </SelectItem>
+                    <SelectItem value="General Contacts">
+                      Regular Service Provider
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -163,7 +167,7 @@ export default function CreateContactService() {
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Create Service
+                  Create Department
                 </>
               )}
             </Button>
