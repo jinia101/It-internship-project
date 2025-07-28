@@ -43,6 +43,7 @@ import EditSchemeService from "./pages/EditSchemeService";
 import EditCertificateService from "./pages/EditCertificateService";
 import EditContactDepartment from "./pages/EditContactDepartment";
 import ViewSchemeService from "./pages/ViewSchemeService";
+import OfficeDetails from "./pages/OfficeDetails";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/admin/office-details/:officeName" element={<OfficeDetails />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route

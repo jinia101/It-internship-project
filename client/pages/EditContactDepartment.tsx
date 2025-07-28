@@ -90,8 +90,7 @@ export default function EditContactDepartment() {
   };
 
   const handleViewOffice = (office) => {
-    setSelectedOffice(office);
-    setIsViewOfficeDialogOpen(true);
+    navigate(`/admin/office-details/${office.officeName}`);
   };
 
   return (
@@ -248,47 +247,6 @@ export default function EditContactDepartment() {
             <div className="flex justify-end">
               <Button onClick={handleAddOffice}>Save Office</Button>
             </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* View Office Dialog */}
-        <Dialog open={isViewOfficeDialogOpen} onOpenChange={setIsViewOfficeDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Office Details</DialogTitle>
-              <DialogDescription>
-                Details of the selected office.
-              </DialogDescription>
-            </DialogHeader>
-            {selectedOffice && (
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Office Name:</Label>
-                  <p className="col-span-3">{selectedOffice.officeName}</p>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Level:</Label>
-                  <p className="col-span-3">{selectedOffice.level}</p>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Pincode:</Label>
-                  <p className="col-span-3">{selectedOffice.officePinCode}</p>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">District:</Label>
-                  <p className="col-span-3">{selectedOffice.district}</p>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Block:</Label>
-                  <p className="col-span-3">{selectedOffice.block}</p>
-                
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Status:</Label>
-                  <p className="col-span-3">{selectedOffice.status}</p>
-                </div>
-              </div>
-            )}
           </DialogContent>
         </Dialog>
       </div>
