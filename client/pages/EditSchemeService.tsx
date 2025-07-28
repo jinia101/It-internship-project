@@ -8,6 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Trash2, PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -205,35 +206,46 @@ export default function EditSchemeService() {
         return (
           <Card>
             <CardHeader>
-              <CardTitle>Process</CardTitle>
+              <CardTitle>Application Process</CardTitle>
               <CardDescription>
-                Add process steps for this scheme.
+                Add the steps for the application process.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {process.map((item, idx) => (
-                <div key={idx} className="flex gap-2 mb-2">
+                <div
+                  key={idx}
+                  className="flex items-start gap-4 p-4 border rounded-lg bg-gray-50"
+                >
+                  <span className="text-lg font-bold text-gray-500">{idx + 1}</span>
                   <Textarea
                     value={item}
                     onChange={(e) =>
                       handleChange(setProcess, process, idx, e.target.value)
                     }
-                    placeholder="Enter process step"
+                    placeholder={`Step ${idx + 1} details...`}
+                    className="flex-1 bg-white"
                   />
                   <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleRemove(setProcess, process, idx)}
                     disabled={process.length === 1}
+                    className="text-red-500 hover:bg-red-100"
                   >
-                    -
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
               <Button
                 type="button"
+                variant="outline"
                 onClick={() => handleAdd(setProcess, process)}
+                className="w-full mt-4"
               >
-                + Add Step
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Add Another Step
               </Button>
             </CardContent>
           </Card>
@@ -331,7 +343,7 @@ export default function EditSchemeService() {
             </div>
             
             <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Process</div>
+              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Application Process</div>
               <div className={`h-1 w-16 mt-2 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
             </div>
             <div className="flex flex-col items-center">
