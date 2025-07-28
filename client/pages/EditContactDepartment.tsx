@@ -72,6 +72,7 @@ export default function EditContactDepartment() {
       district: "",
       block: "",
     });
+  };
 
   const handleToggleOfficeStatus = (index) => {
     const updatedOffices = offices.map((office, i) =>
@@ -121,16 +122,16 @@ export default function EditContactDepartment() {
                 </div>
               </CardContent>
             </Card>
+            <Button onClick={() => setIsAddOfficeDialogOpen(true)} className="mt-4 w-full">
+              + Add Office
+            </Button>
           </div>
 
           {/* Right Column: Office Management */}
           <div className="md:w-2/3">
             <Card>
-              <CardHeader className="flex flex-row justify-between items-center">
+              <CardHeader>
                 <CardTitle>Offices</CardTitle>
-                <Button onClick={() => setIsAddOfficeDialogOpen(true)}>
-                  + Add Office
-                </Button>
               </CardHeader>
               <CardContent>
                 {offices.length === 0 ? (
