@@ -30,6 +30,7 @@ const OfficeDetails: React.FC = () => {
   const [showAddPostForm, setShowAddPostForm] = useState(false);
   const [currentPostId, setCurrentPostId] = useState<string | null>(null);
   const [newEmployee, setNewEmployee] = useState<Omit<Employee, 'id'>>({ name: '', email: '', phone: '', designation: '' });
+  const [showAddEmployeeDialog, setShowAddEmployeeDialog] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const handleAddPost = () => {
@@ -50,8 +51,9 @@ const OfficeDetails: React.FC = () => {
             }
           : post
       ));
-      setNewEmployee({ name: '', email: '', phone: '' });
+      setNewEmployee({ name: '', email: '', phone: '', designation: '' });
       setCurrentPostId(null);
+      setShowAddEmployeeDialog(false); // Close the dialog
     }
   };
 
@@ -217,14 +219,18 @@ const OfficeDetails: React.FC = () => {
                     </Table>
                   )}
 
-                  <Dialog onOpenChange={(open) => {
+                  <Dialog open={showAddEmployeeDialog} onOpenChange={(open) => {
+                    setShowAddEmployeeDialog(open);
                     if (!open) {
                       setCurrentPostId(null);
-                      setNewEmployee({ name: '', email: '', phone: '' });
+                      setNewEmployee({ name: '', email: '', phone: '', designation: '' });
                     }
                   }}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={() => setCurrentPostId(post.id)}>Add Employee</Button>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setCurrentPostId(post.id);
+                        setShowAddEmployeeDialog(true);
+                      }}>Add Employee</Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
