@@ -26,6 +26,8 @@ export default function CreateSchemeService() {
   const [formData, setFormData] = useState({
     name: "",
     summary: "",
+    type: "",
+    targetAudience: [""],
     applicationMode: "",
     onlineUrl: "",
     offlineAddress: "",
@@ -38,12 +40,30 @@ export default function CreateSchemeService() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleTargetAudienceChange = (index: number, value: string) => {
+    const newTargetAudience = [...formData.targetAudience];
+    newTargetAudience[index] = value;
+    setFormData((prev) => ({ ...prev, targetAudience: newTargetAudience }));
+  };
+
+  const addTargetAudience = () => {
+    setFormData((prev) => ({ ...prev, targetAudience: [...prev.targetAudience, ""] }));
+  };
+
+  const removeTargetAudience = (index: number) => {
+    const newTargetAudience = [...formData.targetAudience];
+    newTargetAudience.splice(index, 1);
+    setFormData((prev) => ({ ...prev, targetAudience: newTargetAudience }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     saveService({
       name: formData.name,
       summary: formData.summary,
+      type: formData.type,
+      targetAudience: formData.targetAudience,
       status: "pending",
       tags: [],
       applicationMode: formData.applicationMode,
@@ -95,6 +115,52 @@ export default function CreateSchemeService() {
                   placeholder="Enter scheme summary"
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="type">Type *</Label>
+                <Select
+                  name="type"
+                  onValueChange={(value) =>
+                    handleInputChange({ target: { name: "type", value } } as any)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Central">Central</SelectItem>
+                    <SelectItem value="State">State</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Target Audience *</Label>
+                {formData.targetAudience.map((audience, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      value={audience}
+                      onChange={(e) =>
+                        handleTargetAudienceChange(index, e.target.value)
+                      }
+                      placeholder="Enter target audience"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => removeTargetAudience(index)}
+                    >
+                      -
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addTargetAudience}
+                >
+                  + Add Target Audience
+                </Button>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="applicationMode">Where to Apply *</Label>
