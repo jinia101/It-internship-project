@@ -158,6 +158,9 @@ export default function EditCertificateService() {
     }));
   };
 
+  const handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setContact({ ...contact, [e.target.name]: e.target.value });
+
   const saveData = (publishStatus) => {
     const services = getServices();
     const idx = services.findIndex(
@@ -669,16 +672,29 @@ export default function EditCertificateService() {
                     Surrender Application
                   </Button>
                 </div>
-                <Label htmlFor="eligibility">Eligibility for {processType} *</Label>
-                <Textarea
-                  id="eligibility"
-                  name="eligibility"
-                  value={serviceData.eligibility}
-                  onChange={(e) => setServiceData(prev => ({ ...prev, eligibility: e.target.value }))}
-                  placeholder="Who is eligible for this service?"
-                  rows={5}
-                  required
-                />
+                <h3 className="font-semibold mb-2">Eligibility for {processType}</h3>
+                {serviceData.eligibility.map((eligibility, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <Input
+                      value={eligibility}
+                      onChange={(e) => {
+                        const newEligibility = [...serviceData.eligibility];
+                        newEligibility[idx] = e.target.value;
+                        setServiceData(prev => ({ ...prev, eligibility: newEligibility }));
+                      }}
+                      placeholder="Enter eligibility criteria"
+                      className="flex-grow min-h-[40px] max-h-[60px] resize-none"
+                    />
+                    {serviceData.eligibility.length > 1 && (
+                      <Button type="button" onClick={() => removeEligibility(idx)}>
+                        -
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" onClick={addEligibility}>
+                  + Add Eligibility
+                </Button>
                 <div className="flex justify-end space-x-4 mt-4">
                   <Button type="button" onClick={() => setActiveForm(null)} variant="outline">
                     Cancel
