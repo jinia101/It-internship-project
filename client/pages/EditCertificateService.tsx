@@ -23,12 +23,36 @@ import { getServices, updateService, getServiceByName } from "../lib/localStorag
 export default function EditCertificateService() {
   const { name } = useParams();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [serviceName, setServiceName] = useState("");
+  
+  const [serviceData, setServiceData] = useState({
+    name: "",
+    certificateAbbreviation: "",
+    summary: "",
+    applicationMode: "",
+    eligibility: "",
+    contactName: "",
+    designation: "",
+    contact: "",
+    email: "",
+    district: "",
+    subDistrict: "",
+    block: "",
+    serviceDetails: "",
+    status: "active",
+    processNew: "",
+    processUpdate: "",
+    processLost: "",
+    processSurrender: "",
+    docNew: "",
+    docUpdate: "",
+    docLost: "",
+    docSurrender: "",
+    onlineUrl: "",
+    offlineAddress: "",
+  });
   const [processSteps, setProcessSteps] = useState([
     { slNo: "1", stepDetails: "" },
   ]);
-  const [docServiceName, setDocServiceName] = useState("");
   const [documents, setDocuments] = useState([
     { slNo: "1", documentType: "", validProof: "" },
   ]);
@@ -42,19 +66,39 @@ export default function EditCertificateService() {
     contact: "",
     email: "",
   });
-  const [serviceDetails, setServiceDetails] = useState("");
-  const [status, setStatus] = useState("Active");
-  const [processNew, setProcessNew] = useState("");
-  const [processUpdate, setProcessUpdate] = useState("");
-  const [processLost, setProcessLost] = useState("");
-  const [processSurrender, setProcessSurrender] = useState("");
+  const [activeForm, setActiveForm] = useState<string | null>(null);
+  const [processType, setProcessType] = useState<string>('New Application');
 
   useEffect(() => {
     const cert = getServiceByName(decodeURIComponent(name || ""));
     if (cert) {
-      setServiceName(cert.serviceName || "");
+      setServiceData({
+        name: cert.name || "",
+        certificateAbbreviation: cert.certificateAbbreviation || "",
+        summary: cert.summary || "",
+        applicationMode: cert.applicationMode || "",
+        eligibility: cert.eligibility || "",
+        contactName: cert.contactName || "",
+        designation: cert.designation || "",
+        contact: cert.contact || "",
+        email: cert.email || "",
+        district: cert.district || "",
+        subDistrict: cert.subDistrict || "",
+        block: cert.block || "",
+        serviceDetails: cert.serviceDetails || "",
+        status: cert.status || "active",
+        processNew: cert.processNew || "",
+        processUpdate: cert.processUpdate || "",
+        processLost: cert.processLost || "",
+        processSurrender: cert.processSurrender || "",
+        docNew: cert.docNew || "",
+        docUpdate: cert.docUpdate || "",
+        docLost: cert.docLost || "",
+        docSurrender: cert.docSurrender || "",
+        onlineUrl: cert.onlineUrl || "",
+        offlineAddress: cert.offlineAddress || "",
+      });
       setProcessSteps(cert.processSteps || [{ slNo: "1", stepDetails: "" }]);
-      setDocServiceName(cert.docServiceName || "");
       setDocuments(
         cert.documents || [{ slNo: "1", documentType: "", validProof: "" }],
       );
@@ -70,12 +114,6 @@ export default function EditCertificateService() {
           email: "",
         },
       );
-      setServiceDetails(cert.serviceDetails || "");
-      setStatus(cert.status || "Active");
-      setProcessNew(cert.processNew || "");
-      setProcessUpdate(cert.processUpdate || "");
-      setProcessLost(cert.processLost || "");
-      setProcessSurrender(cert.processSurrender || "");
     }
   }, [name]);
 
@@ -400,61 +438,272 @@ export default function EditCertificateService() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">
-          Edit Certificate Service: {decodeURIComponent(name || "")}
-        </h1>
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-4 flex items-center justify-center space-x-4">
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 1 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Add Process</div>
-              <div className={`h-1 w-16 mt-2 ${step > 1 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 2 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Add Supportive Document</div>
-              <div className={`h-1 w-16 mt-2 ${step > 2 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 3 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Add Contact Person</div>
-              <div className={`h-1 w-16 mt-2 ${step > 3 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className={`px-4 py-2 rounded-md flex items-center justify-center ${step >= 4 ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>Publish Service Detail</div>
-              <div className={`h-1 w-16 mt-2 ${step > 4 ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-            </div>
-          </div>
-          <form onSubmit={handlePublish} className="space-y-8">
-            {renderStep()}
-            <div className="flex justify-between mt-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
+      <h1 className="text-3xl font-bold mb-6">
+        Edit Certificate Service: {decodeURIComponent(name || "")}
+      </h1>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Service Details and Action Buttons */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Service Details</CardTitle>
+              <CardDescription>Overview of the certificate service.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Button
-                  type="button"
-                  onClick={handleSaveForLater}
-                  className="bg-gray-500 text-white"
-                >
-                  Save for Later
+                <Label className="font-semibold">Certificate Name:</Label>
+                <p>{serviceData.name}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Certificate Abbreviation:</Label>
+                <p>{serviceData.certificateAbbreviation}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Summary:</Label>
+                <p>{serviceData.summary}</p>
+              </div>
+              <div>
+                <Label className="font-semibold">Application Mode:</Label>
+                <p>{serviceData.applicationMode}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col space-y-4">
+            <Button onClick={() => setActiveForm('process')}>Add Process</Button>
+            <Button onClick={() => setActiveForm('documents')}>Add Documents</Button>
+            <Button onClick={() => setActiveForm('eligibility')}>Add Eligibility</Button>
+            <Button onClick={() => setActiveForm('contact')}>Add Contact Person</Button>
+            <Button variant="outline">Preview</Button>
+          </div>
+        </div>
+
+        {/* Right Column: Forms */}
+        <div className="lg:col-span-2">
+          {activeForm === 'process' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Process Steps</CardTitle>
+                <CardDescription>Define the process for each application type.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex space-x-4 mb-4">
+                  <Button
+                    variant={processType === 'New Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('New Application')}
+                  >
+                    New Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Lost Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Lost Application')}
+                  >
+                    Lost Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Update Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Update Application')}
+                  >
+                    Update Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Surrender Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Surrender Application')}
+                  >
+                    Surrender Application
+                  </Button>
+                </div>
+
+                <h3 className="font-semibold mb-2">Steps for {processType}</h3>
+                {processSteps.map((step, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <Input
+                      value={step.slNo}
+                      onChange={(e) => handleProcessStepChange(idx, "slNo", e.target.value)}
+                      placeholder="Sl. No."
+                      className="w-20"
+                    />
+                    <Input
+                      value={step.stepDetails}
+                      onChange={(e) => handleProcessStepChange(idx, "stepDetails", e.target.value)}
+                      placeholder="Enter step details"
+                    />
+                    {processSteps.length > 1 && (
+                      <Button type="button" onClick={() => removeProcessStep(idx)}>
+                        -
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" onClick={addProcessStep}>
+                  + Add Step
                 </Button>
-              </div>
-              <div className="flex gap-4">
-                {step > 1 && (
-                  <Button type="button" onClick={prevStep}>
-                    Back
+                <div className="flex justify-end space-x-4 mt-4">
+                  <Button type="button" onClick={() => setActiveForm(null)} variant="outline">
+                    Cancel
                   </Button>
-                )}
-                {step < 4 && (
-                  <Button type="button" onClick={nextStep}>
-                    Next
+                  <Button type="button" onClick={() => console.log('Save Process')}>
+                    Save Process
                   </Button>
-                )}
-                {step === 4 && (
-                  <Button type="submit" className="bg-green-600 text-white">
-                    Publish
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeForm === 'documents' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Supportive Documents</CardTitle>
+                <CardDescription>List required documents for this certificate service.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <h3 className="font-semibold mb-2">Documents</h3>
+                {documents.map((doc, idx) => (
+                  <div key={idx} className="flex gap-2 mb-2">
+                    <Input
+                      value={doc.slNo}
+                      onChange={(e) => handleDocumentChange(idx, "slNo", e.target.value)}
+                      placeholder="Sl. No."
+                      className="w-20"
+                    />
+                    <Input
+                      value={doc.documentType}
+                      onChange={(e) => handleDocumentChange(idx, "documentType", e.target.value)}
+                      placeholder="Enter document type"
+                    />
+                    <Input
+                      value={doc.validProof}
+                      onChange={(e) => handleDocumentChange(idx, "validProof", e.target.value)}
+                      placeholder="Enter valid proof"
+                    />
+                    {documents.length > 1 && (
+                      <Button type="button" onClick={() => removeDocument(idx)}>
+                        -
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                <Button type="button" onClick={addDocument}>
+                  + Add Document
+                </Button>
+                <div className="flex justify-end space-x-4 mt-4">
+                  <Button type="button" onClick={() => setActiveForm(null)} variant="outline">
+                    Cancel
                   </Button>
-                )}
-              </div>
-            </div>
-          </form>
+                  <Button type="button" onClick={() => console.log('Save Documents')}>
+                    Save Documents
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeForm === 'eligibility' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Eligibility Criteria</CardTitle>
+                <CardDescription>Define who is eligible for this service.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Label htmlFor="eligibility">Eligibility *</Label>
+                <Textarea
+                  id="eligibility"
+                  name="eligibility"
+                  value={serviceData.eligibility}
+                  onChange={(e) => setServiceData(prev => ({ ...prev, eligibility: e.target.value }))}
+                  placeholder="Who is eligible for this service?"
+                  rows={5}
+                  required
+                />
+                <div className="flex justify-end space-x-4 mt-4">
+                  <Button type="button" onClick={() => setActiveForm(null)} variant="outline">
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={() => console.log('Save Eligibility')}>
+                    Save Eligibility
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeForm === 'contact' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Contact Person</CardTitle>
+                <CardDescription>Provide contact details for this certificate service.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    name="district"
+                    value={contact.district}
+                    onChange={handleContactChange}
+                    placeholder="District"
+                  />
+                  <Input
+                    name="subDistrict"
+                    value={contact.subDistrict}
+                    onChange={handleContactChange}
+                    placeholder="Sub District"
+                  />
+                  <Input
+                    name="block"
+                    value={contact.block}
+                    onChange={handleContactChange}
+                    placeholder="Block"
+                  />
+                  <Input
+                    name="name"
+                    value={contact.name}
+                    onChange={handleContactChange}
+                    placeholder="Contact Person's Name"
+                  />
+                  <Input
+                    name="designation"
+                    value={contact.designation}
+                    onChange={handleContactChange}
+                    placeholder="Designation"
+                  />
+                  <Input
+                    name="contact"
+                    value={contact.contact}
+                    onChange={handleContactChange}
+                    placeholder="Contact Number"
+                  />
+                  <Input
+                    name="email"
+                    value={contact.email}
+                    onChange={handleContactChange}
+                    placeholder="Email Address"
+                  />
+                </div>
+                <div className="flex justify-end space-x-4 mt-4">
+                  <Button type="button" onClick={() => setActiveForm(null)} variant="outline">
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={() => console.log('Save Contact')}>
+                    Save Contact
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeForm === null && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Select an option</CardTitle>
+                <CardDescription>
+                  Choose an action from the left panel to add or edit details.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>No form selected.</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
