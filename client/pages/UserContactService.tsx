@@ -104,6 +104,44 @@ export default function UserContactService() {
           </div>
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Dummy Department Cards */}
+            <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+              <CardHeader>
+                <CardTitle>Police Department</CardTitle>
+                <CardDescription>Handles law enforcement and public safety.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-2">Type: Emergency</p>
+                <Button className="w-full mt-2 bg-blue-600 text-white">
+                  View Details
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+              <CardHeader>
+                <CardTitle>Fire Department</CardTitle>
+                <CardDescription>Responds to fire incidents and provides rescue services.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-2">Type: Emergency</p>
+                <Button className="w-full mt-2 bg-blue-600 text-white">
+                  View Details
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+              <CardHeader>
+                <CardTitle>Public Works Department</CardTitle>
+                <CardDescription>Manages infrastructure and public utilities.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-2">Type: Regular</p>
+                <Button className="w-full mt-2 bg-blue-600 text-white">
+                  View Details
+                </Button>
+              </CardContent>
+            </Card>
+            {/* Existing Contact Service Cards */}
             {filteredServices.map((service) => (
               <Card
                 key={service.id}
@@ -123,11 +161,7 @@ export default function UserContactService() {
                 </CardContent>
               </Card>
             ))}
-            {filteredServices.length === 0 && (
-              <div className="col-span-full text-center text-gray-500 py-8">
-                No contact services found.
-              </div>
-            )}
+            
           </div>
           {/* Modal for Contact Service Details */}
           {modalService && (
