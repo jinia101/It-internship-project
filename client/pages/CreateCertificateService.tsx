@@ -261,6 +261,18 @@ export default function CreateCertificateService() {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="summary">Certificate Summary *</Label>
+                <Textarea
+                  id="summary"
+                  name="summary"
+                  value={formData.summary}
+                  onChange={handleInputChange}
+                  placeholder="Short summary of the certificate"
+                  rows={3}
+                  required
+                />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="applicationMode">Application Mode *</Label>
