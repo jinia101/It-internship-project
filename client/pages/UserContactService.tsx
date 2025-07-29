@@ -8,6 +8,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ServicesMenu } from "@/components/ui/sidebar";
 
@@ -15,6 +22,19 @@ export default function UserContactService() {
   const [services, setServices] = useState([]);
   const [search, setSearch] = useState("");
   const [modalService, setModalService] = useState(null);
+  const [filterType, setFilterType] = useState("State"); // 'State' or 'District'
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+
+  const tripuraDistricts = [
+    "Dhalai",
+    "Gomati",
+    "Khowai",
+    "North Tripura",
+    "Sepahijala",
+    "South Tripura",
+    "Unakoti",
+    "West Tripura",
+  ];
 
   useEffect(() => {
     setServices(getServices());
@@ -118,16 +138,22 @@ export default function UserContactService() {
                     summary: "Handles law enforcement and public safety.",
                     type: "Emergency",
                     offices: [
-                      { officeName: "Main Police Station", level: "Headquarters", district: "Central", pincode: "123456", address: "123 Main St" },
-                      { officeName: "North Sector Police Post", level: "Sector", district: "North", pincode: "654321", address: "456 Oak Ave" }
+                      { officeName: "State Police Headquarters", level: "State", district: "West Tripura", pincode: "799001", address: "Police Line, Agartala" },
+                      { officeName: "West Tripura District Police Office", level: "District", district: "West Tripura", pincode: "799001", address: "Kunjaban, Agartala" },
+                      { officeName: "Sepahijala District Police Office", level: "District", district: "Sepahijala", pincode: "799101", address: "Bishramganj, Sepahijala" },
+                      { officeName: "Dhalai District Police Office", level: "District", district: "Dhalai", pincode: "799201", address: "Ambassa, Dhalai" }
                     ],
                     posts: [
-                      { postName: "Station House Officer", postRank: "Inspector", officeIndex: 0 },
-                      { postName: "Beat Constable", postRank: "Constable", officeIndex: 1 }
+                      { postName: "Director General of Police", postRank: "DGP", officeIndex: 0 },
+                      { postName: "Superintendent of Police (West Tripura)", postRank: "SP", officeIndex: 1 },
+                      { postName: "Superintendent of Police (Sepahijala)", postRank: "SP", officeIndex: 2 },
+                      { postName: "Superintendent of Police (Dhalai)", postRank: "SP", officeIndex: 3 },
+                      { postName: "Station House Officer", postRank: "Inspector", officeIndex: 1 }
                     ],
                     employees: [
-                      { employeeName: "John Doe", email: "john.doe@police.com", phone: "9876543210", designation: "Inspector", postIndex: 0 },
-                      { employeeName: "Jane Smith", email: "jane.smith@police.com", phone: "0123456789", designation: "Constable", postIndex: 1 }
+                      { employeeName: "John Doe", email: "john.doe@police.com", phone: "9876543210", designation: "DGP", postIndex: 0 },
+                      { employeeName: "Jane Smith", email: "jane.smith@police.com", phone: "0123456789", designation: "SP", postIndex: 1 },
+                      { employeeName: "Peter Jones", email: "peter.jones@police.com", phone: "1122334455", designation: "Inspector", postIndex: 4 }
                     ]
                   })}
                   className="w-full mt-2 bg-blue-600 text-white"
@@ -149,16 +175,18 @@ export default function UserContactService() {
                     summary: "Responds to fire incidents and provides rescue services.",
                     type: "Emergency",
                     offices: [
-                      { officeName: "Central Fire Station", level: "Main", district: "Central", pincode: "112233", address: "789 Pine Ln" },
-                      { officeName: "South Fire Sub-Station", level: "Sub-Station", district: "South", pincode: "332211", address: "101 Elm Rd" }
+                      { officeName: "State Fire & Emergency Services HQ", level: "State", district: "West Tripura", pincode: "799001", address: "Fire Service Chowmuhani, Agartala" },
+                      { officeName: "West Tripura District Fire Station", level: "District", district: "West Tripura", pincode: "799001", address: "Battala, Agartala" },
+                      { officeName: "Gomati District Fire Station", level: "District", district: "Gomati", pincode: "799110", address: "Udaipur, Gomati" }
                     ],
                     posts: [
-                      { postName: "Fire Chief", postRank: "Chief", officeIndex: 0 },
-                      { postName: "Firefighter", postRank: "Firefighter", officeIndex: 1 }
+                      { postName: "Director, Fire & Emergency Services", postRank: "Director", officeIndex: 0 },
+                      { postName: "Divisional Fire Officer (West)", postRank: "DFO", officeIndex: 1 },
+                      { postName: "Station Officer (Gomati)", postRank: "SO", officeIndex: 2 }
                     ],
                     employees: [
-                      { employeeName: "Peter Jones", email: "peter.jones@fire.com", phone: "1122334455", designation: "Fire Chief", postIndex: 0 },
-                      { employeeName: "Mary Brown", email: "mary.brown@fire.com", phone: "5544332211", designation: "Firefighter", postIndex: 1 }
+                      { employeeName: "Peter Jones", email: "peter.jones@fire.com", phone: "1122334455", designation: "Director", postIndex: 0 },
+                      { employeeName: "Mary Brown", email: "mary.brown@fire.com", phone: "5544332211", designation: "DFO", postIndex: 1 }
                     ]
                   })}
                   className="w-full mt-2 bg-blue-600 text-white"
@@ -180,16 +208,18 @@ export default function UserContactService() {
                     summary: "Manages infrastructure and public utilities.",
                     type: "Regular",
                     offices: [
-                      { officeName: "PWD Headquarters", level: "Main", district: "City", pincode: "998877", address: "222 Bridge St" },
-                      { officeName: "Road Maintenance Office", level: "Field", district: "East", pincode: "778899", address: "333 Pothole Rd" }
+                      { officeName: "PWD Headquarters, Agartala", level: "State", district: "West Tripura", pincode: "799001", address: "Secretariat, Agartala" },
+                      { officeName: "PWD North Tripura Division", level: "District", district: "North Tripura", pincode: "799250", address: "Dharmanagar, North Tripura" },
+                      { officeName: "PWD Unakoti Division", level: "District", district: "Unakoti", pincode: "799260", address: "Kailashahar, Unakoti" }
                     ],
                     posts: [
-                      { postName: "Executive Engineer", postRank: "Engineer", officeIndex: 0 },
-                      { postName: "Road Supervisor", postRank: "Supervisor", officeIndex: 1 }
+                      { postName: "Engineer-in-Chief", postRank: "EiC", officeIndex: 0 },
+                      { postName: "Superintending Engineer (North)", postRank: "SE", officeIndex: 1 },
+                      { postName: "Executive Engineer (Unakoti)", postRank: "EE", officeIndex: 2 }
                     ],
                     employees: [
-                      { employeeName: "David Green", email: "david.green@pwd.com", phone: "6677889900", designation: "Executive Engineer", postIndex: 0 },
-                      { employeeName: "Sarah White", email: "sarah.white@pwd.com", phone: "0099887766", designation: "Road Supervisor", postIndex: 1 }
+                      { employeeName: "David Green", email: "david.green@pwd.com", phone: "6677889900", designation: "EiC", postIndex: 0 },
+                      { employeeName: "Sarah White", email: "sarah.white@pwd.com", phone: "0099887766", designation: "SE", postIndex: 1 }
                     ]
                   })}
                   className="w-full mt-2 bg-blue-600 text-white"
@@ -236,46 +266,95 @@ export default function UserContactService() {
                   <h3 className="font-semibold mb-2">Type</h3>
                   <p>{modalService.type}</p>
                 </div>
+
+                {/* Filter Dropdowns */}
+                {modalService.offices && (
+                  <div className="mb-4 flex gap-4">
+                    <Select
+                      onValueChange={(value) => {
+                        setFilterType(value);
+                        setSelectedDistrict(""); // Reset district when filter type changes
+                      }}
+                      value={filterType}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select Filter Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="State">State Level</SelectItem>
+                        <SelectItem value="District">District Level</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    {filterType === "District" && (
+                      <Select
+                        onValueChange={(value) => setSelectedDistrict(value)}
+                        value={selectedDistrict}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Select District" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {tripuraDistricts.map((district) => (
+                            <SelectItem key={district} value={district}>
+                              {district}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                )}
+
                 {modalService.offices && (
                   <div className="mb-4">
                     <h3 className="text-xl font-bold mb-2">Department Structure</h3>
-                    {modalService.offices.map((office, officeIdx) => (
-                      <div key={officeIdx} className="mb-4 p-3 border rounded-md bg-gray-50">
-                        <h4 className="font-semibold text-lg mb-1">Office: {office.officeName}</h4>
-                        <p className="text-sm text-gray-600">
-                          Level: {office.level}, District: {office.district}, Pincode: {office.pincode}, Address: {office.address}
-                        </p>
+                    {modalService.offices
+                      .filter((office) => {
+                        if (filterType === "State") {
+                          return office.level === "State";
+                        } else if (filterType === "District" && selectedDistrict) {
+                          return office.level === "District" && office.district === selectedDistrict;
+                        }
+                        return true; // Show all if no filter or initial state
+                      })
+                      .map((office, officeIdx) => (
+                        <div key={officeIdx} className="mb-4 p-3 border rounded-md bg-gray-50">
+                          <h4 className="font-semibold text-lg mb-1">Office: {office.officeName}</h4>
+                          <p className="text-sm text-gray-600">
+                            Level: {office.level}, District: {office.district}, Pincode: {office.pincode}, Address: {office.address}
+                          </p>
 
-                        {/* Posts within this office */}
-                        {modalService.posts && modalService.posts.filter(post => post.officeIndex === officeIdx).length > 0 && (
-                          <div className="mt-3">
-                            <h5 className="font-semibold text-md mb-1">Posts:</h5>
-                            <ul className="list-disc pl-6">
-                              {modalService.posts.filter(post => post.officeIndex === officeIdx).map((post, postIdx) => (
-                                <li key={postIdx} className="mb-2">
-                                  <span className="font-medium">{post.postName}</span> ({post.postRank})
-                                  {/* Employees within this post */}
-                                  {modalService.employees && modalService.employees.filter(emp => emp.postIndex === modalService.posts.indexOf(post)).length > 0 && (
-                                    <div className="ml-4 mt-1">
-                                      <h6 className="font-semibold text-sm mb-1">Employees:</h6>
-                                      <ul className="list-disc pl-4">
-                                        {modalService.employees.filter(emp => emp.postIndex === modalService.posts.indexOf(post)).map((emp, empIdx) => (
-                                          <li key={empIdx}>
-                                            {emp.employeeName} ({emp.designation})
-                                            {emp.email && `, Email: ${emp.email}`}
-                                            {emp.phone && `, Phone: ${emp.phone}`}
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          {/* Posts within this office */}
+                          {modalService.posts && modalService.posts.filter(post => post.officeIndex === modalService.offices.indexOf(office)).length > 0 && (
+                            <div className="mt-3">
+                              <h5 className="font-semibold text-md mb-1">Posts:</h5>
+                              <ul className="list-disc pl-6">
+                                {modalService.posts.filter(post => post.officeIndex === modalService.offices.indexOf(office)).map((post, postIdx) => (
+                                  <li key={postIdx} className="mb-2">
+                                    <span className="font-medium">{post.postName}</span> ({post.postRank})
+                                    {/* Employees within this post */}
+                                    {modalService.employees && modalService.employees.filter(emp => emp.postIndex === modalService.posts.indexOf(post)).length > 0 && (
+                                      <div className="ml-4 mt-1">
+                                        <h6 className="font-semibold text-sm mb-1">Employees:</h6>
+                                        <ul className="list-disc pl-4">
+                                          {modalService.employees.filter(emp => emp.postIndex === modalService.posts.indexOf(post)).map((emp, empIdx) => (
+                                            <li key={empIdx}>
+                                              {emp.employeeName} ({emp.designation})
+                                              {emp.email && `, Email: ${emp.email}`}
+                                              {emp.phone && `, Phone: ${emp.phone}`}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                   </div>
                 )}
                 <div className="mb-4">

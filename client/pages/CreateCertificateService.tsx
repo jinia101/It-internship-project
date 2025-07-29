@@ -42,9 +42,9 @@ export default function CreateCertificateService() {
 
   const [formData, setFormData] = useState({
     name: "",
+    certificateAbbreviation: "",
     summary: "",
     applicationMode: "",
-    eligibility: "",
     contactName: "",
     designation: "",
     contact: "",
@@ -64,7 +64,6 @@ export default function CreateCertificateService() {
     docSurrender: "",
     onlineUrl: "",
     offlineAddress: "",
-    certificateType: "",
   });
 
   const [documents, setDocuments] = useState([
@@ -165,13 +164,12 @@ export default function CreateCertificateService() {
     try {
       saveService({
         name: formData.name,
+        certificateAbbreviation: formData.certificateAbbreviation,
         summary: formData.summary,
         applicationMode: formData.applicationMode,
-        eligibility: formData.eligibility,
         tags,
         status: "pending",
         type: "certificate",
-        certificateType: formData.certificateType,
       });
       toast({
         title: "Service Created Successfully!",
@@ -241,45 +239,25 @@ export default function CreateCertificateService() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Service Name *</Label>
+                  <Label htmlFor="name">Certificate Name *</Label>
                   <Input
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Enter service name"
+                    placeholder="Enter Certificate name"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="certificateType">Certificate Type *</Label>
-                <Select
-                  value={formData.certificateType}
-                  onValueChange={(value) =>
-                    handleSelectChange("certificateType", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select certificate type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="New Certificate">New Certificate</SelectItem>
-                    <SelectItem value="Update Certificate">Update Certificate</SelectItem>
-                    <SelectItem value="Surrender Certificate">Surrender Certificate</SelectItem>
-                    <SelectItem value="Lost Certificate">Lost Certificate</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="summary">Service Summary *</Label>
-                <Textarea
-                  id="summary"
-                  name="summary"
-                  value={formData.summary}
+                <Label htmlFor="certificateAbbreviation">Certificate Abbreviation *</Label>
+                <Input
+                  id="certificateAbbreviation"
+                  name="certificateAbbreviation"
+                  value={formData.certificateAbbreviation}
                   onChange={handleInputChange}
-                  placeholder="Short summary of the service"
-                  rows={3}
+                  placeholder="Enter Certificate Abbreviation"
                   required
                 />
               </div>
@@ -302,19 +280,7 @@ export default function CreateCertificateService() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="eligibility">Eligibility *</Label>
-                  <Textarea
-                    id="eligibility"
-                    name="eligibility"
-                    value={formData.eligibility}
-                    onChange={handleInputChange}
-                    placeholder="Who is eligible for this service?"
-                    rows={1}
-                    className="min-h-[40px] max-h-[60px] resize-none"
-                    required
-                  />
-                </div>
+                
               </div>
               {/* Conditionally show URL/Address fields based on Application Mode */}
               {(formData.applicationMode === "Online" ||
@@ -366,7 +332,7 @@ export default function CreateCertificateService() {
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
-                  Create Service
+                  Create Certificate
                 </>
               )}
             </Button>
