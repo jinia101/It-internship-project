@@ -29,7 +29,7 @@ export default function EditCertificateService() {
     certificateAbbreviation: "",
     summary: "",
     applicationMode: "",
-    eligibility: "",
+    eligibility: [""],
     contactName: "",
     designation: "",
     contact: "",
@@ -77,7 +77,7 @@ export default function EditCertificateService() {
         certificateAbbreviation: cert.certificateAbbreviation || "",
         summary: cert.summary || "",
         applicationMode: cert.applicationMode || "",
-        eligibility: cert.eligibility || "",
+        eligibility: cert.eligibility ? [cert.eligibility] : [""],
         contactName: cert.contactName || "",
         designation: cert.designation || "",
         contact: cert.contact || "",
@@ -144,8 +144,19 @@ export default function EditCertificateService() {
       documents.map((doc, i) => (i === idx ? { ...doc, [field]: value } : doc)),
     );
 
-  const handleContactChange = (e) =>
-    setContact({ ...contact, [e.target.name]: e.target.value });
+  const addEligibility = () => {
+    setServiceData((prev) => ({
+      ...prev,
+      eligibility: [...prev.eligibility, ""],
+    }));
+  };
+
+  const removeEligibility = (idx: number) => {
+    setServiceData((prev) => ({
+      ...prev,
+      eligibility: prev.eligibility.filter((_, i) => i !== idx),
+    }));
+  };
 
   const saveData = (publishStatus) => {
     const services = getServices();
@@ -558,7 +569,33 @@ export default function EditCertificateService() {
                 <CardDescription>List required documents for this certificate service.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <h3 className="font-semibold mb-2">Documents</h3>
+                <div className="flex space-x-4 mb-4">
+                  <Button
+                    variant={processType === 'New Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('New Application')}
+                  >
+                    New Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Lost Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Lost Application')}
+                  >
+                    Lost Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Update Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Update Application')}
+                  >
+                    Update Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Surrender Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Surrender Application')}
+                  >
+                    Surrender Application
+                  </Button>
+                </div>
+                <h3 className="font-semibold mb-2">Documents for {processType}</h3>
                 {documents.map((doc, idx) => (
                   <div key={idx} className="flex gap-2 mb-2">
                     <Input
@@ -606,7 +643,33 @@ export default function EditCertificateService() {
                 <CardDescription>Define who is eligible for this service.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Label htmlFor="eligibility">Eligibility *</Label>
+                <div className="flex space-x-4 mb-4">
+                  <Button
+                    variant={processType === 'New Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('New Application')}
+                  >
+                    New Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Lost Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Lost Application')}
+                  >
+                    Lost Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Update Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Update Application')}
+                  >
+                    Update Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Surrender Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Surrender Application')}
+                  >
+                    Surrender Application
+                  </Button>
+                </div>
+                <Label htmlFor="eligibility">Eligibility for {processType} *</Label>
                 <Textarea
                   id="eligibility"
                   name="eligibility"
@@ -635,6 +698,32 @@ export default function EditCertificateService() {
                 <CardDescription>Provide contact details for this certificate service.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex space-x-4 mb-4">
+                  <Button
+                    variant={processType === 'New Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('New Application')}
+                  >
+                    New Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Lost Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Lost Application')}
+                  >
+                    Lost Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Update Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Update Application')}
+                  >
+                    Update Application
+                  </Button>
+                  <Button
+                    variant={processType === 'Surrender Application' ? 'default' : 'outline'}
+                    onClick={() => setProcessType('Surrender Application')}
+                  >
+                    Surrender Application
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     name="district"
