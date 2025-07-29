@@ -1,18 +1,17 @@
 {
-  "name": "fusion-starter",
+  "name": "information-service-frontend",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:client",
-    "build:client": "vite build",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@types/uuid": "^10.0.0",
-    "uuid": "^11.1.0",
+    "axios": "^1.11.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
