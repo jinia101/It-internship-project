@@ -57,15 +57,32 @@ const OfficeDetails: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   useEffect(() => {
-    // For now, we'll use a mock office ID. In a real app, you'd get this from the route or API
-    // You might need to modify your routing to pass office ID instead of just office name
     if (officeName) {
-      // Extract ID from office name or make an API call to get office by name
-      // For demo purposes, let's assume office ID is derived somehow
-      setOfficeId(1); // This should be dynamic based on your office selection
-      fetchPosts(1); // This should use the actual office ID
+      fetchOfficeAndPosts(officeName);
     }
   }, [officeName]);
+
+  const fetchOfficeAndPosts = async (officeName: string) => {
+    setLoading(true);
+    try {
+      // First get the office by name to get its ID
+      const officeResponse = await apiClient.getOfficeByName(officeName);
+      const office = officeResponse.office;
+      setOfficeId(office.id!);
+      
+      // Then fetch posts for this office
+      await fetchPosts(office.id!);
+    } catch (error) {
+      console.error('Error fetching office:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load office details",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchPosts = async (officeId: number) => {
     setLoading(true);

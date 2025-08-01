@@ -9,6 +9,56 @@ interface AuthenticatedRequest extends Request {
 
 const router = Router();
 
+// GET /api/offices/by-name/:officeName - Get office by name
+router.get(
+  "/by-name/:officeName",
+  authenticateAdmin,
+  param("officeName").notEmpty().withMessage("Office name is required"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const officeName = req.params.officeName;
+
+      // Find office by name
+      const office = await prisma.contactServiceContact.findFirst({
+        where: { 
+          name: {
+            equals: officeName,
+            mode: 'insensitive' // Case-insensitive search
+          }
+        },
+      });
+
+      if (!office) {
+        return res.status(404).json({
+          success: false,
+          message: "Office not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        office,
+      });
+    } catch (error) {
+      console.error("Error fetching office by name:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch office",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
 // GET /api/offices/:officeId/posts - Get all posts for an office
 router.get(
   "/:officeId/posts",
