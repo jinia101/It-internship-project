@@ -290,6 +290,77 @@ export interface RegisterRequest {
   name: string;
 }
 
+// Office Management Interfaces
+export interface Post {
+  id: number;
+  postName: string;
+  rank: string;
+  description?: string;
+  department?: string;
+  status: "active" | "inactive";
+  createdAt: string;
+  updatedAt: string;
+  officeId: number;
+  employees: Employee[];
+}
+
+export interface Employee {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  designation: string;
+  employeeId?: string;
+  joiningDate?: string;
+  salary?: number;
+  status: "active" | "inactive" | "on_leave";
+  createdAt: string;
+  updatedAt: string;
+  postId: number;
+}
+
+export interface PostsResponse {
+  success: boolean;
+  posts: Post[];
+  message?: string;
+}
+
+export interface PostResponse {
+  success: boolean;
+  post: Post;
+  message?: string;
+}
+
+export interface EmployeeResponse {
+  success: boolean;
+  employee: Employee;
+  message?: string;
+}
+
+export interface CreatePostRequest {
+  postName: string;
+  rank: string;
+  description?: string;
+  department?: string;
+}
+
+export interface CreateEmployeeRequest {
+  name: string;
+  email: string;
+  phone: string;
+  designation: string;
+  employeeId?: string;
+  joiningDate?: string;
+  salary?: number;
+}
+
+export interface UpdateEmployeeRequest {
+  name: string;
+  email: string;
+  phone: string;
+  designation: string;
+}
+
 // API Client Configuration
 export const API_BASE_URL =
   process.env.NODE_ENV === "production"
@@ -583,6 +654,69 @@ export class ApiClient {
   async getPublicSchemeService(id: number): Promise<SchemeServiceResponse> {
     return this.makeRequest<SchemeServiceResponse>(
       `/scheme-services/public/${id}`,
+    );
+  }
+
+  // Office Management API methods
+
+  // Get all posts for an office
+  async getOfficePosts(officeId: number): Promise<PostsResponse> {
+    return this.makeRequest<PostsResponse>(`/offices/${officeId}/posts`);
+  }
+
+  // Create a new post in an office
+  async createPost(
+    officeId: number,
+    data: CreatePostRequest,
+  ): Promise<PostResponse> {
+    return this.makeRequest<PostResponse>(`/offices/${officeId}/posts`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Add an employee to a post
+  async addEmployee(
+    officeId: number,
+    postId: number,
+    data: CreateEmployeeRequest,
+  ): Promise<EmployeeResponse> {
+    return this.makeRequest<EmployeeResponse>(
+      `/offices/${officeId}/posts/${postId}/employees`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+    );
+  }
+
+  // Update an employee
+  async updateEmployee(
+    officeId: number,
+    postId: number,
+    employeeId: number,
+    data: UpdateEmployeeRequest,
+  ): Promise<EmployeeResponse> {
+    return this.makeRequest<EmployeeResponse>(
+      `/offices/${officeId}/posts/${postId}/employees/${employeeId}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      },
+    );
+  }
+
+  // Delete an employee
+  async deleteEmployee(
+    officeId: number,
+    postId: number,
+    employeeId: number,
+  ): Promise<ApiResponse> {
+    return this.makeRequest<ApiResponse>(
+      `/offices/${officeId}/posts/${postId}/employees/${employeeId}`,
+      {
+        method: "DELETE",
+      },
     );
   }
 }

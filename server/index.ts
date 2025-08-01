@@ -8,6 +8,7 @@ import adminAuthRoutes from "./routes/adminAuth.js";
 import schemeServiceRoutes from "./routes/schemeService.js";
 import certificateServiceRoutes from "./routes/certificateService.js";
 import contactServiceRoutes from "./routes/contactService.js";
+import officeManagementRoutes from "./routes/officeManagement.js";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use("/api/auth", adminAuthRoutes);
 app.use("/api/scheme-services", schemeServiceRoutes);
 app.use("/api/certificate-services", certificateServiceRoutes);
 app.use("/api/contact-services", contactServiceRoutes);
+app.use("/api/offices", officeManagementRoutes);
 
 app.get("/api/test", (req, res) => {
   res.json({ status: "OK", message: "Test route working" });
@@ -88,4 +90,5 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+export { prisma };
 export default app;

@@ -207,6 +207,9 @@ model ContactServiceContact {
   
   contactServiceId Int
   contactService   ContactService @relation(fields: [contactServiceId], references: [id], onDelete: Cascade)
+  
+  // Related entities for office management
+  posts            Post[]
 }
 
 model ContactServiceDocument {
@@ -218,4 +221,40 @@ model ContactServiceDocument {
   
   contactServiceId Int
   contactService   ContactService @relation(fields: [contactServiceId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  postName    String   // Changed from 'title' to match frontend
+  rank        String   // Changed from 'level' to match frontend
+  description String?
+  department  String?
+  status      String   @default("active") // active, inactive
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Office relation
+  officeId    Int
+  office      ContactServiceContact @relation(fields: [officeId], references: [id], onDelete: Cascade)
+  
+  // Related entities
+  employees   Employee[]
+}
+
+model Employee {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String
+  phone        String
+  designation  String
+  employeeId   String?  // Employee ID/Number (optional)
+  joiningDate  DateTime?
+  salary       Float?
+  status       String   @default("active") // active, inactive, on_leave
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Post relation
+  postId       Int
+  post         Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
