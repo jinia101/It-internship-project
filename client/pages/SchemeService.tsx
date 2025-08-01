@@ -65,10 +65,10 @@ export default function SchemeService() {
   };
 
   const handleEdit = (scheme) => {
-    navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
+    navigate(`/admin/edit-scheme-service/${scheme.id}`);
   };
   const handleView = (scheme) => {
-    navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
+    navigate(`/admin/edit-scheme-service/${scheme.id}`);
   };
   const handleDelete = (scheme) => {
     deleteService(scheme.id);

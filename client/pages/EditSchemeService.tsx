@@ -11,15 +11,19 @@ import { Button } from "@/components/ui/button";
 import { Trash2, PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  getServices,
-  updateService,
-  getServiceByName,
-} from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
+import { SchemeService } from "../../shared/api";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function EditSchemeService() {
-  const { name } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [schemeService, setSchemeService] = useState<SchemeService | null>(
+    null,
+  );
   const [step, setStep] = useState(1);
   const [eligibility, setEligibility] = useState([""]);
   const [schemeDetails, setSchemeDetails] = useState([""]);
@@ -38,16 +42,43 @@ export default function EditSchemeService() {
   ]);
 
   useEffect(() => {
-    const scheme = getServiceByName(decodeURIComponent(name || ""));
-    if (scheme) {
-      if (scheme.eligibilityDetails) setEligibility(scheme.eligibilityDetails);
-      if (scheme.schemeDetails) setSchemeDetails(scheme.schemeDetails);
-      if (scheme.processDetails) setProcess(scheme.processDetails);
-      if (scheme.contacts) {
-        setContacts(scheme.contacts);
-      }
+    if (!isAuthenticated) {
+      navigate("/admin-login");
+      return;
     }
-  }, [name]);
+
+    const fetchSchemeService = async () => {
+      if (!id) return;
+
+      setLoading(true);
+      try {
+        console.log("Fetching scheme service with ID:", id);
+        const response = await apiClient.getSchemeService(parseInt(id));
+        console.log("API response:", response);
+
+        // The response is the JSON directly, not wrapped in data
+        const scheme = response.schemeService;
+        console.log("Extracted scheme:", scheme);
+
+        setSchemeService(scheme);
+
+        if (scheme?.eligibilityDetails)
+          setEligibility(scheme.eligibilityDetails);
+        if (scheme?.schemeDetails) setSchemeDetails(scheme.schemeDetails);
+        if (scheme?.processDetails) setProcess(scheme.processDetails);
+        if (scheme?.contacts) {
+          setContacts(scheme.contacts);
+        }
+      } catch (error) {
+        console.error("Error fetching scheme service:", error);
+        setError("Failed to load scheme service");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchemeService();
+  }, [id, isAuthenticated, navigate]);
 
   const handleAdd = (setter, arr) => setter([...arr, ""]);
   const handleChange = (setter, arr, idx, value) =>
@@ -55,34 +86,64 @@ export default function EditSchemeService() {
   const handleRemove = (setter, arr, idx) =>
     setter(arr.filter((_, i) => i !== idx));
 
-  const saveData = (status) => {
-    const services = getServices();
-    const idx = services.findIndex(
-      (s) => s.name === decodeURIComponent(name || ""),
-    );
-    if (idx !== -1) {
-      const serviceToUpdate = {
-        ...services[idx],
+  const saveData = async (status?: string) => {
+    if (!schemeService) return;
+
+    setLoading(true);
+    try {
+      const updateData = {
         eligibilityDetails: eligibility,
         schemeDetails: schemeDetails,
         processDetails: process,
         contacts: contacts,
       };
+
+      await apiClient.updateSchemeService(schemeService.id, updateData);
+
       if (status) {
-        serviceToUpdate.status = status;
+        // If status is provided, also update the status separately if needed
+        // The backend might handle status updates differently
       }
-      updateService(serviceToUpdate);
+    } catch (error) {
+      console.error("Error saving data:", error);
+      setError("Failed to save changes");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePublish = (e) => {
+  const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
-    saveData("published");
-    navigate("/admin-scheme-service");
+    if (!schemeService) return;
+
+    setLoading(true);
+    try {
+      // First save any pending changes
+      await saveData();
+
+      // Then publish the scheme service
+      await apiClient.publishSchemeService(schemeService.id);
+
+      navigate("/admin-scheme-service");
+    } catch (error) {
+      console.error("Error publishing scheme:", error);
+      setError("Failed to publish scheme service");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
+
+  const handleSaveAndNext = async () => {
+    try {
+      await saveData();
+      nextStep();
+    } catch (error) {
+      // Error is already handled in saveData
+    }
+  };
 
   const handleContactChange = (idx, e) => {
     const { name, value } = e.target;
@@ -330,100 +391,130 @@ export default function EditSchemeService() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">
-          Edit Scheme: {decodeURIComponent(name || "")}
+          Edit Scheme: {schemeService?.name || "Loading..."}
         </h1>
-        <div className="flex flex-col items-center justify-center">
-          <div className="grid grid-cols-2 gap-4 place-content-center bg-white p-6 rounded-lg shadow-md">
-            <div className="border p-4 mb-6 rounded-md bg-white shadow-md">
-              <div className="font-semibold">
-                1. Scheme Name:
-                <p className="border-b mb-2 text-gray-500">
-                  {decodeURIComponent(name || "")}
-                </p>
-              </div>{" "}
-              <div className="font-semibold">
-                2. Scheme Summary:
-                <p className="border-b mb-2 text-gray-500">
-                  This is scheme summary
-                </p>
-              </div>
-              <div className="font-semibold">
-                3. Scheme Type:
-                <p className="border-b mb-2 text-gray-500">Central</p>
-              </div>
-              <div className="font-semibold">
-                4. Target Audience:
-                <p className="border-b mb-2 text-gray-500">Everyone</p>
-              </div>
-              <div className="font-semibold">
-                5. Where to Apply:
-                <p className="border-b mb-2 text-gray-500">
-                  Online (https://example.com)
-                </p>
-              </div>
-              <div className="flex justify-center gap-2 mt-4">
-                <Button variant="outline">Edit</Button>
-                <Button className="bg-green-600 hover:bg-green-700 text-white">Activate</Button>
-                <Button variant="destructive">Deactivate</Button>
-              </div>
-            </div>
-            <div className="max-w-2xl mx-auto">
-              <div className="mb-4 flex items-center justify-center space-x-4">
-                <button
-                  onClick={() => setStep(1)}
-                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 1 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
-                >
-                  Eligibility
-                </button>
-                <button
-                  onClick={() => setStep(2)}
-                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 2 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
-                >
-                  Scheme Details
-                </button>
-                <button
-                  onClick={() => setStep(3)}
-                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 3 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
-                >
-                  Application Process
-                </button>
-                <button
-                  onClick={() => setStep(4)}
-                  className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 4 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
-                >
-                  Contact Service
-                </button>
-              </div>
 
-              {renderStep()}
-              <div className="flex justify-between mt-8">
-                <div>
-                  {step > 1 && (
-                    <Button type="button" onClick={prevStep}>
-                      Back
-                    </Button>
-                  )}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
+
+        {loading && !schemeService && (
+          <div className="text-center py-8">
+            <div className="text-lg">Loading scheme service...</div>
+          </div>
+        )}
+
+        {!loading && !schemeService && !error && (
+          <div className="text-center py-8">
+            <div className="text-lg text-gray-500">
+              Scheme service not found
+            </div>
+          </div>
+        )}
+
+        {schemeService && (
+          <div className="flex flex-col items-center justify-center">
+            <div className="grid grid-cols-2 gap-4 place-content-center bg-white p-6 rounded-lg shadow-md">
+              <div className="border p-4 mb-6 rounded-md bg-white shadow-md">
+                <div className="font-semibold">
+                  1. Scheme Name:
+                  <p className="border-b mb-2 text-gray-500">
+                    {schemeService?.name || "Loading..."}
+                  </p>
+                </div>{" "}
+                <div className="font-semibold">
+                  2. Scheme Summary:
+                  <p className="border-b mb-2 text-gray-500">
+                    {schemeService?.summary || "Loading..."}
+                  </p>
                 </div>
-                <div className="flex gap-4">
-                  {step < 4 && (
-                    <Button type="button" onClick={nextStep}>
-                      Save and Next
-                    </Button>
-                  )}
-                  {(step === 3 || step === 4) && (
-                    <Button
-                      type="submit"
-                      className="bg-green-600 text-white"
-                      onClick={handlePublish}
-                    >
-                      Publish
-                    </Button>
-                  )}
+                <div className="font-semibold">
+                  3. Scheme Type:
+                  <p className="border-b mb-2 text-gray-500">Central</p>
+                </div>
+                <div className="font-semibold">
+                  4. Target Audience:
+                  <p className="border-b mb-2 text-gray-500">Everyone</p>
+                </div>
+                <div className="font-semibold">
+                  5. Where to Apply:
+                  <p className="border-b mb-2 text-gray-500">
+                    Online (https://example.com)
+                  </p>
+                </div>
+                <div className="flex justify-center gap-2 mt-4">
+                  <Button variant="outline">Edit</Button>
+                  <Button className="bg-green-600 hover:bg-green-700 text-white">
+                    Activate
+                  </Button>
+                  <Button variant="destructive">Deactivate</Button>
+                </div>
+              </div>
+              <div className="max-w-2xl mx-auto">
+                <div className="mb-4 flex items-center justify-center space-x-4">
+                  <button
+                    onClick={() => setStep(1)}
+                    className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 1 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                  >
+                    Eligibility
+                  </button>
+                  <button
+                    onClick={() => setStep(2)}
+                    className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 2 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                  >
+                    Scheme Details
+                  </button>
+                  <button
+                    onClick={() => setStep(3)}
+                    className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 3 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                  >
+                    Application Process
+                  </button>
+                  <button
+                    onClick={() => setStep(4)}
+                    className={`px-4 py-2 rounded-md flex items-center justify-center ${step === 4 ? "bg-blue-500 text-white" : "bg-gray-300"}`}
+                  >
+                    Contact Service
+                  </button>
+                </div>
+
+                {renderStep()}
+                <div className="flex justify-between mt-8">
+                  <div>
+                    {step > 1 && (
+                      <Button type="button" onClick={prevStep}>
+                        Back
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex gap-4">
+                    {step < 4 && (
+                      <Button
+                        type="button"
+                        onClick={handleSaveAndNext}
+                        disabled={loading}
+                      >
+                        {loading ? "Saving..." : "Save and Next"}
+                      </Button>
+                    )}
+                    {(step === 3 || step === 4) && (
+                      <Button
+                        type="submit"
+                        className="bg-green-600 text-white"
+                        onClick={handlePublish}
+                        disabled={loading}
+                      >
+                        {loading ? "Publishing..." : "Publish"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -12,21 +12,42 @@ import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { getServices, deleteService } from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function AdminSchemeService() {
   const [activeTab, setActiveTab] = useState("create");
   const [schemes, setSchemes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
   useEffect(() => {
-    setSchemes(getServices());
-  }, []);
-  const pendingSchemes = schemes.filter(
-    (s) => s.status === "pending" && s.type === "scheme",
-  );
-  const publishedSchemes = schemes.filter(
-    (s) => s.status === "published" && s.type === "scheme",
-  );
+    if (!isAuthenticated) {
+      navigate("/admin-login");
+      return;
+    }
+
+    const fetchSchemes = async () => {
+      setLoading(true);
+      try {
+        const response = await apiClient.getSchemeServices();
+        setSchemes(response.schemeServices || []);
+      } catch (error) {
+        console.error("Error fetching schemes:", error);
+        setError("Failed to load schemes");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchemes();
+  }, [isAuthenticated, navigate]);
+
+  const pendingSchemes = schemes.filter((s) => s.status === "draft");
+  const publishedSchemes = schemes.filter((s) => s.status === "published");
+
   const stats = {
     published: publishedSchemes.length,
     active: 0,
@@ -34,16 +55,27 @@ export default function AdminSchemeService() {
     users: 0,
     pending: pendingSchemes.length,
   };
+
   const handleEdit = (scheme) => {
-    navigate(`/admin/edit-scheme-service/${encodeURIComponent(scheme.name)}`);
+    navigate(`/admin/edit-scheme-service/${scheme.id}`);
   };
+
   const handleView = (scheme) => {
     navigate(`/admin/view-scheme-service/${encodeURIComponent(scheme.name)}`);
   };
-  const handleDelete = (scheme) => {
-    deleteService(scheme.id);
-    setSchemes(getServices());
+
+  const handleDelete = async (scheme) => {
+    try {
+      await apiClient.deleteSchemeService(scheme.id);
+      // Refresh the schemes list
+      const response = await apiClient.getSchemeServices();
+      setSchemes(response.schemeServices || []);
+    } catch (error) {
+      console.error("Error deleting scheme:", error);
+      setError("Failed to delete scheme");
+    }
   };
+
   return (
     <div className="flex min-h-screen">
       <AdminSidebar />
@@ -53,13 +85,26 @@ export default function AdminSchemeService() {
           <p className="text-gray-600 mb-8">
             Manage and review all government schemes and their details here.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="hover:shadow-lg transition-shadow">
+
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
+
+          {loading && (
+            <div className="text-center py-8">
+              <div className="text-lg">Loading schemes...</div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Published Services
                 </CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
@@ -70,12 +115,13 @@ export default function AdminSchemeService() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow">
+
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Active Services
                 </CardTitle>
-                <Activity className="h-4 w-4 text-blue-600" />
+                <Activity className="h-4 w-4 text-blue-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
@@ -86,12 +132,13 @@ export default function AdminSchemeService() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow">
+
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Pending Services
                 </CardTitle>
-                <Clock className="h-4 w-4 text-orange-600" />
+                <Clock className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
@@ -102,10 +149,11 @@ export default function AdminSchemeService() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow">
+
+            <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Users</CardTitle>
-                <Users className="h-4 w-4 text-purple-600" />
+                <Users className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
@@ -117,158 +165,192 @@ export default function AdminSchemeService() {
               </CardContent>
             </Card>
           </div>
+
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
-            className="w-full"
+            className="space-y-6"
           >
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="create" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create Service
-              </TabsTrigger>
-              <TabsTrigger value="pending" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Pending Services
-              </TabsTrigger>
-              <TabsTrigger
-                value="published"
-                className="flex items-center gap-2"
-              >
-                <CheckCircle className="h-4 w-4" />
-                Published Services
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex justify-between items-center">
+              <TabsList className="grid w-fit grid-cols-3">
+                <TabsTrigger value="create" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Service
+                </TabsTrigger>
+                <TabsTrigger
+                  value="pending"
+                  className="flex items-center gap-2"
+                >
+                  <Clock className="h-4 w-4" />
+                  Pending Services
+                </TabsTrigger>
+                <TabsTrigger
+                  value="published"
+                  className="flex items-center gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Published Services
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
             <TabsContent value="create" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Plus className="h-5 w-5" />
-                    Create New Service
-                  </CardTitle>
+                  <CardTitle>Create New Service</CardTitle>
                   <CardDescription>
-                    Add a new scheme service to the platform
+                    Add a new government scheme or service to the system.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
-                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      <Plus className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">
-                      Ready to create a new scheme service?
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      Use our service creation form to add new offerings to the
-                      platform
-                    </p>
-                    <Button size="lg" asChild>
-                      <Link to="/admin/create-scheme-service">
-                        Create New Scheme
-                        <Plus className="ml-2 h-4 w-4" />
-                      </Link>
+                  <Link to="/admin/create-scheme-service">
+                    <Button className="w-full h-32 text-lg">
+                      <Plus className="h-8 w-8 mr-2" />
+                      Create New Scheme Service
                     </Button>
-                  </div>
+                  </Link>
                 </CardContent>
               </Card>
             </TabsContent>
+
             <TabsContent value="pending" className="space-y-6">
-              {pendingSchemes.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center text-gray-500">
-                    No pending schemes.
-                  </CardContent>
-                </Card>
-              ) : (
-                pendingSchemes.map((scheme) => (
-                  <Card
-                    key={scheme.id}
-                    className="hover:shadow-lg transition-shadow"
-                  >
-                    <CardHeader>
-                      <CardTitle className="text-lg font-semibold">
-                        {scheme.name}
-                      </CardTitle>
-                      <CardDescription>{scheme.summary}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {/* Add more details if needed */}
-                    </CardContent>
-                    <CardFooter className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleView(scheme)}
-                      >
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(scheme)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(scheme)}
-                      >
-                        Delete
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))
-              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pending Services</CardTitle>
+                  <CardDescription>
+                    Services awaiting review and approval.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {pendingSchemes.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Clock className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No pending schemes.
+                      </h3>
+                      <p className="text-gray-500">
+                        All schemes have been reviewed and processed.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {pendingSchemes.map((scheme) => (
+                        <Card key={scheme.id} className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-semibold">{scheme.name}</h3>
+                              <p className="text-gray-600 text-sm">
+                                {scheme.summary}
+                              </p>
+                              <div className="flex gap-2 mt-2">
+                                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
+                                  {scheme.status}
+                                </span>
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                  {scheme.type}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(scheme)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleView(scheme)}
+                              >
+                                View
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDelete(scheme)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
+
             <TabsContent value="published" className="space-y-6">
-              {publishedSchemes.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center text-gray-500">
-                    No published schemes.
-                  </CardContent>
-                </Card>
-              ) : (
-                publishedSchemes.map((scheme) => (
-                  <Card
-                    key={scheme.id}
-                    className="hover:shadow-lg transition-shadow"
-                  >
-                    <CardHeader>
-                      <CardTitle className="text-lg font-semibold">
-                        {scheme.name}
-                      </CardTitle>
-                      <CardDescription>{scheme.summary}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {/* Add more details if needed */}
-                    </CardContent>
-                    <CardFooter className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleView(scheme)}
-                      >
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(scheme)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDelete(scheme)}
-                      >
-                        Delete
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))
-              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Published Services</CardTitle>
+                  <CardDescription>
+                    Services that are live and available to users.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {publishedSchemes.length === 0 ? (
+                    <div className="text-center py-12">
+                      <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No published schemes.
+                      </h3>
+                      <p className="text-gray-500">
+                        Publish some schemes to see them here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {publishedSchemes.map((scheme) => (
+                        <Card key={scheme.id} className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-semibold">{scheme.name}</h3>
+                              <p className="text-gray-600 text-sm">
+                                {scheme.summary}
+                              </p>
+                              <div className="flex gap-2 mt-2">
+                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                  {scheme.status}
+                                </span>
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                  {scheme.type}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(scheme)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleView(scheme)}
+                              >
+                                View
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDelete(scheme)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
