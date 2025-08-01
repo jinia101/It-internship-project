@@ -219,9 +219,22 @@ export default function EditContactDepartment() {
     console.log("newContact to be added:", newContact);
 
     try {
+      // Create update data with all contacts including the new one
+      const updatedContacts = [...(currentService.contacts || []), newContact];
+
       const updateData = {
-        ...currentService,
-        contacts: [...(currentService.contacts || []), newContact],
+        name: currentService.name,
+        summary: currentService.summary,
+        type: currentService.type,
+        targetAudience: currentService.targetAudience || [],
+        applicationMode: currentService.applicationMode,
+        onlineUrl: currentService.onlineUrl,
+        offlineAddress: currentService.offlineAddress,
+        status: currentService.status,
+        eligibilityDetails: currentService.eligibilityDetails || [],
+        contactDetails: currentService.contactDetails || [],
+        processDetails: currentService.processDetails || [],
+        contacts: updatedContacts,
       };
 
       console.log("Sending update to API:", updateData);
@@ -231,12 +244,24 @@ export default function EditContactDepartment() {
       );
       console.log("API response:", response);
 
-      // Update the current service state with the new contact
-      setCurrentService(updateData);
+      // Update the current service state with the response from the server
+      const updatedService = response.contactService;
+      setCurrentService(updatedService);
+      setServiceDetails(updatedService);
 
-      // Update the offices display with the new office
-      const newOfficeDisplay = { ...newOffice, status: "active" };
-      setOffices((prev) => [...prev, newOfficeDisplay]);
+      // Update the offices display by mapping the updated contacts
+      if (updatedService.contacts) {
+        const mappedOffices = updatedService.contacts.map((contact) => ({
+          officeName: contact.name,
+          level: contact.designation,
+          officePinCode: contact.contact,
+          district: contact.district,
+          block: contact.block,
+          subdivision: contact.subDistrict,
+          status: "active",
+        }));
+        setOffices(mappedOffices);
+      }
 
       toast({
         title: "Success",

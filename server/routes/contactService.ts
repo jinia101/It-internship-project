@@ -219,9 +219,31 @@ router.patch(
         });
       }
 
+      // Extract contacts from the body and handle them separately
+      const { contacts, ...updateData } = req.body;
+
+      let prismaUpdateData: any = updateData;
+
+      // If contacts are provided, handle them with Prisma's nested operations
+      if (contacts && Array.isArray(contacts)) {
+        prismaUpdateData.contacts = {
+          deleteMany: {}, // Clear existing contacts
+          create: contacts.map((contact: any) => ({
+            serviceName: contact.serviceName,
+            name: contact.name,
+            designation: contact.designation,
+            contact: contact.contact,
+            email: contact.email || "",
+            district: contact.district,
+            subDistrict: contact.subDistrict || "",
+            block: contact.block || "",
+          })),
+        };
+      }
+
       const updatedService = await prisma.contactService.update({
         where: { id },
-        data: req.body,
+        data: prismaUpdateData,
         include: {
           contacts: true,
           documents: true,
