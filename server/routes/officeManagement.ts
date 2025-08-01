@@ -29,11 +29,11 @@ router.get(
 
       // Find office by name
       const office = await prisma.contactServiceContact.findFirst({
-        where: { 
+        where: {
           name: {
             equals: officeName,
-            mode: 'insensitive' // Case-insensitive search
-          }
+            mode: "insensitive", // Case-insensitive search
+          },
         },
       });
 

@@ -658,16 +658,21 @@ export class ApiClient {
   }
 
   // Office Management API methods
-  
+
   // Get office by name
-  async getOfficeByName(officeName: string): Promise<{ success: boolean; office: ContactServiceContact }> {
-    return this.makeRequest<{ success: boolean; office: ContactServiceContact }>(`/offices/by-name/${encodeURIComponent(officeName)}`);
+  async getOfficeByName(
+    officeName: string,
+  ): Promise<{ success: boolean; office: ContactServiceContact }> {
+    return this.makeRequest<{
+      success: boolean;
+      office: ContactServiceContact;
+    }>(`/offices/by-name/${encodeURIComponent(officeName)}`);
   }
 
   // Get all posts for an office
   async getOfficePosts(officeId: number): Promise<PostsResponse> {
     return this.makeRequest<PostsResponse>(`/offices/${officeId}/posts`);
-  }  // Create a new post in an office
+  } // Create a new post in an office
   async createPost(
     officeId: number,
     data: CreatePostRequest,

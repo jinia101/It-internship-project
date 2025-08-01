@@ -219,8 +219,16 @@ router.patch(
         });
       }
 
-      // Extract contacts from the body and handle them separately
-      const { contacts, ...updateData } = req.body;
+      // Extract relationship fields and nested data that shouldn't be directly updated
+      const {
+        contacts,
+        documents,
+        admin,
+        createdAt,
+        updatedAt,
+        id: bodyId,
+        ...updateData
+      } = req.body;
 
       let prismaUpdateData: any = updateData;
 
@@ -237,6 +245,19 @@ router.patch(
             district: contact.district,
             subDistrict: contact.subDistrict || "",
             block: contact.block || "",
+          })),
+        };
+      }
+
+      // Handle documents if provided
+      if (documents && Array.isArray(documents)) {
+        prismaUpdateData.documents = {
+          deleteMany: {}, // Clear existing documents
+          create: documents.map((doc: any) => ({
+            fileName: doc.fileName,
+            originalName: doc.originalName,
+            mimeType: doc.mimeType,
+            size: doc.size,
           })),
         };
       }

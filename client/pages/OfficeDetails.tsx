@@ -69,11 +69,11 @@ const OfficeDetails: React.FC = () => {
       const officeResponse = await apiClient.getOfficeByName(officeName);
       const office = officeResponse.office;
       setOfficeId(office.id!);
-      
+
       // Then fetch posts for this office
       await fetchPosts(office.id!);
     } catch (error) {
-      console.error('Error fetching office:', error);
+      console.error("Error fetching office:", error);
       toast({
         title: "Error",
         description: "Failed to load office details",

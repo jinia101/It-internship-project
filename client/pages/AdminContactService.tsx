@@ -70,9 +70,28 @@ export default function AdminContactService() {
 
   const handlePublish = async (service) => {
     try {
+      // Only send the fields that should be updated, not the entire service object
       const updateData = {
-        ...service,
+        name: service.name,
+        summary: service.summary,
+        type: service.type,
+        targetAudience: service.targetAudience,
+        applicationMode: service.applicationMode,
+        onlineUrl: service.onlineUrl,
+        offlineAddress: service.offlineAddress,
+        eligibilityDetails: service.eligibilityDetails,
+        contactDetails: service.contactDetails,
+        processDetails: service.processDetails,
+        processNew: service.processNew,
+        processUpdate: service.processUpdate,
+        processLost: service.processLost,
+        processSurrender: service.processSurrender,
+        docNew: service.docNew,
+        docUpdate: service.docUpdate,
+        docLost: service.docLost,
+        docSurrender: service.docSurrender,
         status: "published",
+        contacts: service.contacts || [],
       };
 
       await apiClient.updateContactService(service.id, updateData);
