@@ -3,10 +3,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { PrismaClient } from "../generated/prisma/index.js";
 
-// Import routes
-import adminAuthRoutes from "./routes/adminAuth.js";
-import schemeServiceRoutes from "./routes/schemeService.js";
-
 dotenv.config();
 
 const app = express();
@@ -16,36 +12,21 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(
   cors({
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:5173",
-      "http://localhost:8080",
-      "http://localhost:3000",
-    ],
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  console.log("Headers:", req.headers);
-  console.log("Body:", req.body);
-  next();
-});
-
-// Routes
-app.use("/api/auth", adminAuthRoutes);
-app.use("/api/scheme-services", schemeServiceRoutes);
-
-app.get("/api/test", (req, res) => {
-  res.json({ status: "OK", message: "Test route working" });
-});
-
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
+});
+
+// Basic auth test route
+app.post("/api/test", (req, res) => {
+  res.json({ status: "OK", message: "Test route working", body: req.body });
 });
 
 // Error handling middleware
@@ -67,11 +48,6 @@ app.use(
   },
 );
 
-// 404 handler
-app.use("*", (req, res) => {
-  res.status(404).json({ error: "Route not found" });
-});
-
 // Graceful shutdown
 process.on("SIGINT", async () => {
   console.log("Shutting down gracefully...");
@@ -82,5 +58,3 @@ process.on("SIGINT", async () => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-export default app;

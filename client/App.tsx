@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -13,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import ServiceDetails from "./pages/ServiceDetails";
 import AdminProfile from "./pages/AdminProfile";
 import AdminLogin from "./pages/AdminLogin";
+import AdminRegister from "./pages/AdminRegister";
 import SchemeService from "./pages/SchemeService";
 import ContactService from "./pages/ContactService";
 import GrievancesService from "./pages/GrievancesService";
@@ -49,128 +51,140 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/admin/office-details/:officeName" element={<OfficeDetails />} />
-          <Route path="/user-dashboard" element={<UserDashboard />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin"
-            element={
-              <AdminLayout>
-                <DashboardHome />
-              </AdminLayout>
-            }
-          />
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route
+              path="/admin/office-details/:officeName"
+              element={<OfficeDetails />}
+            />
+            <Route path="/user-dashboard" element={<UserDashboard />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/register" element={<AdminRegister />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminLayout>
+                  <DashboardHome />
+                </AdminLayout>
+              }
+            />
 
-          <Route path="/service/:id" element={<ServiceDetails />} />
-          <Route path="/admin/profile" element={<AdminProfile />} />
-          <Route path="/scheme-service" element={<SchemeService />} />
-          <Route path="/contact-service" element={<ContactService />} />
-          <Route path="/grievances-service" element={<GrievancesService />} />
-          <Route path="/emergency-service" element={<EmergencyService />} />
-          <Route path="/feedback-service" element={<FeedbackService />} />
-          <Route path="/certificate-service" element={<CertificateService />} />
-          <Route
-            path="/admin/create-scheme-service"
-            element={<CreateSchemeService />}
-          />
-          <Route
-            path="/admin/create-certificate-service"
-            element={<CreateCertificateService />}
-          />
-          <Route
-            path="/admin/create-contact-service"
-            element={<CreateContactService />}
-          />
-          <Route
-            path="/admin/create-grievances-service"
-            element={<CreateGrievancesService />}
-          />
-          <Route
-            path="/admin/create-emergency-service"
-            element={<CreateEmergencyService />}
-          />
-          <Route
-            path="/admin/create-feedback-service"
-            element={<CreateFeedbackService />}
-          />
-          <Route
-            path="/admin/edit-department/:name"
-            element={<EditDepartment />}
-          />
-          <Route
-            path="/admin/edit-scheme-service/:name"
-            element={<EditSchemeService />}
-          />
-          <Route
-            path="/admin/edit-certificate-service/:name"
-            element={<EditCertificateService />}
-          />
-          <Route
-            path="/admin/edit-contact-department/:name"
-            element={<EditContactDepartment />}
-          />
-          <Route
-            path="/admin/view-scheme-service/:name"
-            element={<ViewSchemeService />}
-          />
-          {/* User-specific service pages */}
-          <Route path="/user-scheme-service" element={<UserSchemeService />} />
-          <Route
-            path="/user-certificate-service"
-            element={<UserCertificateService />}
-          />
-          <Route
-            path="/user-contact-service"
-            element={<UserContactService />}
-          />
-          <Route
-            path="/user-grievances-service"
-            element={<UserGrievancesService />}
-          />
-          <Route
-            path="/user-emergency-service"
-            element={<UserEmergencyService />}
-          />
-          <Route
-            path="/user-feedback-service"
-            element={<UserFeedbackService />}
-          />
-          {/* Admin-specific service pages */}
-          <Route
-            path="/admin-scheme-service"
-            element={<AdminSchemeService />}
-          />
-          <Route
-            path="/admin-certificate-service"
-            element={<AdminCertificateService />}
-          />
-          <Route
-            path="/admin-contact-service"
-            element={<AdminContactService />}
-          />
-          <Route
-            path="/admin-grievances-service"
-            element={<AdminGrievancesService />}
-          />
-          <Route
-            path="/admin-emergency-service"
-            element={<AdminEmergencyService />}
-          />
-          <Route
-            path="/admin-feedback-service"
-            element={<AdminFeedbackService />}
-          />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            <Route path="/service/:id" element={<ServiceDetails />} />
+            <Route path="/admin/profile" element={<AdminProfile />} />
+            <Route path="/scheme-service" element={<SchemeService />} />
+            <Route path="/contact-service" element={<ContactService />} />
+            <Route path="/grievances-service" element={<GrievancesService />} />
+            <Route path="/emergency-service" element={<EmergencyService />} />
+            <Route path="/feedback-service" element={<FeedbackService />} />
+            <Route
+              path="/certificate-service"
+              element={<CertificateService />}
+            />
+            <Route
+              path="/admin/create-scheme-service"
+              element={<CreateSchemeService />}
+            />
+            <Route
+              path="/admin/create-certificate-service"
+              element={<CreateCertificateService />}
+            />
+            <Route
+              path="/admin/create-contact-service"
+              element={<CreateContactService />}
+            />
+            <Route
+              path="/admin/create-grievances-service"
+              element={<CreateGrievancesService />}
+            />
+            <Route
+              path="/admin/create-emergency-service"
+              element={<CreateEmergencyService />}
+            />
+            <Route
+              path="/admin/create-feedback-service"
+              element={<CreateFeedbackService />}
+            />
+            <Route
+              path="/admin/edit-department/:name"
+              element={<EditDepartment />}
+            />
+            <Route
+              path="/admin/edit-scheme-service/:name"
+              element={<EditSchemeService />}
+            />
+            <Route
+              path="/admin/edit-certificate-service/:name"
+              element={<EditCertificateService />}
+            />
+            <Route
+              path="/admin/edit-contact-department/:name"
+              element={<EditContactDepartment />}
+            />
+            <Route
+              path="/admin/view-scheme-service/:name"
+              element={<ViewSchemeService />}
+            />
+            {/* User-specific service pages */}
+            <Route
+              path="/user-scheme-service"
+              element={<UserSchemeService />}
+            />
+            <Route
+              path="/user-certificate-service"
+              element={<UserCertificateService />}
+            />
+            <Route
+              path="/user-contact-service"
+              element={<UserContactService />}
+            />
+            <Route
+              path="/user-grievances-service"
+              element={<UserGrievancesService />}
+            />
+            <Route
+              path="/user-emergency-service"
+              element={<UserEmergencyService />}
+            />
+            <Route
+              path="/user-feedback-service"
+              element={<UserFeedbackService />}
+            />
+            {/* Admin-specific service pages */}
+            <Route
+              path="/admin-scheme-service"
+              element={<AdminSchemeService />}
+            />
+            <Route
+              path="/admin-certificate-service"
+              element={<AdminCertificateService />}
+            />
+            <Route
+              path="/admin-contact-service"
+              element={<AdminContactService />}
+            />
+            <Route
+              path="/admin-grievances-service"
+              element={<AdminGrievancesService />}
+            />
+            <Route
+              path="/admin-emergency-service"
+              element={<AdminEmergencyService />}
+            />
+            <Route
+              path="/admin-feedback-service"
+              element={<AdminFeedbackService />}
+            />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

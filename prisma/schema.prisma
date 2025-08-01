@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  schemeServices SchemeService[]
+}
+
+model SchemeService {
+  id                Int      @id @default(autoincrement())
+  name              String
+  summary           String
+  type              String?
+  targetAudience    String[] 
+  applicationMode   String
+  onlineUrl         String?
+  offlineAddress    String?
+  status            String   @default("draft") // draft, pending, published
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Admin relation
+  adminId           Int
+  admin             Admin    @relation(fields: [adminId], references: [id])
+  
+  // Extended details
+  eligibilityDetails String[]
+  schemeDetails      String[]
+  processDetails     String[]
+  
+  // Process flows
+  processNew         String?
+  processUpdate      String?
+  processLost        String?
+  processSurrender   String?
+  
+  // Document requirements
+  docNew             String?
+  docUpdate          String?
+  docLost            String?
+  docSurrender       String?
+  
+  // Related entities
+  contacts           ContactPerson[]
+  documents          SupportiveDocument[]
+}
+
+model ContactPerson {
+  id               Int     @id @default(autoincrement())
+  serviceName      String
+  district         String
+  subDistrict      String
+  block            String
+  name             String
+  designation      String
+  contact          String
+  email            String
+  
+  schemeServiceId  Int
+  schemeService    SchemeService @relation(fields: [schemeServiceId], references: [id], onDelete: Cascade)
+}
+
+model SupportiveDocument {
+  id              Int     @id @default(autoincrement())
+  slNo            Int
+  documentType    String
+  validProof      String
+  isRequired      Boolean @default(true)
+  
+  schemeServiceId Int
+  schemeService   SchemeService @relation(fields: [schemeServiceId], references: [id], onDelete: Cascade)
+}

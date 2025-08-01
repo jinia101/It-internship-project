@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,9 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { saveService } from "../lib/localStorageUtils";
+import { useSchemeServices } from "../hooks/useSchemeServices";
+import { useAuth } from "../contexts/AuthContext";
+import { CreateSchemeServiceRequest } from "../../shared/api";
 import {
   Select,
   SelectContent,
@@ -22,22 +26,59 @@ import {
 
 export default function CreateSchemeService() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const { createService, loading } = useSchemeServices();
+  const { isAuthenticated, admin, token } = useAuth();
+  const [error, setError] = useState("");
+
+  // Check authentication on component mount
+  useEffect(() => {
+    console.log("CreateSchemeService - Auth check:", {
+      isAuthenticated,
+      admin,
+      token: token ? "present" : "missing",
+    });
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to create scheme services",
+        variant: "destructive",
+      });
+      navigate("/admin/login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Show loading while checking auth
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div>Checking authentication...</div>
+      </div>
+    );
+  }
+
+  const [formData, setFormData] = useState<CreateSchemeServiceRequest>({
     name: "",
     summary: "",
     type: "",
     targetAudience: [""],
-    applicationMode: "",
+    applicationMode: "online",
     onlineUrl: "",
     offlineAddress: "",
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | { target: { name: string; value: string } },
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(""); // Clear error when user starts typing
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError("");
   };
 
   const handleTargetAudienceChange = (index: number, value: string) => {
@@ -47,39 +88,99 @@ export default function CreateSchemeService() {
   };
 
   const addTargetAudience = () => {
-    setFormData((prev) => ({ ...prev, targetAudience: [...prev.targetAudience, ""] }));
+    setFormData((prev) => ({
+      ...prev,
+      targetAudience: [...prev.targetAudience, ""],
+    }));
   };
 
   const removeTargetAudience = (index: number) => {
-    const newTargetAudience = [...formData.targetAudience];
-    newTargetAudience.splice(index, 1);
-    setFormData((prev) => ({ ...prev, targetAudience: newTargetAudience }));
+    if (formData.targetAudience.length > 1) {
+      const newTargetAudience = [...formData.targetAudience];
+      newTargetAudience.splice(index, 1);
+      setFormData((prev) => ({ ...prev, targetAudience: newTargetAudience }));
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = (): string | null => {
+    if (!formData.name.trim()) return "Scheme name is required";
+    if (formData.name.trim().length < 3)
+      return "Scheme name must be at least 3 characters";
+
+    if (!formData.summary.trim()) return "Summary is required";
+    if (formData.summary.trim().length < 10)
+      return "Summary must be at least 10 characters";
+
+    if (!formData.applicationMode) return "Application mode is required";
+
+    const validTargetAudience = formData.targetAudience.filter(
+      (ta) => ta.trim() !== "",
+    );
+    if (validTargetAudience.length === 0)
+      return "At least one target audience is required";
+
+    if (formData.applicationMode === "online" && !formData.onlineUrl?.trim()) {
+      return "Online URL is required for online application mode";
+    }
+
+    if (formData.onlineUrl?.trim() && !formData.onlineUrl.startsWith("http")) {
+      return "Online URL must start with http:// or https://";
+    }
+
+    if (
+      formData.applicationMode === "offline" &&
+      !formData.offlineAddress?.trim()
+    ) {
+      return "Offline address is required for offline application mode";
+    }
+
+    if (formData.applicationMode === "both") {
+      if (!formData.onlineUrl?.trim())
+        return "Online URL is required for both application mode";
+      if (!formData.offlineAddress?.trim())
+        return "Offline address is required for both application mode";
+      if (!formData.onlineUrl.startsWith("http")) {
+        return "Online URL must start with http:// or https://";
+      }
+    }
+
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    saveService({
-      name: formData.name,
-      summary: formData.summary,
-      type: formData.type,
-      targetAudience: formData.targetAudience,
-      status: "pending",
-      tags: [],
-      applicationMode: formData.applicationMode,
-      applicationLocation: formData.applicationLocation,
-      applicationMode: formData.applicationMode,
-      onlineUrl: formData.onlineUrl,
-      offlineAddress: formData.offlineAddress,
-      eligibility: "",
-      type: "scheme",
-    });
-    toast({
-      title: "Scheme Created Successfully!",
-      description: "Your new scheme has been added to the platform as pending.",
-    });
-    setIsSubmitting(false);
-    navigate("/admin-scheme-service");
+    setError("");
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    try {
+      // Filter out empty target audience entries
+      const cleanedData = {
+        ...formData,
+        targetAudience: formData.targetAudience.filter(
+          (ta) => ta.trim() !== "",
+        ),
+      };
+
+      const newService = await createService(cleanedData);
+
+      if (newService) {
+        toast({
+          title: "Success",
+          description:
+            "Scheme service created successfully! You can now edit and complete the details.",
+        });
+        navigate(`/admin/edit-scheme-service/${newService.id}`);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create scheme service";
+      setError(errorMessage);
+    }
   };
 
   return (
@@ -88,12 +189,18 @@ export default function CreateSchemeService() {
         <form onSubmit={handleSubmit} className="max-w-xl mx-auto space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              <CardTitle>Create New Scheme Service</CardTitle>
               <CardDescription>
-                Fill in the details for the new scheme.
+                Fill in the basic details for the new scheme service.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="name">Scheme Name *</Label>
                 <Input
@@ -103,36 +210,55 @@ export default function CreateSchemeService() {
                   onChange={handleInputChange}
                   placeholder="Enter scheme name"
                   required
+                  disabled={loading}
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="summary">Scheme Summary *</Label>
-                <Input
+                <Label htmlFor="summary">
+                  Scheme Summary * (minimum 10 characters)
+                </Label>
+                <Textarea
                   id="summary"
                   name="summary"
                   value={formData.summary}
                   onChange={handleInputChange}
-                  placeholder="Enter scheme summary"
+                  placeholder="Enter a brief summary of the scheme (minimum 10 characters)"
                   required
+                  disabled={loading}
+                  rows={3}
                 />
+                <div className="text-sm text-gray-500">
+                  {formData.summary.length}/10 characters minimum
+                </div>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="type">Type *</Label>
+                <Label htmlFor="type">Scheme Type</Label>
                 <Select
                   name="type"
-                  onValueChange={(value) =>
-                    handleInputChange({ target: { name: "type", value } } as any)
-                  }
+                  value={formData.type}
+                  onValueChange={(value) => handleSelectChange("type", value)}
+                  disabled={loading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a type" />
+                    <SelectValue placeholder="Select scheme type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Central">Central</SelectItem>
-                    <SelectItem value="State">State</SelectItem>
+                    <SelectItem value="Central">Central Government</SelectItem>
+                    <SelectItem value="State">State Government</SelectItem>
+                    <SelectItem value="Social Welfare">
+                      Social Welfare
+                    </SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                    <SelectItem value="Healthcare">Healthcare</SelectItem>
+                    <SelectItem value="Agriculture">Agriculture</SelectItem>
+                    <SelectItem value="Employment">Employment</SelectItem>
+                    <SelectItem value="Housing">Housing</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="space-y-2">
                 <Label>Target Audience *</Label>
                 {formData.targetAudience.map((audience, index) => (
@@ -142,89 +268,110 @@ export default function CreateSchemeService() {
                       onChange={(e) =>
                         handleTargetAudienceChange(index, e.target.value)
                       }
-                      placeholder="Enter target audience"
+                      placeholder="e.g., Students, Farmers, Women, Senior Citizens"
                       required
+                      disabled={loading}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => removeTargetAudience(index)}
-                    >
-                      -
-                    </Button>
+                    {formData.targetAudience.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeTargetAudience(index)}
+                        disabled={loading}
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </div>
                 ))}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={addTargetAudience}
+                  disabled={loading}
                 >
                   + Add Target Audience
                 </Button>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="applicationMode">Where to Apply *</Label>
+                <Label htmlFor="applicationMode">Application Mode *</Label>
                 <Select
                   name="applicationMode"
+                  value={formData.applicationMode}
                   onValueChange={(value) =>
-                    handleInputChange({
-                      target: { name: "applicationMode", value },
-                    } as any)
+                    handleSelectChange("applicationMode", value)
                   }
+                  disabled={loading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select an option" />
+                    <SelectValue placeholder="Select application mode" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Online">Online</SelectItem>
-                    <SelectItem value="Offline">Offline</SelectItem>
-                    <SelectItem value="Both">Both</SelectItem>
+                    <SelectItem value="online">Online Only</SelectItem>
+                    <SelectItem value="offline">Offline Only</SelectItem>
+                    <SelectItem value="both">
+                      Both Online and Offline
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {(formData.applicationMode === "Online" ||
-                formData.applicationMode === "Both") && (
+              {(formData.applicationMode === "online" ||
+                formData.applicationMode === "both") && (
                 <div className="space-y-2">
-                  <Label htmlFor="onlineUrl">Website URL *</Label>
+                  <Label htmlFor="onlineUrl">Online Application URL *</Label>
                   <Input
                     id="onlineUrl"
                     name="onlineUrl"
+                    type="url"
                     value={formData.onlineUrl}
                     onChange={handleInputChange}
-                    placeholder="Enter website URL"
+                    placeholder="https://example.com/apply"
                     required
+                    disabled={loading}
                   />
+                  <div className="text-sm text-gray-500">
+                    Must start with http:// or https://
+                  </div>
                 </div>
               )}
 
-              {(formData.applicationMode === "Offline" ||
-                formData.applicationMode === "Both") && (
+              {(formData.applicationMode === "offline" ||
+                formData.applicationMode === "both") && (
                 <div className="space-y-2">
                   <Label htmlFor="offlineAddress">
-                    Offline Address *
+                    Offline Application Address *
                   </Label>
-                  <Input
+                  <Textarea
                     id="offlineAddress"
                     name="offlineAddress"
                     value={formData.offlineAddress}
                     onChange={handleInputChange}
-                    placeholder="Enter offline address"
+                    placeholder="Enter the physical address where applications can be submitted"
                     required
+                    disabled={loading}
+                    rows={3}
                   />
                 </div>
               )}
+
+              <div className="flex justify-between pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/admin-scheme-service")}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Creating..." : "Create Scheme Service"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              className="bg-primary text-white"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : "Create Scheme"}
-            </Button>
-          </div>
         </form>
       </div>
     </div>

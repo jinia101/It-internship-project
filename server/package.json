@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "*",
+    "cors": "*",
+    "dotenv": "*",
+    "@prisma/client": "*",
+    "express-validator": "*",
+    "bcryptjs": "*",
+    "jsonwebtoken": "*",
+    "multer": "*"
+  }
+}
