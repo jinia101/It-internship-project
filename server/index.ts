@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import { PrismaClient } from "../generated/prisma/index.js";
 
 // Import routes
@@ -11,6 +13,9 @@ import contactServiceRoutes from "./routes/contactService.js";
 import officeManagementRoutes from "./routes/officeManagement.js";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const prisma = new PrismaClient();
@@ -55,6 +60,10 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
+// Serve static files from the React app build directory
+const clientBuildPath = path.join(__dirname, "../dist/spa");
+app.use(express.static(clientBuildPath));
+
 // Error handling middleware
 app.use(
   (
@@ -74,9 +83,21 @@ app.use(
   },
 );
 
-// 404 handler
-app.use("*", (req, res) => {
-  res.status(404).json({ error: "Route not found" });
+// Catch-all handler: send back React's index.html file for any non-API routes
+app.get("*", (req, res) => {
+  // Don't serve index.html for API routes
+  if (req.path.startsWith("/api/")) {
+    res.status(404).json({ error: "API route not found" });
+    return;
+  }
+
+  const indexPath = path.join(clientBuildPath, "index.html");
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error("Error serving index.html:", err);
+      res.status(500).json({ error: "Failed to serve application" });
+    }
+  });
 });
 
 // Graceful shutdown

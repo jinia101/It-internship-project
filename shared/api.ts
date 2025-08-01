@@ -30,6 +30,7 @@ export interface CertificateContact {
   designation: string;
   contact: string;
   email: string;
+  applicationType?: string;
 }
 
 export interface ContactServiceContact {
@@ -58,6 +59,7 @@ export interface CertificateDocument {
   documentType: string;
   validProof: string;
   isRequired: boolean;
+  applicationType?: string;
 }
 
 export interface ContactServiceDocument {

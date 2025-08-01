@@ -222,9 +222,53 @@ router.patch(
         });
       }
 
+      // Extract relationship fields and nested data that shouldn't be directly updated
+      const {
+        contacts,
+        documents,
+        admin,
+        createdAt,
+        updatedAt,
+        id: bodyId,
+        ...updateData
+      } = req.body;
+
+      let prismaUpdateData: any = updateData;
+
+      // If contacts are provided, handle them with Prisma's nested operations
+      if (contacts && Array.isArray(contacts)) {
+        prismaUpdateData.contacts = {
+          deleteMany: {}, // Clear existing contacts
+          create: contacts.map((contact: any) => ({
+            serviceName: contact.serviceName || updateData.name,
+            name: contact.name,
+            designation: contact.designation,
+            contact: contact.contact,
+            email: contact.email || "",
+            district: contact.district,
+            subDistrict: contact.subDistrict || "",
+            block: contact.block || "",
+            applicationType: contact.applicationType || "New Application",
+          })),
+        };
+      }
+
+      // Handle documents if provided
+      if (documents && Array.isArray(documents)) {
+        prismaUpdateData.documents = {
+          deleteMany: {}, // Clear existing documents
+          create: documents.map((doc: any) => ({
+            slNo: doc.slNo || 1,
+            documentType: doc.documentType,
+            validProof: doc.validProof,
+            applicationType: doc.applicationType || "New Application",
+          })),
+        };
+      }
+
       const updatedService = await prisma.certificateService.update({
         where: { id },
-        data: req.body,
+        data: prismaUpdateData,
         include: {
           contacts: true,
           documents: true,

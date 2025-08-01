@@ -118,7 +118,7 @@ const App = () => (
               element={<EditSchemeService />}
             />
             <Route
-              path="/admin/edit-certificate-service/:name"
+              path="/admin/edit-certificate-service/:id"
               element={<EditCertificateService />}
             />
             <Route

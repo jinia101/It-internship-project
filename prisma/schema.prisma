@@ -139,6 +139,7 @@ model CertificateContact {
   designation          String
   contact              String
   email                String
+  applicationType      String  @default("New Application") // New Application, Lost Application, etc.
   
   certificateServiceId Int
   certificateService   CertificateService @relation(fields: [certificateServiceId], references: [id], onDelete: Cascade)
@@ -150,6 +151,7 @@ model CertificateDocument {
   documentType         String
   validProof           String
   isRequired           Boolean @default(true)
+  applicationType      String  @default("New Application") // New Application, Lost Application, etc.
   
   certificateServiceId Int
   certificateService   CertificateService @relation(fields: [certificateServiceId], references: [id], onDelete: Cascade)

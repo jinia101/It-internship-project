@@ -169,6 +169,110 @@ export default function EditCertificateService() {
             onlineUrl: certificateService.onlineUrl || "",
             offlineAddress: certificateService.offlineAddress || "",
           });
+
+          // Load existing process steps from service data if available
+          if (
+            certificateService.processDetails &&
+            certificateService.processDetails.length > 0
+          ) {
+            try {
+              const processData = JSON.parse(
+                certificateService.processDetails[0] || "{}",
+              );
+              if (processData && typeof processData === "object") {
+                setProcessSteps(processData);
+              }
+            } catch (e) {
+              console.log("Could not parse existing process data");
+            }
+          }
+
+          // Load existing documents if available
+          if (
+            certificateService.documents &&
+            certificateService.documents.length > 0
+          ) {
+            // Group documents by type/application
+            const documentsByType = {
+              "New Application": [
+                { slNo: "1", documentType: "", validProof: "" },
+              ],
+              "Lost Application": [
+                { slNo: "1", documentType: "", validProof: "" },
+              ],
+              "Update Application": [
+                { slNo: "1", documentType: "", validProof: "" },
+              ],
+              "Surrender Application": [
+                { slNo: "1", documentType: "", validProof: "" },
+              ],
+            };
+
+            certificateService.documents.forEach((doc) => {
+              const type = doc.applicationType || "New Application";
+              if (documentsByType[type]) {
+                documentsByType[type] =
+                  documentsByType[type][0].documentType === ""
+                    ? []
+                    : documentsByType[type];
+                documentsByType[type].push({
+                  slNo: String(doc.slNo || documentsByType[type].length + 1),
+                  documentType: doc.documentType || "",
+                  validProof: doc.validProof || "",
+                });
+              }
+            });
+            setDocuments(documentsByType);
+          }
+
+          // Load contacts by application type
+          if (
+            certificateService.contacts &&
+            certificateService.contacts.length > 0
+          ) {
+            const contactsByType = {
+              "New Application": [],
+              "Lost Application": [],
+              "Update Application": [],
+              "Surrender Application": [],
+            };
+
+            certificateService.contacts.forEach((contact) => {
+              const type = contact.applicationType || "New Application";
+              if (contactsByType[type]) {
+                contactsByType[type].push({
+                  serviceName: contact.serviceName || "",
+                  district: contact.district || "",
+                  subDistrict: contact.subDistrict || "",
+                  block: contact.block || "",
+                  name: contact.name || "",
+                  designation: contact.designation || "",
+                  contact: contact.contact || "",
+                  email: contact.email || "",
+                });
+              }
+            });
+
+            // Ensure each type has at least one empty contact
+            Object.keys(contactsByType).forEach((type) => {
+              if (contactsByType[type].length === 0) {
+                contactsByType[type] = [
+                  {
+                    serviceName: "",
+                    district: "",
+                    subDistrict: "",
+                    block: "",
+                    name: "",
+                    designation: "",
+                    contact: "",
+                    email: "",
+                  },
+                ];
+              }
+            });
+
+            setContact(contactsByType);
+          }
         } else {
           toast({
             title: "Error",
@@ -191,7 +295,7 @@ export default function EditCertificateService() {
     };
 
     fetchCertificateService();
-  }, [id]);
+  }, [id, navigate, toast]);
 
   const addProcessStep = () => {
     setProcessSteps((prev) => ({
@@ -321,17 +425,126 @@ export default function EditCertificateService() {
     }
   };
 
+  // Individual save functions for each section
+  const saveProcessSteps = async () => {
+    try {
+      await saveData();
+      toast({
+        title: "Success",
+        description: "Process steps saved successfully",
+      });
+      setActiveForm(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save process steps",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveDocuments = async () => {
+    try {
+      await saveData();
+      toast({
+        title: "Success",
+        description: "Documents saved successfully",
+      });
+      setActiveForm(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save documents",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveEligibility = async () => {
+    try {
+      await saveData();
+      toast({
+        title: "Success",
+        description: "Eligibility criteria saved successfully",
+      });
+      setActiveForm(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save eligibility criteria",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveContacts = async () => {
+    try {
+      await saveData();
+      toast({
+        title: "Success",
+        description: "Contact details saved successfully",
+      });
+      setActiveForm(null);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save contact details",
+        variant: "destructive",
+      });
+    }
+  };
+
   const saveData = async (publishStatus?) => {
     if (!currentService) return;
 
     try {
+      // Prepare all contacts from all application types
+      const allContacts = [];
+      Object.keys(contact).forEach((applicationType) => {
+        contact[applicationType].forEach((contactItem) => {
+          if (contactItem.name || contactItem.email || contactItem.contact) {
+            allContacts.push({
+              ...contactItem,
+              applicationType,
+              serviceName: serviceData.name,
+            });
+          }
+        });
+      });
+
+      // Prepare all documents from all application types
+      const allDocuments = [];
+      Object.keys(documents).forEach((applicationType) => {
+        documents[applicationType].forEach((doc) => {
+          if (doc.documentType || doc.validProof) {
+            allDocuments.push({
+              ...doc,
+              applicationType,
+              slNo: parseInt(doc.slNo) || 1,
+            });
+          }
+        });
+      });
+
+      // Prepare eligibility data for all application types
+      const allEligibility = [];
+      Object.keys(eligibility).forEach((applicationType) => {
+        eligibility[applicationType].forEach((item) => {
+          if (item.trim()) {
+            allEligibility.push(`${applicationType}: ${item}`);
+          }
+        });
+      });
+
       const updateData = {
         name: serviceData.name,
         type: serviceData.certificateAbbreviation,
         summary: serviceData.summary,
         applicationMode: serviceData.applicationMode,
-        eligibilityDetails: serviceData.eligibility,
+        eligibilityDetails:
+          allEligibility.length > 0 ? allEligibility : serviceData.eligibility,
         certificateDetails: [serviceData.serviceDetails],
+        processDetails: [JSON.stringify(processSteps)], // Store process steps as JSON
         processNew: serviceData.processNew,
         processUpdate: serviceData.processUpdate,
         processLost: serviceData.processLost,
@@ -343,18 +556,9 @@ export default function EditCertificateService() {
         onlineUrl: serviceData.onlineUrl,
         offlineAddress: serviceData.offlineAddress,
         status: publishStatus || serviceData.status,
-        contacts: [
-          {
-            serviceName: serviceData.name,
-            name: serviceData.contactName,
-            designation: serviceData.designation,
-            contact: serviceData.contact,
-            email: serviceData.email,
-            district: serviceData.district,
-            subDistrict: serviceData.subDistrict,
-            block: serviceData.block,
-          },
-        ],
+        // Include contacts and documents as arrays (backend will handle nested operations)
+        contacts: allContacts,
+        documents: allDocuments,
       };
 
       await apiClient.updateCertificateService(currentService.id, updateData);
@@ -384,10 +588,39 @@ export default function EditCertificateService() {
     navigate("/admin-certificate-service");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-lg text-gray-600">
+            Loading certificate service...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!serviceData.name) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-gray-600">Certificate service not found</p>
+          <Button
+            onClick={() => navigate("/admin-certificate-service")}
+            className="mt-4"
+          >
+            Back to Certificate Services
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
       <h1 className="text-3xl font-bold mb-6">
-        Edit Certificate Service: {serviceData.name || "Loading..."}
+        Edit Certificate Service: {serviceData.name}
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Service Details and Action Buttons */}
@@ -539,10 +772,7 @@ export default function EditCertificateService() {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={() => console.log("Save Process")}
-                  >
+                  <Button type="button" onClick={saveProcessSteps}>
                     Save Process
                   </Button>
                 </div>
@@ -646,10 +876,7 @@ export default function EditCertificateService() {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={() => console.log("Save Documents")}
-                  >
+                  <Button type="button" onClick={saveDocuments}>
                     Save Documents
                   </Button>
                 </div>
@@ -743,10 +970,7 @@ export default function EditCertificateService() {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={() => console.log("Save Eligibility")}
-                  >
+                  <Button type="button" onClick={saveEligibility}>
                     Save Eligibility
                   </Button>
                 </div>
@@ -897,10 +1121,7 @@ export default function EditCertificateService() {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={() => console.log("Save Contact")}
-                  >
+                  <Button type="button" onClick={saveContacts}>
                     Save Contact
                   </Button>
                 </div>

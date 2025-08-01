@@ -9,8 +9,10 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     proxy: {
-      "/api": "http://localhost:4000",
+      "/api": "http://localhost:3001",
     },
+    // Enable history API fallback for client-side routing
+    historyApiFallback: true,
   },
   build: {
     outDir: "dist/spa",
@@ -23,5 +25,3 @@ export default defineConfig(({ mode }) => ({
     },
   },
 }));
-
-
