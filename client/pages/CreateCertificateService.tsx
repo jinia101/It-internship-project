@@ -32,7 +32,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { saveService } from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
 
 export default function CreateCertificateService() {
   const navigate = useNavigate();
@@ -162,28 +162,50 @@ export default function CreateCertificateService() {
     setIsSubmitting(true);
 
     try {
-      saveService({
+      const certificateData = {
         name: formData.name,
-        certificateAbbreviation: formData.certificateAbbreviation,
         summary: formData.summary,
-        applicationMode: formData.applicationMode,
-        tags,
-        status: "pending",
-        type: "certificate",
-      });
-      toast({
-        title: "Service Created Successfully!",
-        description:
-          "Your new service has been added to the platform as pending.",
-      });
-      setIsSubmitting(false);
-      navigate("/admin-certificate-service");
+        type: formData.certificateAbbreviation,
+        targetAudience: tags,
+        applicationMode: formData.applicationMode as
+          | "online"
+          | "offline"
+          | "both",
+        onlineUrl:
+          formData.applicationMode === "online"
+            ? "https://example.com"
+            : undefined,
+        offlineAddress:
+          formData.applicationMode === "offline" ? "Office Address" : undefined,
+        status: "draft",
+      };
+
+      const response =
+        await apiClient.createCertificateService(certificateData);
+
+      if (response.certificateService) {
+        toast({
+          title: "Service Created Successfully!",
+          description:
+            "Your new certificate service has been created and is now in pending status.",
+        });
+        navigate("/admin-certificate-service?tab=pending");
+      } else {
+        throw new Error(
+          response.message || "Failed to create certificate service",
+        );
+      }
     } catch (error) {
+      console.error("Error creating certificate service:", error);
       toast({
         title: "Error",
-        description: "Failed to create service. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create service. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -251,7 +273,9 @@ export default function CreateCertificateService() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="certificateAbbreviation">Certificate Abbreviation *</Label>
+                <Label htmlFor="certificateAbbreviation">
+                  Certificate Abbreviation *
+                </Label>
                 <Input
                   id="certificateAbbreviation"
                   name="certificateAbbreviation"
@@ -292,7 +316,6 @@ export default function CreateCertificateService() {
                     </SelectContent>
                   </Select>
                 </div>
-                
               </div>
               {/* Conditionally show URL/Address fields based on Application Mode */}
               {(formData.applicationMode === "Online" ||

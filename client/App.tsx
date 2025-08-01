@@ -122,7 +122,7 @@ const App = () => (
               element={<EditCertificateService />}
             />
             <Route
-              path="/admin/edit-contact-department/:name"
+              path="/admin/edit-contact-department/:id"
               element={<EditContactDepartment />}
             />
             <Route

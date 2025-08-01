@@ -18,15 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getServices,
-  updateService,
-  getServiceByName,
-} from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
+import { toast } from "@/hooks/use-toast";
 
 export default function EditCertificateService() {
-  const { name } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [currentService, setCurrentService] = useState<any>(null);
 
   const [serviceData, setServiceData] = useState({
     name: "",
@@ -131,79 +130,68 @@ export default function EditCertificateService() {
   const [processType, setProcessType] = useState<string>("New Application");
 
   useEffect(() => {
-    const cert = getServiceByName(decodeURIComponent(name || ""));
-    if (cert) {
-      setServiceData({
-        name: cert.name || "",
-        certificateAbbreviation: (cert as any).certificateAbbreviation || "",
-        summary: cert.summary || "",
-        applicationMode: cert.applicationMode || "",
-        eligibility: cert.eligibility ? [cert.eligibility] : [""],
-        contactName: cert.contactName || "",
-        designation: cert.designation || "",
-        contact: cert.contact || "",
-        email: cert.email || "",
-        district: cert.district || "",
-        subDistrict: cert.subDistrict || "",
-        block: cert.block || "",
-        serviceDetails: cert.serviceDetails || "",
-        status: cert.status || "active",
-        processNew: cert.processNew || "",
-        processUpdate: cert.processUpdate || "",
-        processLost: cert.processLost || "",
-        processSurrender: cert.processSurrender || "",
-        docNew: cert.docNew || "",
-        docUpdate: cert.docUpdate || "",
-        docLost: cert.docLost || "",
-        docSurrender: cert.docSurrender || "",
-        onlineUrl: (cert as any).onlineUrl || "",
-        offlineAddress: (cert as any).offlineAddress || "",
-      });
+    const fetchCertificateService = async () => {
+      if (!id) return;
 
-      // For now, initialize with default values until we implement saving
-      // In future, these could be loaded from cert.processStepsNew, etc.
-      setProcessSteps({
-        "New Application": [{ slNo: "1", stepDetails: "" }],
-        "Lost Application": [{ slNo: "1", stepDetails: "" }],
-        "Update Application": [{ slNo: "1", stepDetails: "" }],
-        "Surrender Application": [{ slNo: "1", stepDetails: "" }],
-      });
+      setLoading(true);
+      try {
+        // First get all certificate services to find by ID
+        const response = await apiClient.getCertificateServices();
+        const certificateService = response.certificateServices?.find(
+          (service: any) => service.id === parseInt(id),
+        );
 
-      setDocuments({
-        "New Application": [{ slNo: "1", documentType: "", validProof: "" }],
-        "Lost Application": [{ slNo: "1", documentType: "", validProof: "" }],
-        "Update Application": [{ slNo: "1", documentType: "", validProof: "" }],
-        "Surrender Application": [
-          { slNo: "1", documentType: "", validProof: "" },
-        ],
-      });
+        if (certificateService) {
+          setCurrentService(certificateService);
+          setServiceData({
+            name: certificateService.name || "",
+            certificateAbbreviation: certificateService.type || "",
+            summary: certificateService.summary || "",
+            applicationMode: certificateService.applicationMode || "",
+            eligibility: certificateService.eligibilityDetails || [""],
+            contactName: certificateService.contacts?.[0]?.name || "",
+            designation: certificateService.contacts?.[0]?.designation || "",
+            contact: certificateService.contacts?.[0]?.contact || "",
+            email: certificateService.contacts?.[0]?.email || "",
+            district: certificateService.contacts?.[0]?.district || "",
+            subDistrict: certificateService.contacts?.[0]?.subDistrict || "",
+            block: certificateService.contacts?.[0]?.block || "",
+            serviceDetails: certificateService.certificateDetails?.[0] || "",
+            status: certificateService.status || "active",
+            processNew: certificateService.processNew || "",
+            processUpdate: certificateService.processUpdate || "",
+            processLost: certificateService.processLost || "",
+            processSurrender: certificateService.processSurrender || "",
+            docNew: certificateService.docNew || "",
+            docUpdate: certificateService.docUpdate || "",
+            docLost: certificateService.docLost || "",
+            docSurrender: certificateService.docSurrender || "",
+            onlineUrl: certificateService.onlineUrl || "",
+            offlineAddress: certificateService.offlineAddress || "",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Certificate service not found",
+            variant: "destructive",
+          });
+          navigate("/admin-certificate-service");
+        }
+      } catch (error) {
+        console.error("Error fetching certificate service:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load certificate service",
+          variant: "destructive",
+        });
+        navigate("/admin-certificate-service");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      setEligibility({
-        "New Application": [""],
-        "Lost Application": [""],
-        "Update Application": [""],
-        "Surrender Application": [""],
-      });
-
-      const defaultContact = {
-        serviceName: "",
-        district: "",
-        subDistrict: "",
-        block: "",
-        name: "",
-        designation: "",
-        contact: "",
-        email: "",
-      };
-
-      setContact({
-        "New Application": [defaultContact],
-        "Lost Application": [defaultContact],
-        "Update Application": [defaultContact],
-        "Surrender Application": [defaultContact],
-      });
-    }
-  }, [name]);
+    fetchCertificateService();
+  }, [id]);
 
   const addProcessStep = () => {
     setProcessSteps((prev) => ({
@@ -333,42 +321,73 @@ export default function EditCertificateService() {
     }
   };
 
-  const saveData = (publishStatus?) => {
-    const services = getServices();
-    const idx = services.findIndex(
-      (s) => s.name === decodeURIComponent(name || ""),
-    );
-    if (idx !== -1) {
-      const serviceToUpdate = {
-        ...services[idx],
-        ...serviceData,
-        processSteps,
-        documents,
-        eligibility,
-        contact,
+  const saveData = async (publishStatus?) => {
+    if (!currentService) return;
+
+    try {
+      const updateData = {
+        name: serviceData.name,
+        type: serviceData.certificateAbbreviation,
+        summary: serviceData.summary,
+        applicationMode: serviceData.applicationMode,
+        eligibilityDetails: serviceData.eligibility,
+        certificateDetails: [serviceData.serviceDetails],
+        processNew: serviceData.processNew,
+        processUpdate: serviceData.processUpdate,
+        processLost: serviceData.processLost,
+        processSurrender: serviceData.processSurrender,
+        docNew: serviceData.docNew,
+        docUpdate: serviceData.docUpdate,
+        docLost: serviceData.docLost,
+        docSurrender: serviceData.docSurrender,
+        onlineUrl: serviceData.onlineUrl,
+        offlineAddress: serviceData.offlineAddress,
+        status: publishStatus || serviceData.status,
+        contacts: [
+          {
+            serviceName: serviceData.name,
+            name: serviceData.contactName,
+            designation: serviceData.designation,
+            contact: serviceData.contact,
+            email: serviceData.email,
+            district: serviceData.district,
+            subDistrict: serviceData.subDistrict,
+            block: serviceData.block,
+          },
+        ],
       };
-      if (publishStatus) {
-        serviceToUpdate.status = publishStatus;
-      }
-      updateService(serviceToUpdate);
+
+      await apiClient.updateCertificateService(currentService.id, updateData);
+
+      toast({
+        title: "Success",
+        description: `Certificate service ${publishStatus ? "published" : "updated"} successfully`,
+      });
+    } catch (error) {
+      console.error("Error updating certificate service:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update certificate service",
+        variant: "destructive",
+      });
     }
   };
 
-  const handlePublish = (e) => {
+  const handlePublish = async (e) => {
     e.preventDefault();
-    saveData("published");
+    await saveData("published");
     navigate("/admin-certificate-service");
   };
 
-  const handleSaveForLater = () => {
-    saveData();
+  const handleSaveForLater = async () => {
+    await saveData();
     navigate("/admin-certificate-service");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
       <h1 className="text-3xl font-bold mb-6">
-        Edit Certificate Service: {decodeURIComponent(name || "")}
+        Edit Certificate Service: {serviceData.name || "Loading..."}
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Service Details and Action Buttons */}
@@ -418,6 +437,12 @@ export default function EditCertificateService() {
               Add Contact Person
             </Button>
             <Button variant="outline">Preview</Button>
+            <Button
+              onClick={handlePublish}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Publish Service
+            </Button>
           </div>
         </div>
 

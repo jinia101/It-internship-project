@@ -24,11 +24,19 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { getServices, updateService, getServiceById } from "../lib/localStorageUtils";
+import {
+  getServices,
+  updateService,
+  getServiceById,
+} from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
+import { toast } from "@/hooks/use-toast";
 
 export default function EditContactDepartment() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [currentService, setCurrentService] = useState(null);
   const [serviceDetails, setServiceDetails] = useState(null);
   const [offices, setOffices] = useState([]);
   const [isAddOfficeDialogOpen, setIsAddOfficeDialogOpen] = useState(false);
@@ -44,11 +52,110 @@ export default function EditContactDepartment() {
   });
 
   useEffect(() => {
-    const dept = getServiceById(id || "");
-    if (dept) {
-      setServiceDetails(dept);
-      if (dept.offices) setOffices(dept.offices);
-    }
+    useEffect(() => {
+    const fetchContactService = async () => {
+      console.log("fetchContactService called with id:", id);
+      console.log("id type:", typeof id);
+      console.log("parsed id:", parseInt(id));
+      
+      if (!id) {
+        console.log("No ID provided");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Get all contact services to find by ID
+        console.log("Fetching contact services...");
+        const response = await apiClient.getContactServices();
+        console.log("API response:", response);
+        console.log("Looking for service with ID:", id);
+        console.log("Available services:", response.contactServices);
+        console.log("Available IDs:", response.contactServices?.map(s => `${s.id} (${typeof s.id})`));
+        
+        const contactService = response.contactServices?.find(
+          (service: any) => service.id === id || service.id === parseInt(id) || service.id.toString() === id,
+        );
+
+        console.log("Found contact service:", contactService);
+
+        // If not found in list, try to get individual service by ID
+        if (!contactService) {
+          try {
+            console.log("Trying to get individual service by ID:", id);
+            const individualResponse = await apiClient.getContactService(parseInt(id));
+            console.log("Individual service response:", individualResponse);
+            const individualService = individualResponse.contactService;
+            
+            if (individualService) {
+              console.log("Setting current service from individual call:", individualService);
+              setCurrentService(individualService);
+              setServiceDetails(individualService);
+              // Map contacts to office format for display
+              if (individualService.contacts) {
+                const mappedOffices = individualService.contacts.map((contact) => ({
+                  officeName: contact.name,
+                  level: contact.designation,
+                  officePinCode: contact.contact,
+                  district: contact.district,
+                  block: contact.block,
+                  subdivision: contact.subDistrict,
+                  status: "active",
+                }));
+                setOffices(mappedOffices);
+                console.log("Mapped offices:", mappedOffices);
+              }
+              return; // Exit early since we found the service
+            }
+          } catch (individualError) {
+            console.log("Failed to get individual service:", individualError);
+          }
+        }
+
+        if (contactService) {
+          console.log("Setting current service:", contactService);
+          setCurrentService(contactService);
+          setServiceDetails(contactService);
+          // Map contacts to office format for display
+          if (contactService.contacts) {
+            const mappedOffices = contactService.contacts.map((contact) => ({
+              officeName: contact.name,
+              level: contact.designation,
+              officePinCode: contact.contact,
+              district: contact.district,
+              block: contact.block,
+              subdivision: contact.subDistrict,
+              status: "active",
+            }));
+            setOffices(mappedOffices);
+            console.log("Mapped offices:", mappedOffices);
+          }
+        } else {
+          console.log(
+            "Service not found, available IDs:",
+            response.contactServices?.map((s) => s.id),
+          );
+          toast({
+            title: "Error", 
+            description: `Contact service not found with ID: ${id}. Available IDs: ${response.contactServices?.map(s => s.id).join(', ') || 'none'}`,
+            variant: "destructive",
+          });
+          navigate("/admin-contact-service");
+        }
+      } catch (error) {
+        console.error("Error fetching contact service:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load contact service",
+          variant: "destructive",
+        });
+        navigate("/admin-contact-service");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContactService();
   }, [id]);
 
   const handleNewOfficeChange = (e) => {
@@ -60,23 +167,93 @@ export default function EditContactDepartment() {
     setNewOffice((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddOffice = () => {
-    const updatedOffices = [...offices, { ...newOffice, status: "active" }]; // Default to active
-    setOffices(updatedOffices);
-    if (serviceDetails) {
-      updateService({ ...serviceDetails, offices: updatedOffices });
+  const handleAddOffice = async () => {
+    console.log("handleAddOffice called");
+    console.log("currentService:", currentService);
+    console.log("newOffice:", newOffice);
+
+    if (!currentService) {
+      console.log("No current service found");
+      toast({
+        title: "Error",
+        description: "No service selected",
+        variant: "destructive",
+      });
+      return;
     }
-    setNewOffice({
-      officeName: "",
-      level: "",
-      officePinCode: "",
-      district: "",
-      block: "",
-    });
-    setIsAddOfficeDialogOpen(false);
+
+    // Validate required fields
+    if (!newOffice.officeName || !newOffice.level || !newOffice.district) {
+      toast({
+        title: "Error",
+        description:
+          "Please fill in all required fields (Office Name, Level, District)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newContact = {
+      serviceName: currentService.name,
+      name: newOffice.officeName,
+      designation: newOffice.level,
+      contact: newOffice.officePinCode,
+      email: "",
+      district: newOffice.district,
+      subDistrict: newOffice.subdivision || "",
+      block: newOffice.block,
+    };
+
+    console.log("newContact to be added:", newContact);
+
+    try {
+      const updateData = {
+        ...currentService,
+        contacts: [...(currentService.contacts || []), newContact],
+      };
+
+      console.log("Sending update to API:", updateData);
+      const response = await apiClient.updateContactService(
+        currentService.id,
+        updateData,
+      );
+      console.log("API response:", response);
+
+      // Update the current service state with the new contact
+      setCurrentService(updateData);
+
+      // Update the offices display with the new office
+      const newOfficeDisplay = { ...newOffice, status: "active" };
+      setOffices((prev) => [...prev, newOfficeDisplay]);
+
+      toast({
+        title: "Success",
+        description: "Office added successfully",
+      });
+
+      // Reset the form
+      setNewOffice({
+        officeName: "",
+        level: "",
+        officePinCode: "",
+        district: "",
+        block: "",
+        subdivision: "",
+      });
+      setIsAddOfficeDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding office:", error);
+      toast({
+        title: "Error",
+        description: `Failed to add office: ${error.message || "Unknown error"}`,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleToggleOfficeStatus = (index) => {
+  const handleToggleOfficeStatus = async (index) => {
+    if (!currentService) return;
+
     const updatedOffices = offices.map((office, i) =>
       i === index
         ? {
@@ -86,8 +263,28 @@ export default function EditContactDepartment() {
         : office,
     );
     setOffices(updatedOffices);
-    if (serviceDetails) {
-      updateService({ ...serviceDetails, offices: updatedOffices });
+
+    try {
+      const updateData = {
+        ...currentService,
+        status: updatedOffices[index].status,
+      };
+
+      await apiClient.updateContactService(currentService.id, updateData);
+
+      toast({
+        title: "Success",
+        description: "Office status updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating office status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update office status",
+        variant: "destructive",
+      });
+      // Revert the UI change
+      setOffices(offices);
     }
   };
 
@@ -123,7 +320,10 @@ export default function EditContactDepartment() {
                 </div>
               </CardContent>
             </Card>
-            <Button onClick={() => setIsAddOfficeDialogOpen(true)} className="mt-4 w-full">
+            <Button
+              onClick={() => setIsAddOfficeDialogOpen(true)}
+              className="mt-4 w-full"
+            >
               + Add Office
             </Button>
           </div>
@@ -140,13 +340,24 @@ export default function EditContactDepartment() {
                 ) : (
                   <div className="grid gap-4">
                     {offices.map((office, index) => (
-                      <Card key={index} className="flex justify-between items-center p-4">
+                      <Card
+                        key={index}
+                        className="flex justify-between items-center p-4"
+                      >
                         <div>
-                          <CardTitle className="text-lg">{office.officeName}</CardTitle>
-                          <CardDescription>{office.level} - {office.district}</CardDescription>
+                          <CardTitle className="text-lg">
+                            {office.officeName}
+                          </CardTitle>
+                          <CardDescription>
+                            {office.level} - {office.district}
+                          </CardDescription>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => handleViewOffice(office)}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewOffice(office)}
+                          >
                             View
                           </Button>
                           <Button
@@ -154,7 +365,9 @@ export default function EditContactDepartment() {
                             variant="outline"
                             onClick={() => handleToggleOfficeStatus(index)}
                           >
-                            {office.status === "active" ? "Deactivate" : "Activate"}
+                            {office.status === "active"
+                              ? "Deactivate"
+                              : "Activate"}
                           </Button>
                         </div>
                       </Card>
@@ -167,7 +380,10 @@ export default function EditContactDepartment() {
         </div>
 
         {/* Add Office Dialog */}
-        <Dialog open={isAddOfficeDialogOpen} onOpenChange={setIsAddOfficeDialogOpen}>
+        <Dialog
+          open={isAddOfficeDialogOpen}
+          onOpenChange={setIsAddOfficeDialogOpen}
+        >
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add New Office</DialogTitle>
@@ -195,7 +411,9 @@ export default function EditContactDepartment() {
                 <Select
                   name="level"
                   value={newOffice.level}
-                  onValueChange={(value) => handleNewOfficeSelectChange("level", value)}
+                  onValueChange={(value) =>
+                    handleNewOfficeSelectChange("level", value)
+                  }
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select level" />
@@ -204,7 +422,9 @@ export default function EditContactDepartment() {
                     <SelectItem value="state">State</SelectItem>
                     <SelectItem value="district">District</SelectItem>
                     <SelectItem value="sub division">Sub Division</SelectItem>
-                    <SelectItem value="nagar panchayat">Nagar Panchayat</SelectItem>
+                    <SelectItem value="nagar panchayat">
+                      Nagar Panchayat
+                    </SelectItem>
                     <SelectItem value="AMC">AMC</SelectItem>
                   </SelectContent>
                 </Select>
@@ -259,7 +479,14 @@ export default function EditContactDepartment() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleAddOffice}>Save Office</Button>
+              <Button
+                onClick={() => {
+                  console.log("Save Office button clicked");
+                  handleAddOffice();
+                }}
+              >
+                Save Office
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

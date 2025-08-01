@@ -1,0 +1,363 @@
+import express, { Request, Response } from "express";
+import { PrismaClient } from "../../generated/prisma";
+import { body, param, validationResult } from "express-validator";
+import { authenticateAdmin } from "./adminAuth";
+
+const router = express.Router();
+const prisma = new PrismaClient();
+
+interface AuthenticatedRequest extends Request {
+  admin?: {
+    id: number;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
+
+// GET /api/contact-services - Get all contact services
+router.get(
+  "/",
+  authenticateAdmin,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      console.log("Fetching contact services for admin:", req.admin?.id);
+
+      const contactServices = await prisma.contactService.findMany({
+        include: {
+          contacts: true,
+          documents: true,
+          admin: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      console.log(`Found ${contactServices.length} contact services`);
+
+      res.json({
+        success: true,
+        contactServices,
+      });
+    } catch (error) {
+      console.error("Error fetching contact services:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch contact services",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+// GET /api/contact-services/:id - Get specific contact service
+router.get(
+  "/:id",
+  authenticateAdmin,
+  param("id").isInt().withMessage("ID must be a valid integer"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const id = parseInt(req.params.id);
+      console.log(`Fetching contact service with ID: ${id}`);
+
+      const contactService = await prisma.contactService.findUnique({
+        where: { id },
+        include: {
+          contacts: true,
+          documents: true,
+          admin: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+
+      if (!contactService) {
+        console.log(`Contact service with ID ${id} not found`);
+        return res.status(404).json({
+          success: false,
+          message: "Contact service not found",
+        });
+      }
+
+      console.log(`Found contact service: ${contactService.name}`);
+
+      res.json({
+        success: true,
+        contactService,
+      });
+    } catch (error) {
+      console.error("Error fetching contact service:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch contact service",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+// POST /api/contact-services - Create new contact service
+router.post(
+  "/",
+  authenticateAdmin,
+  [
+    body("name").notEmpty().withMessage("Name is required"),
+    body("summary").notEmpty().withMessage("Summary is required"),
+    body("applicationMode")
+      .notEmpty()
+      .withMessage("Application mode is required"),
+    body("targetAudience")
+      .isArray()
+      .withMessage("Target audience must be an array"),
+  ],
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const adminId = req.admin!.id;
+      console.log("Creating contact service for admin:", adminId);
+      console.log("Request body:", req.body);
+
+      const {
+        name,
+        summary,
+        type,
+        targetAudience,
+        applicationMode,
+        onlineUrl,
+        offlineAddress,
+      } = req.body;
+
+      const contactService = await prisma.contactService.create({
+        data: {
+          name,
+          summary,
+          type,
+          targetAudience,
+          applicationMode,
+          onlineUrl,
+          offlineAddress,
+          status: "draft",
+          adminId,
+          eligibilityDetails: [],
+          contactDetails: [],
+          processDetails: [],
+        },
+        include: {
+          contacts: true,
+          documents: true,
+          admin: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+
+      console.log("Contact service created successfully:", contactService.id);
+
+      res.status(201).json({
+        success: true,
+        contactService,
+        message: "Contact service created successfully",
+      });
+    } catch (error) {
+      console.error("Error creating contact service:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create contact service",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+// PATCH /api/contact-services/:id - Update contact service
+router.patch(
+  "/:id",
+  authenticateAdmin,
+  param("id").isInt().withMessage("ID must be a valid integer"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const id = parseInt(req.params.id);
+      console.log(`Updating contact service with ID: ${id}`);
+      console.log("Update data:", req.body);
+
+      // Check if contact service exists
+      const existingService = await prisma.contactService.findUnique({
+        where: { id },
+      });
+
+      if (!existingService) {
+        return res.status(404).json({
+          success: false,
+          message: "Contact service not found",
+        });
+      }
+
+      const updatedService = await prisma.contactService.update({
+        where: { id },
+        data: req.body,
+        include: {
+          contacts: true,
+          documents: true,
+          admin: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+
+      console.log("Contact service updated successfully");
+
+      res.json({
+        success: true,
+        contactService: updatedService,
+        message: "Contact service updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating contact service:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update contact service",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+// PATCH /api/contact-services/:id/publish - Publish contact service
+router.patch(
+  "/:id/publish",
+  authenticateAdmin,
+  param("id").isInt().withMessage("ID must be a valid integer"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const id = parseInt(req.params.id);
+      console.log(`Publishing contact service with ID: ${id}`);
+
+      const existingService = await prisma.contactService.findUnique({
+        where: { id },
+      });
+
+      if (!existingService) {
+        return res.status(404).json({
+          success: false,
+          message: "Contact service not found",
+        });
+      }
+
+      const publishedService = await prisma.contactService.update({
+        where: { id },
+        data: { status: "published" },
+        include: {
+          contacts: true,
+          documents: true,
+          admin: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+
+      console.log("Contact service published successfully");
+
+      res.json({
+        success: true,
+        contactService: publishedService,
+        message: "Contact service published successfully",
+      });
+    } catch (error) {
+      console.error("Error publishing contact service:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to publish contact service",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+// DELETE /api/contact-services/:id - Delete contact service
+router.delete(
+  "/:id",
+  authenticateAdmin,
+  param("id").isInt().withMessage("ID must be a valid integer"),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const id = parseInt(req.params.id);
+      console.log(`Deleting contact service with ID: ${id}`);
+
+      const existingService = await prisma.contactService.findUnique({
+        where: { id },
+      });
+
+      if (!existingService) {
+        return res.status(404).json({
+          success: false,
+          message: "Contact service not found",
+        });
+      }
+
+      await prisma.contactService.delete({
+        where: { id },
+      });
+
+      console.log("Contact service deleted successfully");
+
+      res.json({
+        success: true,
+        message: "Contact service deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting contact service:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete contact service",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+export default router;

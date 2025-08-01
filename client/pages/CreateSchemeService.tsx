@@ -172,9 +172,10 @@ export default function CreateSchemeService() {
         toast({
           title: "Success",
           description:
-            "Scheme service created successfully! You can now edit and complete the details.",
+            "Scheme service created successfully! You can now find it in the pending services section.",
         });
-        navigate(`/admin/edit-scheme-service/${newService.id}`);
+        // Navigate to admin dashboard pending section
+        navigate("/admin/scheme-service?tab=pending");
       }
     } catch (err) {
       const errorMessage =

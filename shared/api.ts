@@ -20,7 +20,47 @@ export interface ContactPerson {
   email: string;
 }
 
+export interface CertificateContact {
+  id?: number;
+  serviceName: string;
+  district: string;
+  subDistrict: string;
+  block: string;
+  name: string;
+  designation: string;
+  contact: string;
+  email: string;
+}
+
+export interface ContactServiceContact {
+  id?: number;
+  serviceName: string;
+  district: string;
+  subDistrict: string;
+  block: string;
+  name: string;
+  designation: string;
+  contact: string;
+  email: string;
+}
+
 export interface SupportiveDocument {
+  id?: number;
+  slNo: number;
+  documentType: string;
+  validProof: string;
+  isRequired: boolean;
+}
+
+export interface CertificateDocument {
+  id?: number;
+  slNo: number;
+  documentType: string;
+  validProof: string;
+  isRequired: boolean;
+}
+
+export interface ContactServiceDocument {
   id?: number;
   slNo: number;
   documentType: string;
@@ -65,6 +105,80 @@ export interface SchemeService {
   documents: SupportiveDocument[];
 }
 
+export interface CertificateService {
+  id: number;
+  name: string;
+  summary: string;
+  type?: string;
+  targetAudience: string[];
+  applicationMode: "online" | "offline" | "both";
+  onlineUrl?: string;
+  offlineAddress?: string;
+  status: "draft" | "pending" | "published";
+  createdAt: string;
+  updatedAt: string;
+
+  // Extended details
+  eligibilityDetails: string[];
+  certificateDetails: string[];
+  processDetails: string[];
+
+  // Process flows
+  processNew?: string;
+  processUpdate?: string;
+  processLost?: string;
+  processSurrender?: string;
+
+  // Document requirements
+  docNew?: string;
+  docUpdate?: string;
+  docLost?: string;
+  docSurrender?: string;
+
+  // Relations
+  admin?: Admin;
+  adminId: number;
+  contacts: CertificateContact[];
+  documents: CertificateDocument[];
+}
+
+export interface ContactService {
+  id: number;
+  name: string;
+  summary: string;
+  type?: string;
+  targetAudience: string[];
+  applicationMode: "online" | "offline" | "both";
+  onlineUrl?: string;
+  offlineAddress?: string;
+  status: "draft" | "pending" | "published";
+  createdAt: string;
+  updatedAt: string;
+
+  // Extended details
+  eligibilityDetails: string[];
+  contactDetails: string[];
+  processDetails: string[];
+
+  // Process flows
+  processNew?: string;
+  processUpdate?: string;
+  processLost?: string;
+  processSurrender?: string;
+
+  // Document requirements
+  docNew?: string;
+  docUpdate?: string;
+  docLost?: string;
+  docSurrender?: string;
+
+  // Relations
+  admin?: Admin;
+  adminId: number;
+  contacts: ContactServiceContact[];
+  documents: ContactServiceDocument[];
+}
+
 // API Response Types
 export interface ApiResponse<T = any> {
   message?: string;
@@ -82,8 +196,48 @@ export interface SchemeServiceResponse extends ApiResponse {
   schemeService?: SchemeService;
 }
 
+export interface CertificateServiceResponse extends ApiResponse {
+  certificateService?: CertificateService;
+}
+
+export interface ContactServiceResponse extends ApiResponse {
+  contactService?: ContactService;
+}
+
 export interface SchemeServicesListResponse extends ApiResponse {
   schemeServices?: SchemeService[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  stats?: {
+    draft: number;
+    pending: number;
+    published: number;
+    total: number;
+  };
+}
+
+export interface CertificateServicesListResponse extends ApiResponse {
+  certificateServices?: CertificateService[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  stats?: {
+    draft: number;
+    pending: number;
+    published: number;
+    total: number;
+  };
+}
+
+export interface ContactServicesListResponse extends ApiResponse {
+  contactServices?: ContactService[];
   pagination?: {
     page: number;
     limit: number;
@@ -285,6 +439,126 @@ export class ApiClient {
 
   async deleteSchemeService(id: number): Promise<ApiResponse> {
     return this.makeRequest<ApiResponse>(`/scheme-services/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // Certificate Services
+  async createCertificateService(
+    data: CreateSchemeServiceRequest,
+  ): Promise<CertificateServiceResponse> {
+    return this.makeRequest<CertificateServiceResponse>(
+      "/certificate-services",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+    );
+  }
+
+  async getCertificateServices(params?: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<CertificateServicesListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+    const query = queryParams.toString();
+    return this.makeRequest<CertificateServicesListResponse>(
+      `/certificate-services${query ? `?${query}` : ""}`,
+    );
+  }
+
+  async getCertificateService(id: number): Promise<CertificateServiceResponse> {
+    return this.makeRequest<CertificateServiceResponse>(
+      `/certificate-services/${id}`,
+    );
+  }
+
+  async updateCertificateService(
+    id: number,
+    data: UpdateSchemeServiceRequest,
+  ): Promise<CertificateServiceResponse> {
+    return this.makeRequest<CertificateServiceResponse>(
+      `/certificate-services/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      },
+    );
+  }
+
+  async publishCertificateService(
+    id: number,
+  ): Promise<CertificateServiceResponse> {
+    return this.makeRequest<CertificateServiceResponse>(
+      `/certificate-services/${id}/publish`,
+      {
+        method: "PATCH",
+      },
+    );
+  }
+
+  async deleteCertificateService(id: number): Promise<ApiResponse> {
+    return this.makeRequest<ApiResponse>(`/certificate-services/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // Contact Services
+  async createContactService(
+    data: CreateSchemeServiceRequest,
+  ): Promise<ContactServiceResponse> {
+    return this.makeRequest<ContactServiceResponse>("/contact-services", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getContactServices(params?: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ContactServicesListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+    const query = queryParams.toString();
+    return this.makeRequest<ContactServicesListResponse>(
+      `/contact-services${query ? `?${query}` : ""}`,
+    );
+  }
+
+  async getContactService(id: number): Promise<ContactServiceResponse> {
+    return this.makeRequest<ContactServiceResponse>(`/contact-services/${id}`);
+  }
+
+  async updateContactService(
+    id: number,
+    data: UpdateSchemeServiceRequest,
+  ): Promise<ContactServiceResponse> {
+    return this.makeRequest<ContactServiceResponse>(`/contact-services/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async publishContactService(id: number): Promise<ContactServiceResponse> {
+    return this.makeRequest<ContactServiceResponse>(
+      `/contact-services/${id}/publish`,
+      {
+        method: "PATCH",
+      },
+    );
+  }
+
+  async deleteContactService(id: number): Promise<ApiResponse> {
+    return this.makeRequest<ApiResponse>(`/contact-services/${id}`, {
       method: "DELETE",
     });
   }

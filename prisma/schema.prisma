@@ -20,7 +20,9 @@ model Admin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  schemeServices SchemeService[]
+  schemeServices      SchemeService[]
+  certificateServices CertificateService[]
+  contactServices     ContactService[]
 }
 
 model SchemeService {
@@ -86,4 +88,134 @@ model SupportiveDocument {
   
   schemeServiceId Int
   schemeService   SchemeService @relation(fields: [schemeServiceId], references: [id], onDelete: Cascade)
+}
+
+model CertificateService {
+  id                Int      @id @default(autoincrement())
+  name              String
+  summary           String
+  type              String?
+  targetAudience    String[] 
+  applicationMode   String
+  onlineUrl         String?
+  offlineAddress    String?
+  status            String   @default("draft") // draft, pending, published
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Admin relation
+  adminId           Int
+  admin             Admin    @relation(fields: [adminId], references: [id])
+  
+  // Extended details
+  eligibilityDetails String[]
+  certificateDetails String[]
+  processDetails     String[]
+  
+  // Process flows
+  processNew         String?
+  processUpdate      String?
+  processLost        String?
+  processSurrender   String?
+  
+  // Document requirements
+  docNew             String?
+  docUpdate          String?
+  docLost            String?
+  docSurrender       String?
+  
+  // Related entities
+  contacts           CertificateContact[]
+  documents          CertificateDocument[]
+}
+
+model CertificateContact {
+  id                   Int     @id @default(autoincrement())
+  serviceName          String
+  district             String
+  subDistrict          String
+  block                String
+  name                 String
+  designation          String
+  contact              String
+  email                String
+  
+  certificateServiceId Int
+  certificateService   CertificateService @relation(fields: [certificateServiceId], references: [id], onDelete: Cascade)
+}
+
+model CertificateDocument {
+  id                   Int     @id @default(autoincrement())
+  slNo                 Int
+  documentType         String
+  validProof           String
+  isRequired           Boolean @default(true)
+  
+  certificateServiceId Int
+  certificateService   CertificateService @relation(fields: [certificateServiceId], references: [id], onDelete: Cascade)
+}
+
+model ContactService {
+  id                Int      @id @default(autoincrement())
+  name              String
+  summary           String
+  type              String?
+  targetAudience    String[] 
+  applicationMode   String
+  onlineUrl         String?
+  offlineAddress    String?
+  status            String   @default("draft") // draft, pending, published
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Admin relation
+  adminId           Int
+  admin             Admin    @relation(fields: [adminId], references: [id])
+  
+  // Extended details
+  eligibilityDetails String[]
+  contactDetails     String[]
+  processDetails     String[]
+  
+  // Process flows
+  processNew         String?
+  processUpdate      String?
+  processLost        String?
+  processSurrender   String?
+  
+  // Document requirements
+  docNew             String?
+  docUpdate          String?
+  docLost            String?
+  docSurrender       String?
+  
+  // Related entities
+  contacts           ContactServiceContact[]
+  documents          ContactServiceDocument[]
+}
+
+model ContactServiceContact {
+  id               Int     @id @default(autoincrement())
+  serviceName      String
+  district         String
+  subDistrict      String
+  block            String
+  name             String
+  designation      String
+  contact          String
+  email            String
+  
+  contactServiceId Int
+  contactService   ContactService @relation(fields: [contactServiceId], references: [id], onDelete: Cascade)
+}
+
+model ContactServiceDocument {
+  id               Int     @id @default(autoincrement())
+  slNo             Int
+  documentType     String
+  validProof       String
+  isRequired       Boolean @default(true)
+  
+  contactServiceId Int
+  contactService   ContactService @relation(fields: [contactServiceId], references: [id], onDelete: Cascade)
 }

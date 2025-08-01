@@ -20,7 +20,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { CheckCircle, Plus, ArrowLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { saveService } from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
 
 export default function CreateContactService() {
   const navigate = useNavigate();
@@ -48,32 +48,45 @@ export default function CreateContactService() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
     try {
-      saveService({
+      const contactData = {
         name: formData.name,
         summary: formData.summary,
-        serviceType: formData.type, // regular/irregular
-        status: "pending",
-        tags: [],
-        applicationMode: "",
-        eligibility: "",
-        type: "contact",
-      });
-      toast({
-        title: "Service Created Successfully!",
-        description: "Your new contact service has been added as pending.",
-      });
-      setIsSubmitting(false);
-      navigate("/admin-contact-service");
+        type: formData.type,
+        targetAudience: [],
+        applicationMode: "both" as "online" | "offline" | "both",
+        onlineUrl: undefined,
+        offlineAddress: undefined,
+        status: "draft",
+      };
+
+      const response = await apiClient.createContactService(contactData);
+
+      if (response.contactService) {
+        toast({
+          title: "Service Created Successfully!",
+          description:
+            "Your new contact service has been created and is now in pending status.",
+        });
+        navigate("/admin-contact-service?tab=pending");
+      } else {
+        throw new Error(response.message || "Failed to create contact service");
+      }
     } catch (error) {
+      console.error("Error creating contact service:", error);
       toast({
         title: "Error",
-        description: "Failed to create service. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to create service. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsSubmitting(false);
     }
   };

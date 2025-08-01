@@ -10,43 +10,74 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getServices, deleteService } from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function AdminCertificateService() {
-  const [activeTab, setActiveTab] = useState("create");
-  const [certs, setCerts] = useState([]);
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get("tab") || "create",
+  );
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
   useEffect(() => {
-    setCerts(getServices());
-  }, []);
-  const pendingCerts = certs.filter(
-    (s) => s.status === "pending" && s.type === "certificate",
-  );
-  const publishedCerts = certs.filter(
-    (s) => s.status === "published" && s.type === "certificate",
-  );
+    if (!isAuthenticated) {
+      navigate("/admin-login");
+      return;
+    }
+
+    const fetchCertificates = async () => {
+      setLoading(true);
+      try {
+        const response = await apiClient.getCertificateServices();
+        setCertificates(response.certificateServices || []);
+      } catch (error) {
+        console.error("Error fetching certificates:", error);
+        setError("Failed to load certificates");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCertificates();
+  }, [isAuthenticated, navigate]);
+
+  const pendingCerts = certificates.filter((s) => s.status === "draft");
+  const publishedCerts = certificates.filter((s) => s.status === "published");
+
   const stats = {
     published: publishedCerts.length,
     active: 0,
-    total: certs.length,
+    total: certificates.length,
     users: 0,
     pending: pendingCerts.length,
   };
   const handleEdit = (cert) => {
-    navigate(
-      `/admin/edit-certificate-service/${encodeURIComponent(cert.name)}`,
-    );
+    navigate(`/admin/edit-certificate-service/${cert.id}`);
   };
+
   const handleView = (cert) => {
     navigate(
-      `/admin/edit-certificate-service/${encodeURIComponent(cert.name)}`,
+      `/admin/view-certificate-service/${encodeURIComponent(cert.name)}`,
     );
   };
-  const handleDelete = (cert) => {
-    deleteService(cert.id);
-    setCerts(getServices());
+
+  const handleDelete = async (cert) => {
+    try {
+      await apiClient.deleteCertificateService(cert.id);
+      // Refresh the certificates list
+      const response = await apiClient.getCertificateServices();
+      setCertificates(response.certificateServices || []);
+    } catch (error) {
+      console.error("Error deleting certificate:", error);
+      setError("Failed to delete certificate");
+    }
   };
   return (
     <div className="flex min-h-screen">
@@ -57,6 +88,19 @@ export default function AdminCertificateService() {
           <p className="text-gray-600 mb-8">
             Manage and review all certificate services and their details here.
           </p>
+
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
+
+          {loading && (
+            <div className="text-center py-8">
+              <div className="text-lg">Loading certificates...</div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -196,7 +240,9 @@ export default function AdminCertificateService() {
                       <CardDescription>{cert.summary}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-gray-500">{cert.certificateType}</p>
+                      <p className="text-sm text-gray-500">
+                        {cert.certificateType}
+                      </p>
                     </CardContent>
                     <CardFooter className="flex gap-2">
                       <Button
@@ -245,7 +291,9 @@ export default function AdminCertificateService() {
                       <CardDescription>{cert.summary}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-gray-500">{cert.certificateType}</p>
+                      <p className="text-sm text-gray-500">
+                        {cert.certificateType}
+                      </p>
                     </CardContent>
                     <CardFooter className="flex gap-2">
                       <Button

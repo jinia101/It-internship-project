@@ -10,13 +10,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../shared/api";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function AdminSchemeService() {
-  const [activeTab, setActiveTab] = useState("create");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get("tab") || "create",
+  );
   const [schemes, setSchemes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -98,13 +101,13 @@ export default function AdminSchemeService() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Published Services
                 </CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
@@ -116,12 +119,12 @@ export default function AdminSchemeService() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Active Services
                 </CardTitle>
-                <Activity className="h-4 w-4 text-blue-500" />
+                <Activity className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
@@ -133,12 +136,12 @@ export default function AdminSchemeService() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Pending Services
                 </CardTitle>
-                <Clock className="h-4 w-4 text-orange-500" />
+                <Clock className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
@@ -150,10 +153,10 @@ export default function AdminSchemeService() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Users</CardTitle>
-                <Users className="h-4 w-4 text-purple-500" />
+                <Users className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
@@ -169,30 +172,25 @@ export default function AdminSchemeService() {
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
-            className="space-y-6"
+            className="w-full"
           >
-            <div className="flex justify-between items-center">
-              <TabsList className="grid w-fit grid-cols-3">
-                <TabsTrigger value="create" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Service
-                </TabsTrigger>
-                <TabsTrigger
-                  value="pending"
-                  className="flex items-center gap-2"
-                >
-                  <Clock className="h-4 w-4" />
-                  Pending Services
-                </TabsTrigger>
-                <TabsTrigger
-                  value="published"
-                  className="flex items-center gap-2"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  Published Services
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="create" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create Service
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Pending Services
+              </TabsTrigger>
+              <TabsTrigger
+                value="published"
+                className="flex items-center gap-2"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Published Services
+              </TabsTrigger>
+            </TabsList>
 
             <TabsContent value="create" className="space-y-6">
               <Card>

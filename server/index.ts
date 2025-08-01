@@ -6,6 +6,8 @@ import { PrismaClient } from "../generated/prisma/index.js";
 // Import routes
 import adminAuthRoutes from "./routes/adminAuth.js";
 import schemeServiceRoutes from "./routes/schemeService.js";
+import certificateServiceRoutes from "./routes/certificateService.js";
+import contactServiceRoutes from "./routes/contactService.js";
 
 dotenv.config();
 
@@ -39,6 +41,8 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api/auth", adminAuthRoutes);
 app.use("/api/scheme-services", schemeServiceRoutes);
+app.use("/api/certificate-services", certificateServiceRoutes);
+app.use("/api/contact-services", contactServiceRoutes);
 
 app.get("/api/test", (req, res) => {
   res.json({ status: "OK", message: "Test route working" });
