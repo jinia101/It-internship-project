@@ -52,12 +52,11 @@ export default function EditContactDepartment() {
   });
 
   useEffect(() => {
-    useEffect(() => {
     const fetchContactService = async () => {
       console.log("fetchContactService called with id:", id);
       console.log("id type:", typeof id);
       console.log("parsed id:", parseInt(id));
-      
+
       if (!id) {
         console.log("No ID provided");
         return;
@@ -71,10 +70,16 @@ export default function EditContactDepartment() {
         console.log("API response:", response);
         console.log("Looking for service with ID:", id);
         console.log("Available services:", response.contactServices);
-        console.log("Available IDs:", response.contactServices?.map(s => `${s.id} (${typeof s.id})`));
-        
+        console.log(
+          "Available IDs:",
+          response.contactServices?.map((s) => `${s.id} (${typeof s.id})`),
+        );
+
         const contactService = response.contactServices?.find(
-          (service: any) => service.id === id || service.id === parseInt(id) || service.id.toString() === id,
+          (service: any) =>
+            service.id === id ||
+            service.id === parseInt(id) ||
+            service.id.toString() === id,
         );
 
         console.log("Found contact service:", contactService);
@@ -83,25 +88,32 @@ export default function EditContactDepartment() {
         if (!contactService) {
           try {
             console.log("Trying to get individual service by ID:", id);
-            const individualResponse = await apiClient.getContactService(parseInt(id));
+            const individualResponse = await apiClient.getContactService(
+              parseInt(id),
+            );
             console.log("Individual service response:", individualResponse);
             const individualService = individualResponse.contactService;
-            
+
             if (individualService) {
-              console.log("Setting current service from individual call:", individualService);
+              console.log(
+                "Setting current service from individual call:",
+                individualService,
+              );
               setCurrentService(individualService);
               setServiceDetails(individualService);
               // Map contacts to office format for display
               if (individualService.contacts) {
-                const mappedOffices = individualService.contacts.map((contact) => ({
-                  officeName: contact.name,
-                  level: contact.designation,
-                  officePinCode: contact.contact,
-                  district: contact.district,
-                  block: contact.block,
-                  subdivision: contact.subDistrict,
-                  status: "active",
-                }));
+                const mappedOffices = individualService.contacts.map(
+                  (contact) => ({
+                    officeName: contact.name,
+                    level: contact.designation,
+                    officePinCode: contact.contact,
+                    district: contact.district,
+                    block: contact.block,
+                    subdivision: contact.subDistrict,
+                    status: "active",
+                  }),
+                );
                 setOffices(mappedOffices);
                 console.log("Mapped offices:", mappedOffices);
               }
@@ -136,8 +148,8 @@ export default function EditContactDepartment() {
             response.contactServices?.map((s) => s.id),
           );
           toast({
-            title: "Error", 
-            description: `Contact service not found with ID: ${id}. Available IDs: ${response.contactServices?.map(s => s.id).join(', ') || 'none'}`,
+            title: "Error",
+            description: `Contact service not found with ID: ${id}. Available IDs: ${response.contactServices?.map((s) => s.id).join(", ") || "none"}`,
             variant: "destructive",
           });
           navigate("/admin-contact-service");
