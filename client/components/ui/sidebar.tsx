@@ -26,21 +26,19 @@ export function ServicesMenu() {
   const isAdmin = location.pathname.startsWith("/admin");
   const menuItems = isAdmin
     ? [
-    { label: "Scheme Service", path: "/scheme-service" },
-    { label: "Certificate Service", path: "/certificate-service" },
-    { label: "Contact Service", path: "/contact-service" },
-    { label: "Grievances Service", path: "/grievances-service" },
-    { label: "Emergency Service", path: "/emergency-service" },
-    { label: "Feedback Service", path: "/feedback-service" },
+        { label: "Scheme Service", path: "/scheme-service" },
+        { label: "Certificate Service", path: "/certificate-service" },
+        { label: "Contact Service", path: "/contact-service" },
+        { label: "Grievances Service", path: "/grievances-service" },
+        { label: "Feedback Service", path: "/feedback-service" },
       ]
     : [
         { label: "Scheme Service", path: "/user-scheme-service" },
         { label: "Certificate Service", path: "/user-certificate-service" },
         { label: "Contact Service", path: "/user-contact-service" },
         { label: "Grievances Service", path: "/user-grievances-service" },
-        { label: "Emergency Service", path: "/user-emergency-service" },
         { label: "Feedback Service", path: "/user-feedback-service" },
-  ];
+      ];
   return (
     <nav className="flex flex-col gap-2 p-4 bg-blue-900 min-h-screen w-64 text-white font-medium border-r border-blue-800">
       <Button

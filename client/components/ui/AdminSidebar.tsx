@@ -9,7 +9,6 @@ export function AdminSidebar() {
     { label: "Certificate Service", path: "/admin-certificate-service" },
     { label: "Contact Service", path: "/admin-contact-service" },
     { label: "Grievances Service", path: "/admin-grievances-service" },
-    { label: "Emergency Service", path: "/admin-emergency-service" },
     { label: "Feedback Service", path: "/admin-feedback-service" },
   ];
   return (

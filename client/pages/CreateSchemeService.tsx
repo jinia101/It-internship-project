@@ -175,7 +175,7 @@ export default function CreateSchemeService() {
             "Scheme service created successfully! You can now find it in the pending services section.",
         });
         // Navigate to admin dashboard pending section
-        navigate("/admin/scheme-service?tab=pending");
+        navigate("/admin-scheme-service?tab=pending");
       }
     } catch (err) {
       const errorMessage =

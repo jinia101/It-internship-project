@@ -16,23 +16,46 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ServicesMenu } from "@/components/ui/sidebar";
-import { getServices } from "../lib/localStorageUtils";
+import { apiClient } from "../../shared/api";
+import type { CertificateService } from "../../shared/api";
 
 export default function UserCertificateService() {
   const [search, setSearch] = useState("");
   const [modalCert, setModalCert] = useState(null);
   const [selectedApplicationType, setSelectedApplicationType] =
     useState("New Application");
-  const publishedCerts = getServices().filter(
-    (s) => s.status === "published" && s.category === "Certificate",
-  );
-  const filteredCerts = publishedCerts.filter((s) =>
+  const [apiCertificateServices, setApiCertificateServices] = useState<
+    CertificateService[]
+  >([]);
+  const [loading, setLoading] = useState(false);
+
+  const filteredApiCerts = apiCertificateServices.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()),
   );
+
   const stats = {
-    published: publishedCerts.length,
+    published: apiCertificateServices.length,
     active: 0,
-    total: publishedCerts.length,
+    total: apiCertificateServices.length,
+  };
+
+  useEffect(() => {
+    fetchApiCertificateServices();
+  }, []);
+
+  const fetchApiCertificateServices = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.getCertificateServices();
+      const publishedServices = (response.certificateServices || []).filter(
+        (service) => service.status === "published",
+      );
+      setApiCertificateServices(publishedServices);
+    } catch (error) {
+      console.error("Error fetching certificate services:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Reset application type when modal certificate changes
@@ -107,593 +130,781 @@ export default function UserCertificateService() {
               className="w-full md:w-1/2"
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Dummy certificate cards */}
-            {[
-              {
-                id: "dummy-aadhaar",
-                name: "Aadhaar Card",
-                abbreviation: "UIDAI",
-                summary: "Unique Identification for Indian Residents.",
-                applicationMode: "Online/Offline",
-                status: "published",
-                processSteps: {
-                  "New Application": [
-                    {
-                      slNo: "1",
-                      stepDetails: "Visit nearest Aadhaar enrollment center",
-                    },
-                    {
-                      slNo: "2",
-                      stepDetails: "Provide biometric and demographic data",
-                    },
-                    {
-                      slNo: "3",
-                      stepDetails: "Receive enrollment slip with URN number",
-                    },
-                    {
-                      slNo: "4",
-                      stepDetails: "Download Aadhaar after 90 days",
-                    },
-                  ],
-                  "Lost Application": [
-                    { slNo: "1", stepDetails: "Visit UIDAI website or center" },
-                    {
-                      slNo: "2",
-                      stepDetails: "Provide enrollment number or biometric",
-                    },
-                    { slNo: "3", stepDetails: "Pay reprint fee" },
-                    { slNo: "4", stepDetails: "Download reprinted Aadhaar" },
-                  ],
-                  "Update Application": [
-                    {
-                      slNo: "1",
-                      stepDetails: "Visit Aadhaar enrollment center",
-                    },
-                    { slNo: "2", stepDetails: "Fill update request form" },
-                    { slNo: "3", stepDetails: "Provide supporting documents" },
-                    { slNo: "4", stepDetails: "Pay update fee if applicable" },
-                  ],
-                  "Surrender Application": [
-                    { slNo: "1", stepDetails: "Contact UIDAI helpline" },
-                    { slNo: "2", stepDetails: "Submit deactivation request" },
-                    { slNo: "3", stepDetails: "Provide valid reason" },
-                    { slNo: "4", stepDetails: "Receive confirmation" },
-                  ],
+          {/* Cards Grid */}
+          {loading && (
+            <div className="text-center py-8">
+              <div className="text-lg">Loading certificate services...</div>
+            </div>
+          )}
+
+          {!loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Dummy certificate cards */}
+              {[
+                {
+                  id: "dummy-aadhaar",
+                  name: "Aadhaar Card",
+                  abbreviation: "UIDAI",
+                  summary: "Unique Identification for Indian Residents.",
+                  applicationMode: "Online/Offline",
+                  status: "published",
+                  processSteps: {
+                    "New Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Visit nearest Aadhaar enrollment center",
+                      },
+                      {
+                        slNo: "2",
+                        stepDetails: "Provide biometric and demographic data",
+                      },
+                      {
+                        slNo: "3",
+                        stepDetails: "Receive enrollment slip with URN number",
+                      },
+                      {
+                        slNo: "4",
+                        stepDetails: "Download Aadhaar after 90 days",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Visit UIDAI website or center",
+                      },
+                      {
+                        slNo: "2",
+                        stepDetails: "Provide enrollment number or biometric",
+                      },
+                      { slNo: "3", stepDetails: "Pay reprint fee" },
+                      { slNo: "4", stepDetails: "Download reprinted Aadhaar" },
+                    ],
+                    "Update Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Visit Aadhaar enrollment center",
+                      },
+                      { slNo: "2", stepDetails: "Fill update request form" },
+                      {
+                        slNo: "3",
+                        stepDetails: "Provide supporting documents",
+                      },
+                      {
+                        slNo: "4",
+                        stepDetails: "Pay update fee if applicable",
+                      },
+                    ],
+                    "Surrender Application": [
+                      { slNo: "1", stepDetails: "Contact UIDAI helpline" },
+                      { slNo: "2", stepDetails: "Submit deactivation request" },
+                      { slNo: "3", stepDetails: "Provide valid reason" },
+                      { slNo: "4", stepDetails: "Receive confirmation" },
+                    ],
+                  },
+                  documents: {
+                    "New Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Proof of Identity",
+                        validProof: "Passport, Driving License, PAN Card",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Proof of Address",
+                        validProof: "Utility Bills, Bank Statement",
+                      },
+                      {
+                        slNo: "3",
+                        documentType: "Proof of Date of Birth",
+                        validProof: "Birth Certificate, School Certificate",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Enrollment Receipt",
+                        validProof: "Original enrollment slip",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Identity Proof",
+                        validProof: "Any government ID",
+                      },
+                    ],
+                    "Update Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Current Aadhaar",
+                        validProof: "Aadhaar Card/e-Aadhaar",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Supporting Document",
+                        validProof: "Document for field to be updated",
+                      },
+                    ],
+                    "Surrender Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Aadhaar Card",
+                        validProof: "Original Aadhaar Card",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Request Letter",
+                        validProof: "Written application with reason",
+                      },
+                    ],
+                  },
+                  eligibility: {
+                    "New Application": [
+                      "Indian Resident",
+                      "Any age",
+                      "Should not have existing Aadhaar",
+                    ],
+                    "Lost Application": [
+                      "Must have enrolled for Aadhaar previously",
+                      "Should remember enrollment details",
+                    ],
+                    "Update Application": [
+                      "Must have existing Aadhaar",
+                      "Valid reason for update",
+                    ],
+                    "Surrender Application": [
+                      "Must have existing Aadhaar",
+                      "Valid reason for deactivation",
+                    ],
+                  },
+                  contact: {
+                    "New Application": [
+                      {
+                        serviceName: "Aadhaar Enrollment",
+                        district: "All Districts",
+                        subDistrict: "All Sub Districts",
+                        block: "All Blocks",
+                        name: "UIDAI Helpdesk",
+                        designation: "Customer Support",
+                        contact: "1947",
+                        email: "help@uidai.gov.in",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        serviceName: "Aadhaar Reprint",
+                        district: "All Districts",
+                        subDistrict: "All Sub Districts",
+                        block: "All Blocks",
+                        name: "UIDAI Support",
+                        designation: "Technical Support",
+                        contact: "1947",
+                        email: "support@uidai.gov.in",
+                      },
+                    ],
+                    "Update Application": [
+                      {
+                        serviceName: "Aadhaar Update",
+                        district: "All Districts",
+                        subDistrict: "All Sub Districts",
+                        block: "All Blocks",
+                        name: "Update Center",
+                        designation: "Update Officer",
+                        contact: "1947",
+                        email: "update@uidai.gov.in",
+                      },
+                    ],
+                    "Surrender Application": [
+                      {
+                        serviceName: "Aadhaar Deactivation",
+                        district: "All Districts",
+                        subDistrict: "All Sub Districts",
+                        block: "All Blocks",
+                        name: "Deactivation Team",
+                        designation: "Senior Officer",
+                        contact: "1947",
+                        email: "deactivate@uidai.gov.in",
+                      },
+                    ],
+                  },
                 },
-                documents: {
-                  "New Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Proof of Identity",
-                      validProof: "Passport, Driving License, PAN Card",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Proof of Address",
-                      validProof: "Utility Bills, Bank Statement",
-                    },
-                    {
-                      slNo: "3",
-                      documentType: "Proof of Date of Birth",
-                      validProof: "Birth Certificate, School Certificate",
-                    },
-                  ],
-                  "Lost Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Enrollment Receipt",
-                      validProof: "Original enrollment slip",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Identity Proof",
-                      validProof: "Any government ID",
-                    },
-                  ],
-                  "Update Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Current Aadhaar",
-                      validProof: "Aadhaar Card/e-Aadhaar",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Supporting Document",
-                      validProof: "Document for field to be updated",
-                    },
-                  ],
-                  "Surrender Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Aadhaar Card",
-                      validProof: "Original Aadhaar Card",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Request Letter",
-                      validProof: "Written application with reason",
-                    },
-                  ],
+                {
+                  id: "dummy-birth",
+                  name: "Birth Certificate",
+                  abbreviation: "BC",
+                  summary: "Official record of birth issued by government.",
+                  applicationMode: "Offline",
+                  status: "published",
+                  processSteps: {
+                    "New Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Visit Registrar of Births office",
+                      },
+                      { slNo: "2", stepDetails: "Fill application form" },
+                      { slNo: "3", stepDetails: "Submit required documents" },
+                      { slNo: "4", stepDetails: "Pay prescribed fee" },
+                      {
+                        slNo: "5",
+                        stepDetails: "Collect certificate after processing",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Visit Registrar office with affidavit",
+                      },
+                      {
+                        slNo: "2",
+                        stepDetails: "Fill duplicate certificate form",
+                      },
+                      { slNo: "3", stepDetails: "Pay duplicate fee" },
+                      {
+                        slNo: "4",
+                        stepDetails: "Collect duplicate certificate",
+                      },
+                    ],
+                    "Update Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Submit correction application",
+                      },
+                      {
+                        slNo: "2",
+                        stepDetails: "Provide supporting documents",
+                      },
+                      { slNo: "3", stepDetails: "Pay correction fee" },
+                      {
+                        slNo: "4",
+                        stepDetails: "Wait for verification and approval",
+                      },
+                    ],
+                    "Surrender Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Not applicable for birth certificates",
+                      },
+                    ],
+                  },
+                  documents: {
+                    "New Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Hospital Birth Record",
+                        validProof: "Hospital issued birth record",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Parents ID Proof",
+                        validProof: "Aadhaar, Passport, Driving License",
+                      },
+                      {
+                        slNo: "3",
+                        documentType: "Address Proof",
+                        validProof: "Utility bills, Bank statement",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Affidavit",
+                        validProof: "Notarized affidavit for lost certificate",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "ID Proof",
+                        validProof: "Any government issued ID",
+                      },
+                    ],
+                    "Update Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Original Certificate",
+                        validProof: "Birth certificate to be corrected",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Supporting Document",
+                        validProof: "Document supporting the correction",
+                      },
+                    ],
+                    "Surrender Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Not Applicable",
+                        validProof: "Birth certificates cannot be surrendered",
+                      },
+                    ],
+                  },
+                  eligibility: {
+                    "New Application": [
+                      "Birth registered in the district",
+                      "Within time limit or with late fee",
+                    ],
+                    "Lost Application": [
+                      "Must have original birth certificate issued",
+                      "Valid reason for duplicate",
+                    ],
+                    "Update Application": [
+                      "Must have original certificate",
+                      "Valid supporting documents for correction",
+                    ],
+                    "Surrender Application": ["Not applicable"],
+                  },
+                  contact: {
+                    "New Application": [
+                      {
+                        serviceName: "Birth Registration",
+                        district: "Local District",
+                        subDistrict: "Local Sub District",
+                        block: "Local Block",
+                        name: "Registrar of Births",
+                        designation: "Deputy Registrar",
+                        contact: "0120-2345678",
+                        email: "birth.registrar@gov.in",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        serviceName: "Duplicate Birth Certificate",
+                        district: "Local District",
+                        subDistrict: "Local Sub District",
+                        block: "Local Block",
+                        name: "Assistant Registrar",
+                        designation: "Certificate Officer",
+                        contact: "0120-2345679",
+                        email: "duplicate.birth@gov.in",
+                      },
+                    ],
+                    "Update Application": [
+                      {
+                        serviceName: "Birth Certificate Correction",
+                        district: "Local District",
+                        subDistrict: "Local Sub District",
+                        block: "Local Block",
+                        name: "Correction Officer",
+                        designation: "Senior Clerk",
+                        contact: "0120-2345680",
+                        email: "correction.birth@gov.in",
+                      },
+                    ],
+                    "Surrender Application": [
+                      {
+                        serviceName: "Not Applicable",
+                        district: "N/A",
+                        subDistrict: "N/A",
+                        block: "N/A",
+                        name: "N/A",
+                        designation: "N/A",
+                        contact: "N/A",
+                        email: "N/A",
+                      },
+                    ],
+                  },
                 },
-                eligibility: {
-                  "New Application": [
-                    "Indian Resident",
-                    "Any age",
-                    "Should not have existing Aadhaar",
-                  ],
-                  "Lost Application": [
-                    "Must have enrolled for Aadhaar previously",
-                    "Should remember enrollment details",
-                  ],
-                  "Update Application": [
-                    "Must have existing Aadhaar",
-                    "Valid reason for update",
-                  ],
-                  "Surrender Application": [
-                    "Must have existing Aadhaar",
-                    "Valid reason for deactivation",
-                  ],
+                {
+                  id: "dummy-license",
+                  name: "Driver's License",
+                  abbreviation: "DL",
+                  summary: "License to legally drive vehicles.",
+                  applicationMode: "Online/Offline",
+                  status: "published",
+                  processSteps: {
+                    "New Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Apply for learner's license first",
+                      },
+                      {
+                        slNo: "2",
+                        stepDetails: "Pass written test for traffic rules",
+                      },
+                      {
+                        slNo: "3",
+                        stepDetails: "Practice driving for minimum period",
+                      },
+                      { slNo: "4", stepDetails: "Apply for permanent license" },
+                      { slNo: "5", stepDetails: "Pass driving test" },
+                      { slNo: "6", stepDetails: "Collect driving license" },
+                    ],
+                    "Lost Application": [
+                      { slNo: "1", stepDetails: "File FIR for lost license" },
+                      { slNo: "2", stepDetails: "Visit RTO with FIR copy" },
+                      {
+                        slNo: "3",
+                        stepDetails: "Fill duplicate license application",
+                      },
+                      { slNo: "4", stepDetails: "Pay duplicate fee" },
+                      { slNo: "5", stepDetails: "Collect duplicate license" },
+                    ],
+                    "Update Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Visit RTO for renewal/update",
+                      },
+                      {
+                        slNo: "2",
+                        stepDetails: "Submit medical certificate if required",
+                      },
+                      { slNo: "3", stepDetails: "Pay renewal fee" },
+                      { slNo: "4", stepDetails: "Update photo and signature" },
+                      { slNo: "5", stepDetails: "Collect updated license" },
+                    ],
+                    "Surrender Application": [
+                      {
+                        slNo: "1",
+                        stepDetails: "Submit surrender application to RTO",
+                      },
+                      { slNo: "2", stepDetails: "Return original license" },
+                      { slNo: "3", stepDetails: "State reason for surrender" },
+                      {
+                        slNo: "4",
+                        stepDetails: "Receive surrender confirmation",
+                      },
+                    ],
+                  },
+                  documents: {
+                    "New Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Age Proof",
+                        validProof: "Birth Certificate, 10th Certificate",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Address Proof",
+                        validProof: "Aadhaar, Utility Bills",
+                      },
+                      {
+                        slNo: "3",
+                        documentType: "Medical Certificate",
+                        validProof: "Medical fitness from approved doctor",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        slNo: "1",
+                        documentType: "FIR Copy",
+                        validProof: "Police FIR for lost license",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "ID Proof",
+                        validProof: "Aadhaar, Passport",
+                      },
+                      {
+                        slNo: "3",
+                        documentType: "Affidavit",
+                        validProof: "Notarized affidavit",
+                      },
+                    ],
+                    "Update Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Current License",
+                        validProof: "Existing driving license",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Medical Certificate",
+                        validProof: "Fresh medical certificate if required",
+                      },
+                    ],
+                    "Surrender Application": [
+                      {
+                        slNo: "1",
+                        documentType: "Original License",
+                        validProof: "Current driving license",
+                      },
+                      {
+                        slNo: "2",
+                        documentType: "Application Letter",
+                        validProof: "Written application with reason",
+                      },
+                    ],
+                  },
+                  eligibility: {
+                    "New Application": [
+                      "Minimum 18 years for car",
+                      "16 years for two-wheeler",
+                      "Should pass medical test",
+                    ],
+                    "Lost Application": [
+                      "Must have valid license previously",
+                      "FIR should be filed",
+                    ],
+                    "Update Application": [
+                      "Valid existing license",
+                      "Medical fitness if required",
+                    ],
+                    "Surrender Application": [
+                      "Valid existing license",
+                      "Valid reason for surrender",
+                    ],
+                  },
+                  contact: {
+                    "New Application": [
+                      {
+                        serviceName: "Driving License",
+                        district: "Local District",
+                        subDistrict: "Local Sub District",
+                        block: "Local Block",
+                        name: "RTO Officer",
+                        designation: "Motor Vehicle Inspector",
+                        contact: "0120-3456789",
+                        email: "license@rto.gov.in",
+                      },
+                    ],
+                    "Lost Application": [
+                      {
+                        serviceName: "Duplicate License",
+                        district: "Local District",
+                        subDistrict: "Local Sub District",
+                        block: "Local Block",
+                        name: "Duplicate Section",
+                        designation: "Assistant RTO",
+                        contact: "0120-3456790",
+                        email: "duplicate@rto.gov.in",
+                      },
+                    ],
+                    "Update Application": [
+                      {
+                        serviceName: "License Renewal",
+                        district: "Local District",
+                        subDistrict: "Local Sub District",
+                        block: "Local Block",
+                        name: "Renewal Officer",
+                        designation: "Senior Clerk",
+                        contact: "0120-3456791",
+                        email: "renewal@rto.gov.in",
+                      },
+                    ],
+                    "Surrender Application": [
+                      {
+                        serviceName: "License Surrender",
+                        district: "Local District",
+                        subDistrict: "Local Sub District",
+                        block: "Local Block",
+                        name: "Surrender Section",
+                        designation: "RTO Clerk",
+                        contact: "0120-3456792",
+                        email: "surrender@rto.gov.in",
+                      },
+                    ],
+                  },
                 },
-                contact: {
-                  "New Application": [
-                    {
-                      serviceName: "Aadhaar Enrollment",
-                      district: "All Districts",
-                      subDistrict: "All Sub Districts",
-                      block: "All Blocks",
-                      name: "UIDAI Helpdesk",
-                      designation: "Customer Support",
-                      contact: "1947",
-                      email: "help@uidai.gov.in",
-                    },
-                  ],
-                  "Lost Application": [
-                    {
-                      serviceName: "Aadhaar Reprint",
-                      district: "All Districts",
-                      subDistrict: "All Sub Districts",
-                      block: "All Blocks",
-                      name: "UIDAI Support",
-                      designation: "Technical Support",
-                      contact: "1947",
-                      email: "support@uidai.gov.in",
-                    },
-                  ],
-                  "Update Application": [
-                    {
-                      serviceName: "Aadhaar Update",
-                      district: "All Districts",
-                      subDistrict: "All Sub Districts",
-                      block: "All Blocks",
-                      name: "Update Center",
-                      designation: "Update Officer",
-                      contact: "1947",
-                      email: "update@uidai.gov.in",
-                    },
-                  ],
-                  "Surrender Application": [
-                    {
-                      serviceName: "Aadhaar Deactivation",
-                      district: "All Districts",
-                      subDistrict: "All Sub Districts",
-                      block: "All Blocks",
-                      name: "Deactivation Team",
-                      designation: "Senior Officer",
-                      contact: "1947",
-                      email: "deactivate@uidai.gov.in",
-                    },
-                  ],
-                },
-              },
-              {
-                id: "dummy-birth",
-                name: "Birth Certificate",
-                abbreviation: "BC",
-                summary: "Official record of birth issued by government.",
-                applicationMode: "Offline",
-                status: "published",
-                processSteps: {
-                  "New Application": [
-                    {
-                      slNo: "1",
-                      stepDetails: "Visit Registrar of Births office",
-                    },
-                    { slNo: "2", stepDetails: "Fill application form" },
-                    { slNo: "3", stepDetails: "Submit required documents" },
-                    { slNo: "4", stepDetails: "Pay prescribed fee" },
-                    {
-                      slNo: "5",
-                      stepDetails: "Collect certificate after processing",
-                    },
-                  ],
-                  "Lost Application": [
-                    {
-                      slNo: "1",
-                      stepDetails: "Visit Registrar office with affidavit",
-                    },
-                    {
-                      slNo: "2",
-                      stepDetails: "Fill duplicate certificate form",
-                    },
-                    { slNo: "3", stepDetails: "Pay duplicate fee" },
-                    { slNo: "4", stepDetails: "Collect duplicate certificate" },
-                  ],
-                  "Update Application": [
-                    { slNo: "1", stepDetails: "Submit correction application" },
-                    { slNo: "2", stepDetails: "Provide supporting documents" },
-                    { slNo: "3", stepDetails: "Pay correction fee" },
-                    {
-                      slNo: "4",
-                      stepDetails: "Wait for verification and approval",
-                    },
-                  ],
-                  "Surrender Application": [
-                    {
-                      slNo: "1",
-                      stepDetails: "Not applicable for birth certificates",
-                    },
-                  ],
-                },
-                documents: {
-                  "New Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Hospital Birth Record",
-                      validProof: "Hospital issued birth record",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Parents ID Proof",
-                      validProof: "Aadhaar, Passport, Driving License",
-                    },
-                    {
-                      slNo: "3",
-                      documentType: "Address Proof",
-                      validProof: "Utility bills, Bank statement",
-                    },
-                  ],
-                  "Lost Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Affidavit",
-                      validProof: "Notarized affidavit for lost certificate",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "ID Proof",
-                      validProof: "Any government issued ID",
-                    },
-                  ],
-                  "Update Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Original Certificate",
-                      validProof: "Birth certificate to be corrected",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Supporting Document",
-                      validProof: "Document supporting the correction",
-                    },
-                  ],
-                  "Surrender Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Not Applicable",
-                      validProof: "Birth certificates cannot be surrendered",
-                    },
-                  ],
-                },
-                eligibility: {
-                  "New Application": [
-                    "Birth registered in the district",
-                    "Within time limit or with late fee",
-                  ],
-                  "Lost Application": [
-                    "Must have original birth certificate issued",
-                    "Valid reason for duplicate",
-                  ],
-                  "Update Application": [
-                    "Must have original certificate",
-                    "Valid supporting documents for correction",
-                  ],
-                  "Surrender Application": ["Not applicable"],
-                },
-                contact: {
-                  "New Application": [
-                    {
-                      serviceName: "Birth Registration",
-                      district: "Local District",
-                      subDistrict: "Local Sub District",
-                      block: "Local Block",
-                      name: "Registrar of Births",
-                      designation: "Deputy Registrar",
-                      contact: "0120-2345678",
-                      email: "birth.registrar@gov.in",
-                    },
-                  ],
-                  "Lost Application": [
-                    {
-                      serviceName: "Duplicate Birth Certificate",
-                      district: "Local District",
-                      subDistrict: "Local Sub District",
-                      block: "Local Block",
-                      name: "Assistant Registrar",
-                      designation: "Certificate Officer",
-                      contact: "0120-2345679",
-                      email: "duplicate.birth@gov.in",
-                    },
-                  ],
-                  "Update Application": [
-                    {
-                      serviceName: "Birth Certificate Correction",
-                      district: "Local District",
-                      subDistrict: "Local Sub District",
-                      block: "Local Block",
-                      name: "Correction Officer",
-                      designation: "Senior Clerk",
-                      contact: "0120-2345680",
-                      email: "correction.birth@gov.in",
-                    },
-                  ],
-                  "Surrender Application": [
-                    {
-                      serviceName: "Not Applicable",
-                      district: "N/A",
-                      subDistrict: "N/A",
-                      block: "N/A",
-                      name: "N/A",
-                      designation: "N/A",
-                      contact: "N/A",
-                      email: "N/A",
-                    },
-                  ],
-                },
-              },
-              {
-                id: "dummy-license",
-                name: "Driver's License",
-                abbreviation: "DL",
-                summary: "License to legally drive vehicles.",
-                applicationMode: "Online/Offline",
-                status: "published",
-                processSteps: {
-                  "New Application": [
-                    {
-                      slNo: "1",
-                      stepDetails: "Apply for learner's license first",
-                    },
-                    {
-                      slNo: "2",
-                      stepDetails: "Pass written test for traffic rules",
-                    },
-                    {
-                      slNo: "3",
-                      stepDetails: "Practice driving for minimum period",
-                    },
-                    { slNo: "4", stepDetails: "Apply for permanent license" },
-                    { slNo: "5", stepDetails: "Pass driving test" },
-                    { slNo: "6", stepDetails: "Collect driving license" },
-                  ],
-                  "Lost Application": [
-                    { slNo: "1", stepDetails: "File FIR for lost license" },
-                    { slNo: "2", stepDetails: "Visit RTO with FIR copy" },
-                    {
-                      slNo: "3",
-                      stepDetails: "Fill duplicate license application",
-                    },
-                    { slNo: "4", stepDetails: "Pay duplicate fee" },
-                    { slNo: "5", stepDetails: "Collect duplicate license" },
-                  ],
-                  "Update Application": [
-                    { slNo: "1", stepDetails: "Visit RTO for renewal/update" },
-                    {
-                      slNo: "2",
-                      stepDetails: "Submit medical certificate if required",
-                    },
-                    { slNo: "3", stepDetails: "Pay renewal fee" },
-                    { slNo: "4", stepDetails: "Update photo and signature" },
-                    { slNo: "5", stepDetails: "Collect updated license" },
-                  ],
-                  "Surrender Application": [
-                    {
-                      slNo: "1",
-                      stepDetails: "Submit surrender application to RTO",
-                    },
-                    { slNo: "2", stepDetails: "Return original license" },
-                    { slNo: "3", stepDetails: "State reason for surrender" },
-                    {
-                      slNo: "4",
-                      stepDetails: "Receive surrender confirmation",
-                    },
-                  ],
-                },
-                documents: {
-                  "New Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Age Proof",
-                      validProof: "Birth Certificate, 10th Certificate",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Address Proof",
-                      validProof: "Aadhaar, Utility Bills",
-                    },
-                    {
-                      slNo: "3",
-                      documentType: "Medical Certificate",
-                      validProof: "Medical fitness from approved doctor",
-                    },
-                  ],
-                  "Lost Application": [
-                    {
-                      slNo: "1",
-                      documentType: "FIR Copy",
-                      validProof: "Police FIR for lost license",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "ID Proof",
-                      validProof: "Aadhaar, Passport",
-                    },
-                    {
-                      slNo: "3",
-                      documentType: "Affidavit",
-                      validProof: "Notarized affidavit",
-                    },
-                  ],
-                  "Update Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Current License",
-                      validProof: "Existing driving license",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Medical Certificate",
-                      validProof: "Fresh medical certificate if required",
-                    },
-                  ],
-                  "Surrender Application": [
-                    {
-                      slNo: "1",
-                      documentType: "Original License",
-                      validProof: "Current driving license",
-                    },
-                    {
-                      slNo: "2",
-                      documentType: "Application Letter",
-                      validProof: "Written application with reason",
-                    },
-                  ],
-                },
-                eligibility: {
-                  "New Application": [
-                    "Minimum 18 years for car",
-                    "16 years for two-wheeler",
-                    "Should pass medical test",
-                  ],
-                  "Lost Application": [
-                    "Must have valid license previously",
-                    "FIR should be filed",
-                  ],
-                  "Update Application": [
-                    "Valid existing license",
-                    "Medical fitness if required",
-                  ],
-                  "Surrender Application": [
-                    "Valid existing license",
-                    "Valid reason for surrender",
-                  ],
-                },
-                contact: {
-                  "New Application": [
-                    {
-                      serviceName: "Driving License",
-                      district: "Local District",
-                      subDistrict: "Local Sub District",
-                      block: "Local Block",
-                      name: "RTO Officer",
-                      designation: "Motor Vehicle Inspector",
-                      contact: "0120-3456789",
-                      email: "license@rto.gov.in",
-                    },
-                  ],
-                  "Lost Application": [
-                    {
-                      serviceName: "Duplicate License",
-                      district: "Local District",
-                      subDistrict: "Local Sub District",
-                      block: "Local Block",
-                      name: "Duplicate Section",
-                      designation: "Assistant RTO",
-                      contact: "0120-3456790",
-                      email: "duplicate@rto.gov.in",
-                    },
-                  ],
-                  "Update Application": [
-                    {
-                      serviceName: "License Renewal",
-                      district: "Local District",
-                      subDistrict: "Local Sub District",
-                      block: "Local Block",
-                      name: "Renewal Officer",
-                      designation: "Senior Clerk",
-                      contact: "0120-3456791",
-                      email: "renewal@rto.gov.in",
-                    },
-                  ],
-                  "Surrender Application": [
-                    {
-                      serviceName: "License Surrender",
-                      district: "Local District",
-                      subDistrict: "Local Sub District",
-                      block: "Local Block",
-                      name: "Surrender Section",
-                      designation: "RTO Clerk",
-                      contact: "0120-3456792",
-                      email: "surrender@rto.gov.in",
-                    },
-                  ],
-                },
-              },
-            ].map((cert) => (
-              <Card
-                key={cert.id}
-                className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-              >
-                <CardHeader>
-                  <CardTitle>{cert.name}</CardTitle>
-                  <CardDescription>{cert.summary}</CardDescription>
-                  <div className="mt-2 text-sm text-gray-600">
-                    <div>
-                      <span className="font-semibold">Abbreviation:</span>{" "}
-                      {cert.abbreviation}
+              ].map((cert) => (
+                <Card
+                  key={cert.id}
+                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                >
+                  <CardHeader>
+                    <CardTitle>{cert.name}</CardTitle>
+                    <CardDescription>{cert.summary}</CardDescription>
+                    <div className="mt-2 text-sm text-gray-600">
+                      <div>
+                        <span className="font-semibold">Abbreviation:</span>{" "}
+                        {cert.abbreviation}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Application Mode:</span>{" "}
+                        {cert.applicationMode}
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-semibold">Application Mode:</span>{" "}
-                      {cert.applicationMode}
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      onClick={() => setModalCert(cert)}
+                      className="w-full mt-2 bg-blue-600 text-white"
+                    >
+                      View Details
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* API Certificate Service Cards */}
+              {filteredApiCerts.map((cert) => (
+                <Card
+                  key={`api-${cert.id}`}
+                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                >
+                  <CardHeader>
+                    <CardTitle>{cert.name}</CardTitle>
+                    <CardDescription>{cert.summary}</CardDescription>
+                    <div className="mt-2 text-sm text-gray-600">
+                      <div>
+                        <span className="font-semibold">Abbreviation:</span>{" "}
+                        {cert.name
+                          .split(" ")
+                          .map((word) => word[0])
+                          .join("")
+                          .toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Application Mode:</span>{" "}
+                        {cert.applicationMode === "both"
+                          ? "Online/Offline"
+                          : cert.applicationMode === "online"
+                            ? "Online"
+                            : "Offline"}
+                      </div>
+                      {cert.onlineUrl && (
+                        <div>
+                          <span className="font-semibold">URL:</span>{" "}
+                          <a
+                            href={cert.onlineUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            {cert.onlineUrl}
+                          </a>
+                        </div>
+                      )}
                     </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Button
+                      onClick={() =>
+                        setModalCert({
+                          ...cert,
+                          abbreviation: cert.name
+                            .split(" ")
+                            .map((word) => word[0])
+                            .join("")
+                            .toUpperCase(),
+                          // Transform API data to match modal expectations
+                          processSteps: {
+                            "New Application": cert.processNew
+                              ? cert.processNew
+                                  .split("\n")
+                                  .filter((step) => step.trim())
+                                  .map((step, index) => ({
+                                    slNo: (index + 1).toString(),
+                                    stepDetails: step.trim(),
+                                  }))
+                              : [],
+                            "Update Application": cert.processUpdate
+                              ? cert.processUpdate
+                                  .split("\n")
+                                  .filter((step) => step.trim())
+                                  .map((step, index) => ({
+                                    slNo: (index + 1).toString(),
+                                    stepDetails: step.trim(),
+                                  }))
+                              : [],
+                            "Lost Application": cert.processLost
+                              ? cert.processLost
+                                  .split("\n")
+                                  .filter((step) => step.trim())
+                                  .map((step, index) => ({
+                                    slNo: (index + 1).toString(),
+                                    stepDetails: step.trim(),
+                                  }))
+                              : [],
+                            "Surrender Application": cert.processSurrender
+                              ? cert.processSurrender
+                                  .split("\n")
+                                  .filter((step) => step.trim())
+                                  .map((step, index) => ({
+                                    slNo: (index + 1).toString(),
+                                    stepDetails: step.trim(),
+                                  }))
+                              : [],
+                          },
+                          documents: {
+                            "New Application":
+                              cert.documents
+                                ?.filter(
+                                  (doc) =>
+                                    doc.applicationType === "New" ||
+                                    !doc.applicationType,
+                                )
+                                .map((doc, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  documentType: doc.documentType,
+                                  validProof: doc.validProof,
+                                })) || [],
+                            "Update Application":
+                              cert.documents
+                                ?.filter(
+                                  (doc) => doc.applicationType === "Update",
+                                )
+                                .map((doc, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  documentType: doc.documentType,
+                                  validProof: doc.validProof,
+                                })) || [],
+                            "Lost Application":
+                              cert.documents
+                                ?.filter(
+                                  (doc) => doc.applicationType === "Lost",
+                                )
+                                .map((doc, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  documentType: doc.documentType,
+                                  validProof: doc.validProof,
+                                })) || [],
+                            "Surrender Application":
+                              cert.documents
+                                ?.filter(
+                                  (doc) => doc.applicationType === "Surrender",
+                                )
+                                .map((doc, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  documentType: doc.documentType,
+                                  validProof: doc.validProof,
+                                })) || [],
+                          },
+                          eligibility: {
+                            "New Application": cert.eligibilityDetails || [],
+                            "Update Application": cert.eligibilityDetails || [],
+                            "Lost Application": cert.eligibilityDetails || [],
+                            "Surrender Application":
+                              cert.eligibilityDetails || [],
+                          },
+                          contact: {
+                            "New Application":
+                              cert.contacts?.filter(
+                                (contact) =>
+                                  contact.applicationType === "New" ||
+                                  !contact.applicationType,
+                              ) || [],
+                            "Update Application":
+                              cert.contacts?.filter(
+                                (contact) =>
+                                  contact.applicationType === "Update",
+                              ) || [],
+                            "Lost Application":
+                              cert.contacts?.filter(
+                                (contact) => contact.applicationType === "Lost",
+                              ) || [],
+                            "Surrender Application":
+                              cert.contacts?.filter(
+                                (contact) =>
+                                  contact.applicationType === "Surrender",
+                              ) || [],
+                          },
+                        })
+                      }
+                      className="w-full mt-2 bg-blue-600 text-white"
+                    >
+                      View Details
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* No Services Message */}
+              {filteredApiCerts.length === 0 &&
+                search && (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-gray-500">
+                      No certificate services found matching "{search}".
+                    </p>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={() => setModalCert(cert)}
-                    className="w-full mt-2 bg-blue-600 text-white"
-                  >
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-            {/* Existing published certificates */}
-            {filteredCerts.map((cert) => (
-              <Card
-                key={cert.id}
-                className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-              >
-                <CardHeader>
-                  <CardTitle>{cert.name}</CardTitle>
-                  <CardDescription>{cert.summary}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={() => setModalCert(cert)}
-                    className="w-full mt-2 bg-blue-600 text-white"
-                  >
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-            {filteredCerts.length === 0 && (
-              <div className="col-span-full text-center text-gray-500 py-8">
-                No certificates found.
-              </div>
-            )}
-          </div>
+                )}
+            </div>
+          )}
           {/* Modal for Certificate Details */}
           {modalCert && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">

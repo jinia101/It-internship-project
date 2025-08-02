@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { getServices } from "../lib/localStorageUtils";
 import {
   Card,
   CardContent,
@@ -17,13 +16,19 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ServicesMenu } from "@/components/ui/sidebar";
+import { apiClient } from "../../shared/api";
+import type { ContactService } from "../../shared/api";
 
 export default function UserContactService() {
   const [services, setServices] = useState([]);
+  const [apiContactServices, setApiContactServices] = useState<
+    ContactService[]
+  >([]);
   const [search, setSearch] = useState("");
   const [modalService, setModalService] = useState(null);
   const [filterType, setFilterType] = useState("State"); // 'State' or 'District'
   const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const tripuraDistricts = [
     "Dhalai",
@@ -37,22 +42,33 @@ export default function UserContactService() {
   ];
 
   useEffect(() => {
-    setServices(getServices());
+    fetchApiContactServices();
   }, []);
 
-  // Only show published contact services
-  const isContactService = (s) => !s.category || s.category === "Contact";
-  const publishedServices = services.filter(
-    (s) => s.status === "published" && isContactService(s),
-  );
-  const filteredServices = publishedServices.filter((s) =>
+  const fetchApiContactServices = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.getContactServices();
+      const publishedServices = (response.contactServices || []).filter(
+        (service) => service.status === "published",
+      );
+      setApiContactServices(publishedServices);
+    } catch (error) {
+      console.error("Error fetching contact services:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter services from API
+  const filteredApiServices = apiContactServices.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const stats = {
-    published: publishedServices.length,
+    published: apiContactServices.length,
     active: 0,
-    total: publishedServices.length,
+    total: apiContactServices.length,
   };
 
   return (
@@ -123,133 +139,354 @@ export default function UserContactService() {
             />
           </div>
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Dummy Department Cards */}
-            <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-              <CardHeader>
-                <CardTitle>Police Department</CardTitle>
-                <CardDescription>Handles law enforcement and public safety.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-2">Type: Emergency</p>
-                <Button
-                  onClick={() => setModalService({
-                    name: "Police Department",
-                    summary: "Handles law enforcement and public safety.",
-                    type: "Emergency",
-                    offices: [
-                      { officeName: "State Police Headquarters", level: "State", district: "West Tripura", pincode: "799001", address: "Police Line, Agartala" },
-                      { officeName: "West Tripura District Police Office", level: "District", district: "West Tripura", pincode: "799001", address: "Kunjaban, Agartala" },
-                      { officeName: "Sepahijala District Police Office", level: "District", district: "Sepahijala", pincode: "799101", address: "Bishramganj, Sepahijala" },
-                      { officeName: "Dhalai District Police Office", level: "District", district: "Dhalai", pincode: "799201", address: "Ambassa, Dhalai" }
-                    ],
-                    posts: [
-                      { postName: "Director General of Police", postRank: "DGP", officeIndex: 0 },
-                      { postName: "Superintendent of Police (West Tripura)", postRank: "SP", officeIndex: 1 },
-                      { postName: "Superintendent of Police (Sepahijala)", postRank: "SP", officeIndex: 2 },
-                      { postName: "Superintendent of Police (Dhalai)", postRank: "SP", officeIndex: 3 },
-                      { postName: "Station House Officer", postRank: "Inspector", officeIndex: 1 }
-                    ],
-                    employees: [
-                      { employeeName: "John Doe", email: "john.doe@police.com", phone: "9876543210", designation: "DGP", postIndex: 0 },
-                      { employeeName: "Jane Smith", email: "jane.smith@police.com", phone: "0123456789", designation: "SP", postIndex: 1 },
-                      { employeeName: "Peter Jones", email: "peter.jones@police.com", phone: "1122334455", designation: "Inspector", postIndex: 4 }
-                    ]
-                  })}
-                  className="w-full mt-2 bg-blue-600 text-white"
-                >
-                  View Details
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-              <CardHeader>
-                <CardTitle>Fire Department</CardTitle>
-                <CardDescription>Responds to fire incidents and provides rescue services.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-2">Type: Emergency</p>
-                <Button
-                  onClick={() => setModalService({
-                    name: "Fire Department",
-                    summary: "Responds to fire incidents and provides rescue services.",
-                    type: "Emergency",
-                    offices: [
-                      { officeName: "State Fire & Emergency Services HQ", level: "State", district: "West Tripura", pincode: "799001", address: "Fire Service Chowmuhani, Agartala" },
-                      { officeName: "West Tripura District Fire Station", level: "District", district: "West Tripura", pincode: "799001", address: "Battala, Agartala" },
-                      { officeName: "Gomati District Fire Station", level: "District", district: "Gomati", pincode: "799110", address: "Udaipur, Gomati" }
-                    ],
-                    posts: [
-                      { postName: "Director, Fire & Emergency Services", postRank: "Director", officeIndex: 0 },
-                      { postName: "Divisional Fire Officer (West)", postRank: "DFO", officeIndex: 1 },
-                      { postName: "Station Officer (Gomati)", postRank: "SO", officeIndex: 2 }
-                    ],
-                    employees: [
-                      { employeeName: "Peter Jones", email: "peter.jones@fire.com", phone: "1122334455", designation: "Director", postIndex: 0 },
-                      { employeeName: "Mary Brown", email: "mary.brown@fire.com", phone: "5544332211", designation: "DFO", postIndex: 1 }
-                    ]
-                  })}
-                  className="w-full mt-2 bg-blue-600 text-white"
-                >
-                  View Details
-                </Button>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-              <CardHeader>
-                <CardTitle>Public Works Department</CardTitle>
-                <CardDescription>Manages infrastructure and public utilities.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-2">Type: Regular</p>
-                <Button
-                  onClick={() => setModalService({
-                    name: "Public Works Department",
-                    summary: "Manages infrastructure and public utilities.",
-                    type: "Regular",
-                    offices: [
-                      { officeName: "PWD Headquarters, Agartala", level: "State", district: "West Tripura", pincode: "799001", address: "Secretariat, Agartala" },
-                      { officeName: "PWD North Tripura Division", level: "District", district: "North Tripura", pincode: "799250", address: "Dharmanagar, North Tripura" },
-                      { officeName: "PWD Unakoti Division", level: "District", district: "Unakoti", pincode: "799260", address: "Kailashahar, Unakoti" }
-                    ],
-                    posts: [
-                      { postName: "Engineer-in-Chief", postRank: "EiC", officeIndex: 0 },
-                      { postName: "Superintending Engineer (North)", postRank: "SE", officeIndex: 1 },
-                      { postName: "Executive Engineer (Unakoti)", postRank: "EE", officeIndex: 2 }
-                    ],
-                    employees: [
-                      { employeeName: "David Green", email: "david.green@pwd.com", phone: "6677889900", designation: "EiC", postIndex: 0 },
-                      { employeeName: "Sarah White", email: "sarah.white@pwd.com", phone: "0099887766", designation: "SE", postIndex: 1 }
-                    ]
-                  })}
-                  className="w-full mt-2 bg-blue-600 text-white"
-                >
-                  View Details
-                </Button>
-              </CardContent>
-            </Card>
-            {/* Existing Contact Service Cards */}
-            {filteredServices.map((service) => (
-              <Card
-                key={service.id}
-                className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-              >
+          {loading && (
+            <div className="text-center py-8">
+              <div className="text-lg">Loading contact services...</div>
+            </div>
+          )}
+
+          {!loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Dummy Department Cards */}
+              <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
                 <CardHeader>
-                  <CardTitle>{service.name}</CardTitle>
-                  <CardDescription>{service.summary}</CardDescription>
+                  <CardTitle>Police Department</CardTitle>
+                  <CardDescription>
+                    Handles law enforcement and public safety.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Type: Emergency
+                  </p>
                   <Button
-                    onClick={() => setModalService(service)}
+                    onClick={() =>
+                      setModalService({
+                        name: "Police Department",
+                        summary: "Handles law enforcement and public safety.",
+                        type: "Emergency",
+                        offices: [
+                          {
+                            officeName: "State Police Headquarters",
+                            level: "State",
+                            district: "West Tripura",
+                            pincode: "799001",
+                            address: "Police Line, Agartala",
+                          },
+                          {
+                            officeName: "West Tripura District Police Office",
+                            level: "District",
+                            district: "West Tripura",
+                            pincode: "799001",
+                            address: "Kunjaban, Agartala",
+                          },
+                          {
+                            officeName: "Sepahijala District Police Office",
+                            level: "District",
+                            district: "Sepahijala",
+                            pincode: "799101",
+                            address: "Bishramganj, Sepahijala",
+                          },
+                          {
+                            officeName: "Dhalai District Police Office",
+                            level: "District",
+                            district: "Dhalai",
+                            pincode: "799201",
+                            address: "Ambassa, Dhalai",
+                          },
+                        ],
+                        posts: [
+                          {
+                            postName: "Director General of Police",
+                            postRank: "DGP",
+                            officeIndex: 0,
+                          },
+                          {
+                            postName: "Superintendent of Police (West Tripura)",
+                            postRank: "SP",
+                            officeIndex: 1,
+                          },
+                          {
+                            postName: "Superintendent of Police (Sepahijala)",
+                            postRank: "SP",
+                            officeIndex: 2,
+                          },
+                          {
+                            postName: "Superintendent of Police (Dhalai)",
+                            postRank: "SP",
+                            officeIndex: 3,
+                          },
+                          {
+                            postName: "Station House Officer",
+                            postRank: "Inspector",
+                            officeIndex: 1,
+                          },
+                        ],
+                        employees: [
+                          {
+                            employeeName: "John Doe",
+                            email: "john.doe@police.com",
+                            phone: "9876543210",
+                            designation: "DGP",
+                            postIndex: 0,
+                          },
+                          {
+                            employeeName: "Jane Smith",
+                            email: "jane.smith@police.com",
+                            phone: "0123456789",
+                            designation: "SP",
+                            postIndex: 1,
+                          },
+                          {
+                            employeeName: "Peter Jones",
+                            email: "peter.jones@police.com",
+                            phone: "1122334455",
+                            designation: "Inspector",
+                            postIndex: 4,
+                          },
+                        ],
+                      })
+                    }
                     className="w-full mt-2 bg-blue-600 text-white"
                   >
                     View Details
                   </Button>
                 </CardContent>
               </Card>
-            ))}
-            
-          </div>
+              <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                <CardHeader>
+                  <CardTitle>Fire Department</CardTitle>
+                  <CardDescription>
+                    Responds to fire incidents and provides rescue services.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Type: Emergency
+                  </p>
+                  <Button
+                    onClick={() =>
+                      setModalService({
+                        name: "Fire Department",
+                        summary:
+                          "Responds to fire incidents and provides rescue services.",
+                        type: "Emergency",
+                        offices: [
+                          {
+                            officeName: "State Fire & Emergency Services HQ",
+                            level: "State",
+                            district: "West Tripura",
+                            pincode: "799001",
+                            address: "Fire Service Chowmuhani, Agartala",
+                          },
+                          {
+                            officeName: "West Tripura District Fire Station",
+                            level: "District",
+                            district: "West Tripura",
+                            pincode: "799001",
+                            address: "Battala, Agartala",
+                          },
+                          {
+                            officeName: "Gomati District Fire Station",
+                            level: "District",
+                            district: "Gomati",
+                            pincode: "799110",
+                            address: "Udaipur, Gomati",
+                          },
+                        ],
+                        posts: [
+                          {
+                            postName: "Director, Fire & Emergency Services",
+                            postRank: "Director",
+                            officeIndex: 0,
+                          },
+                          {
+                            postName: "Divisional Fire Officer (West)",
+                            postRank: "DFO",
+                            officeIndex: 1,
+                          },
+                          {
+                            postName: "Station Officer (Gomati)",
+                            postRank: "SO",
+                            officeIndex: 2,
+                          },
+                        ],
+                        employees: [
+                          {
+                            employeeName: "Peter Jones",
+                            email: "peter.jones@fire.com",
+                            phone: "1122334455",
+                            designation: "Director",
+                            postIndex: 0,
+                          },
+                          {
+                            employeeName: "Mary Brown",
+                            email: "mary.brown@fire.com",
+                            phone: "5544332211",
+                            designation: "DFO",
+                            postIndex: 1,
+                          },
+                        ],
+                      })
+                    }
+                    className="w-full mt-2 bg-blue-600 text-white"
+                  >
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+                <CardHeader>
+                  <CardTitle>Public Works Department</CardTitle>
+                  <CardDescription>
+                    Manages infrastructure and public utilities.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Type: Regular
+                  </p>
+                  <Button
+                    onClick={() =>
+                      setModalService({
+                        name: "Public Works Department",
+                        summary: "Manages infrastructure and public utilities.",
+                        type: "Regular",
+                        offices: [
+                          {
+                            officeName: "PWD Headquarters, Agartala",
+                            level: "State",
+                            district: "West Tripura",
+                            pincode: "799001",
+                            address: "Secretariat, Agartala",
+                          },
+                          {
+                            officeName: "PWD North Tripura Division",
+                            level: "District",
+                            district: "North Tripura",
+                            pincode: "799250",
+                            address: "Dharmanagar, North Tripura",
+                          },
+                          {
+                            officeName: "PWD Unakoti Division",
+                            level: "District",
+                            district: "Unakoti",
+                            pincode: "799260",
+                            address: "Kailashahar, Unakoti",
+                          },
+                        ],
+                        posts: [
+                          {
+                            postName: "Engineer-in-Chief",
+                            postRank: "EiC",
+                            officeIndex: 0,
+                          },
+                          {
+                            postName: "Superintending Engineer (North)",
+                            postRank: "SE",
+                            officeIndex: 1,
+                          },
+                          {
+                            postName: "Executive Engineer (Unakoti)",
+                            postRank: "EE",
+                            officeIndex: 2,
+                          },
+                        ],
+                        employees: [
+                          {
+                            employeeName: "David Green",
+                            email: "david.green@pwd.com",
+                            phone: "6677889900",
+                            designation: "EiC",
+                            postIndex: 0,
+                          },
+                          {
+                            employeeName: "Sarah White",
+                            email: "sarah.white@pwd.com",
+                            phone: "0099887766",
+                            designation: "SE",
+                            postIndex: 1,
+                          },
+                        ],
+                      })
+                    }
+                    className="w-full mt-2 bg-blue-600 text-white"
+                  >
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+              {/* API Contact Service Cards */}
+              {filteredApiServices.map((service) => (
+                <Card
+                  key={`api-${service.id}`}
+                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                >
+                  <CardHeader>
+                    <CardTitle>{service.name}</CardTitle>
+                    <CardDescription>{service.summary}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Type: {service.type || "Regular"}
+                    </p>
+                    <Button
+                      onClick={() =>
+                        setModalService({
+                          ...service,
+                          // Transform API data to match modal expectations
+                          offices:
+                            service.contacts?.map((contact, index) => ({
+                              officeName: `${contact.serviceName} Office - ${contact.district}`,
+                              level:
+                                contact.district === "West Tripura"
+                                  ? "State"
+                                  : "District",
+                              district: contact.district,
+                              pincode: "799001", // Default pincode
+                              address: `${contact.subDistrict}, ${contact.block}, ${contact.district}`,
+                            })) || [],
+                          posts:
+                            service.contacts?.map((contact, index) => ({
+                              postName: contact.designation,
+                              postRank: contact.designation,
+                              officeIndex: index,
+                            })) || [],
+                          employees:
+                            service.contacts?.map((contact, index) => ({
+                              employeeName: contact.name,
+                              email: contact.email,
+                              phone: contact.contact,
+                              designation: contact.designation,
+                              postIndex: index,
+                            })) || [],
+                        })
+                      }
+                      className="w-full mt-2 bg-blue-600 text-white"
+                    >
+                      View Details
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* No Services Message */}
+              {filteredApiServices.length === 0 && search && (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500">
+                    No contact services found matching "{search}".
+                  </p>
+                </div>
+              )}
+              
+              {filteredApiServices.length === 0 && !search && !loading && (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500">No published contact services available.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Modal for Contact Service Details */}
           {modalService && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
@@ -308,51 +545,99 @@ export default function UserContactService() {
 
                 {modalService.offices && (
                   <div className="mb-4">
-                    <h3 className="text-xl font-bold mb-2">Department Structure</h3>
+                    <h3 className="text-xl font-bold mb-2">
+                      Department Structure
+                    </h3>
                     {modalService.offices
                       .filter((office) => {
                         if (filterType === "State") {
                           return office.level === "State";
-                        } else if (filterType === "District" && selectedDistrict) {
-                          return office.level === "District" && office.district === selectedDistrict;
+                        } else if (
+                          filterType === "District" &&
+                          selectedDistrict
+                        ) {
+                          return (
+                            office.level === "District" &&
+                            office.district === selectedDistrict
+                          );
                         }
                         return true; // Show all if no filter or initial state
                       })
                       .map((office, officeIdx) => (
-                        <div key={officeIdx} className="mb-4 p-3 border rounded-md bg-gray-50">
-                          <h4 className="font-semibold text-lg mb-1">Office: {office.officeName}</h4>
+                        <div
+                          key={officeIdx}
+                          className="mb-4 p-3 border rounded-md bg-gray-50"
+                        >
+                          <h4 className="font-semibold text-lg mb-1">
+                            Office: {office.officeName}
+                          </h4>
                           <p className="text-sm text-gray-600">
-                            Level: {office.level}, District: {office.district}, Pincode: {office.pincode}, Address: {office.address}
+                            Level: {office.level}, District: {office.district},
+                            Pincode: {office.pincode}, Address: {office.address}
                           </p>
 
                           {/* Posts within this office */}
-                          {modalService.posts && modalService.posts.filter(post => post.officeIndex === modalService.offices.indexOf(office)).length > 0 && (
-                            <div className="mt-3">
-                              <h5 className="font-semibold text-md mb-1">Posts:</h5>
-                              <ul className="list-disc pl-6">
-                                {modalService.posts.filter(post => post.officeIndex === modalService.offices.indexOf(office)).map((post, postIdx) => (
-                                  <li key={postIdx} className="mb-2">
-                                    <span className="font-medium">{post.postName}</span> ({post.postRank})
-                                    {/* Employees within this post */}
-                                    {modalService.employees && modalService.employees.filter(emp => emp.postIndex === modalService.posts.indexOf(post)).length > 0 && (
-                                      <div className="ml-4 mt-1">
-                                        <h6 className="font-semibold text-sm mb-1">Employees:</h6>
-                                        <ul className="list-disc pl-4">
-                                          {modalService.employees.filter(emp => emp.postIndex === modalService.posts.indexOf(post)).map((emp, empIdx) => (
-                                            <li key={empIdx}>
-                                              {emp.employeeName} ({emp.designation})
-                                              {emp.email && `, Email: ${emp.email}`}
-                                              {emp.phone && `, Phone: ${emp.phone}`}
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    )}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                          {modalService.posts &&
+                            modalService.posts.filter(
+                              (post) =>
+                                post.officeIndex ===
+                                modalService.offices.indexOf(office),
+                            ).length > 0 && (
+                              <div className="mt-3">
+                                <h5 className="font-semibold text-md mb-1">
+                                  Posts:
+                                </h5>
+                                <ul className="list-disc pl-6">
+                                  {modalService.posts
+                                    .filter(
+                                      (post) =>
+                                        post.officeIndex ===
+                                        modalService.offices.indexOf(office),
+                                    )
+                                    .map((post, postIdx) => (
+                                      <li key={postIdx} className="mb-2">
+                                        <span className="font-medium">
+                                          {post.postName}
+                                        </span>{" "}
+                                        ({post.postRank})
+                                        {/* Employees within this post */}
+                                        {modalService.employees &&
+                                          modalService.employees.filter(
+                                            (emp) =>
+                                              emp.postIndex ===
+                                              modalService.posts.indexOf(post),
+                                          ).length > 0 && (
+                                            <div className="ml-4 mt-1">
+                                              <h6 className="font-semibold text-sm mb-1">
+                                                Employees:
+                                              </h6>
+                                              <ul className="list-disc pl-4">
+                                                {modalService.employees
+                                                  .filter(
+                                                    (emp) =>
+                                                      emp.postIndex ===
+                                                      modalService.posts.indexOf(
+                                                        post,
+                                                      ),
+                                                  )
+                                                  .map((emp, empIdx) => (
+                                                    <li key={empIdx}>
+                                                      {emp.employeeName} (
+                                                      {emp.designation})
+                                                      {emp.email &&
+                                                        `, Email: ${emp.email}`}
+                                                      {emp.phone &&
+                                                        `, Phone: ${emp.phone}`}
+                                                    </li>
+                                                  ))}
+                                              </ul>
+                                            </div>
+                                          )}
+                                      </li>
+                                    ))}
+                                </ul>
+                              </div>
+                            )}
                         </div>
                       ))}
                   </div>
