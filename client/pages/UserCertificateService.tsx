@@ -895,14 +895,13 @@ export default function UserCertificateService() {
               ))}
 
               {/* No Services Message */}
-              {filteredApiCerts.length === 0 &&
-                search && (
-                  <div className="col-span-full text-center py-8">
-                    <p className="text-gray-500">
-                      No certificate services found matching "{search}".
-                    </p>
-                  </div>
-                )}
+              {filteredApiCerts.length === 0 && search && (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500">
+                    No certificate services found matching "{search}".
+                  </p>
+                </div>
+              )}
             </div>
           )}
           {/* Modal for Certificate Details */}

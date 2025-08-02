@@ -478,10 +478,12 @@ export default function UserContactService() {
                   </p>
                 </div>
               )}
-              
+
               {filteredApiServices.length === 0 && !search && !loading && (
                 <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500">No published contact services available.</p>
+                  <p className="text-gray-500">
+                    No published contact services available.
+                  </p>
                 </div>
               )}
             </div>

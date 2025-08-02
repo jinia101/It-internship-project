@@ -16,9 +16,11 @@ import type { SchemeService } from "../../shared/api";
 export default function UserSchemeService() {
   const [search, setSearch] = useState("");
   const [modalScheme, setModalScheme] = useState(null);
-  const [apiSchemeServices, setApiSchemeServices] = useState<SchemeService[]>([]);
+  const [apiSchemeServices, setApiSchemeServices] = useState<SchemeService[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
-  
+
   const filteredApiSchemes = apiSchemeServices.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()),
   );
@@ -38,7 +40,7 @@ export default function UserSchemeService() {
     try {
       const response = await apiClient.getSchemeServices();
       const publishedServices = (response.schemeServices || []).filter(
-        (service) => service.status === "published"
+        (service) => service.status === "published",
       );
       setApiSchemeServices(publishedServices);
     } catch (error) {
@@ -119,7 +121,7 @@ export default function UserSchemeService() {
               <div className="text-lg">Loading scheme services...</div>
             </div>
           )}
-          
+
           {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredApiSchemes.map((scheme) => (
@@ -139,20 +141,30 @@ export default function UserSchemeService() {
                       )}
                       <div>
                         <span className="font-semibold">Application Mode:</span>{" "}
-                        {scheme.applicationMode === "both" ? "Online/Offline" : 
-                         scheme.applicationMode === "online" ? "Online" : "Offline"}
+                        {scheme.applicationMode === "both"
+                          ? "Online/Offline"
+                          : scheme.applicationMode === "online"
+                            ? "Online"
+                            : "Offline"}
                       </div>
-                      {scheme.targetAudience && scheme.targetAudience.length > 0 && (
-                        <div>
-                          <span className="font-semibold">Target Audience:</span>{" "}
-                          {scheme.targetAudience.join(", ")}
-                        </div>
-                      )}
+                      {scheme.targetAudience &&
+                        scheme.targetAudience.length > 0 && (
+                          <div>
+                            <span className="font-semibold">
+                              Target Audience:
+                            </span>{" "}
+                            {scheme.targetAudience.join(", ")}
+                          </div>
+                        )}
                       {scheme.onlineUrl && (
                         <div>
                           <span className="font-semibold">URL:</span>{" "}
-                          <a href={scheme.onlineUrl} target="_blank" rel="noopener noreferrer" 
-                             className="text-blue-600 hover:underline">
+                          <a
+                            href={scheme.onlineUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
                             Apply Online
                           </a>
                         </div>
@@ -169,17 +181,21 @@ export default function UserSchemeService() {
                   </CardContent>
                 </Card>
               ))}
-              
+
               {/* No Services Message */}
               {filteredApiSchemes.length === 0 && search && (
                 <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500">No scheme services found matching "{search}".</p>
+                  <p className="text-gray-500">
+                    No scheme services found matching "{search}".
+                  </p>
                 </div>
               )}
-              
+
               {filteredApiSchemes.length === 0 && !search && !loading && (
                 <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500">No published scheme services available.</p>
+                  <p className="text-gray-500">
+                    No published scheme services available.
+                  </p>
                 </div>
               )}
             </div>
@@ -208,19 +224,27 @@ export default function UserSchemeService() {
                   <div>
                     <h3 className="font-semibold mb-1">Application Mode</h3>
                     <p className="text-gray-700">
-                      {modalScheme.applicationMode === "both" ? "Online/Offline" : 
-                       modalScheme.applicationMode === "online" ? "Online" : "Offline"}
+                      {modalScheme.applicationMode === "both"
+                        ? "Online/Offline"
+                        : modalScheme.applicationMode === "online"
+                          ? "Online"
+                          : "Offline"}
                     </p>
                   </div>
-                  {modalScheme.targetAudience && modalScheme.targetAudience.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold mb-1">Target Audience</h3>
-                      <p className="text-gray-700">{modalScheme.targetAudience.join(", ")}</p>
-                    </div>
-                  )}
+                  {modalScheme.targetAudience &&
+                    modalScheme.targetAudience.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold mb-1">Target Audience</h3>
+                        <p className="text-gray-700">
+                          {modalScheme.targetAudience.join(", ")}
+                        </p>
+                      </div>
+                    )}
                   <div>
                     <h3 className="font-semibold mb-1">Status</h3>
-                    <p className="text-gray-700 capitalize">{modalScheme.status}</p>
+                    <p className="text-gray-700 capitalize">
+                      {modalScheme.status}
+                    </p>
                   </div>
                 </div>
 
@@ -231,8 +255,12 @@ export default function UserSchemeService() {
                     {modalScheme.onlineUrl && (
                       <div className="mb-2">
                         <span className="font-medium">Online:</span>{" "}
-                        <a href={modalScheme.onlineUrl} target="_blank" rel="noopener noreferrer" 
-                           className="text-blue-600 hover:underline">
+                        <a
+                          href={modalScheme.onlineUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
                           {modalScheme.onlineUrl}
                         </a>
                       </div>
@@ -240,82 +268,109 @@ export default function UserSchemeService() {
                     {modalScheme.offlineAddress && (
                       <div>
                         <span className="font-medium">Offline:</span>{" "}
-                        <span className="text-gray-700">{modalScheme.offlineAddress}</span>
+                        <span className="text-gray-700">
+                          {modalScheme.offlineAddress}
+                        </span>
                       </div>
                     )}
                   </div>
                 )}
 
                 {/* Eligibility Details */}
-                {modalScheme.eligibilityDetails && modalScheme.eligibilityDetails.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold mb-2">Eligibility Criteria</h3>
-                    <ul className="list-disc pl-6 space-y-1">
-                      {modalScheme.eligibilityDetails.map((item, idx) => (
-                        <li key={idx} className="text-gray-700">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {modalScheme.eligibilityDetails &&
+                  modalScheme.eligibilityDetails.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold mb-2">
+                        Eligibility Criteria
+                      </h3>
+                      <ul className="list-disc pl-6 space-y-1">
+                        {modalScheme.eligibilityDetails.map((item, idx) => (
+                          <li key={idx} className="text-gray-700">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Scheme Details */}
-                {modalScheme.schemeDetails && modalScheme.schemeDetails.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold mb-2">Scheme Details</h3>
-                    <ul className="list-disc pl-6 space-y-1">
-                      {modalScheme.schemeDetails.map((item, idx) => (
-                        <li key={idx} className="text-gray-700">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {modalScheme.schemeDetails &&
+                  modalScheme.schemeDetails.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold mb-2">Scheme Details</h3>
+                      <ul className="list-disc pl-6 space-y-1">
+                        {modalScheme.schemeDetails.map((item, idx) => (
+                          <li key={idx} className="text-gray-700">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Process Details */}
-                {modalScheme.processDetails && modalScheme.processDetails.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold mb-2">Application Process</h3>
-                    <ul className="list-disc pl-6 space-y-1">
-                      {modalScheme.processDetails.map((item, idx) => (
-                        <li key={idx} className="text-gray-700">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {modalScheme.processDetails &&
+                  modalScheme.processDetails.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold mb-2">
+                        Application Process
+                      </h3>
+                      <ul className="list-disc pl-6 space-y-1">
+                        {modalScheme.processDetails.map((item, idx) => (
+                          <li key={idx} className="text-gray-700">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                 {/* Process Steps for Different Types */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {modalScheme.processNew && (
                     <div>
-                      <h3 className="font-semibold mb-2">New Application Process</h3>
+                      <h3 className="font-semibold mb-2">
+                        New Application Process
+                      </h3>
                       <div className="bg-gray-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.processNew}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.processNew}
+                        </pre>
                       </div>
                     </div>
                   )}
-                  
+
                   {modalScheme.processUpdate && (
                     <div>
                       <h3 className="font-semibold mb-2">Update Process</h3>
                       <div className="bg-gray-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.processUpdate}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.processUpdate}
+                        </pre>
                       </div>
                     </div>
                   )}
-                  
+
                   {modalScheme.processLost && (
                     <div>
-                      <h3 className="font-semibold mb-2">Lost Application Process</h3>
+                      <h3 className="font-semibold mb-2">
+                        Lost Application Process
+                      </h3>
                       <div className="bg-gray-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.processLost}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.processLost}
+                        </pre>
                       </div>
                     </div>
                   )}
-                  
+
                   {modalScheme.processSurrender && (
                     <div>
                       <h3 className="font-semibold mb-2">Surrender Process</h3>
                       <div className="bg-gray-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.processSurrender}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.processSurrender}
+                        </pre>
                       </div>
                     </div>
                   )}
@@ -325,36 +380,52 @@ export default function UserSchemeService() {
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                   {modalScheme.docNew && (
                     <div>
-                      <h3 className="font-semibold mb-2">Documents for New Application</h3>
+                      <h3 className="font-semibold mb-2">
+                        Documents for New Application
+                      </h3>
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.docNew}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.docNew}
+                        </pre>
                       </div>
                     </div>
                   )}
-                  
+
                   {modalScheme.docUpdate && (
                     <div>
-                      <h3 className="font-semibold mb-2">Documents for Update</h3>
+                      <h3 className="font-semibold mb-2">
+                        Documents for Update
+                      </h3>
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.docUpdate}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.docUpdate}
+                        </pre>
                       </div>
                     </div>
                   )}
-                  
+
                   {modalScheme.docLost && (
                     <div>
-                      <h3 className="font-semibold mb-2">Documents for Lost Application</h3>
+                      <h3 className="font-semibold mb-2">
+                        Documents for Lost Application
+                      </h3>
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.docLost}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.docLost}
+                        </pre>
                       </div>
                     </div>
                   )}
-                  
+
                   {modalScheme.docSurrender && (
                     <div>
-                      <h3 className="font-semibold mb-2">Documents for Surrender</h3>
+                      <h3 className="font-semibold mb-2">
+                        Documents for Surrender
+                      </h3>
                       <div className="bg-blue-50 p-4 rounded-lg">
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{modalScheme.docSurrender}</pre>
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
+                          {modalScheme.docSurrender}
+                        </pre>
                       </div>
                     </div>
                   )}
@@ -368,9 +439,14 @@ export default function UserSchemeService() {
                       {modalScheme.contacts.map((contact, idx) => (
                         <div key={idx} className="bg-green-50 p-4 rounded-lg">
                           <h4 className="font-medium">{contact.name}</h4>
-                          <p className="text-sm text-gray-600">{contact.designation}</p>
+                          <p className="text-sm text-gray-600">
+                            {contact.designation}
+                          </p>
                           <p className="text-sm">{contact.serviceName}</p>
-                          <p className="text-sm">{contact.district}, {contact.subDistrict}, {contact.block}</p>
+                          <p className="text-sm">
+                            {contact.district}, {contact.subDistrict},{" "}
+                            {contact.block}
+                          </p>
                           <p className="text-sm">Phone: {contact.contact}</p>
                           <p className="text-sm">Email: {contact.email}</p>
                         </div>
@@ -382,8 +458,14 @@ export default function UserSchemeService() {
                 {/* Timestamps */}
                 <div className="mt-6 pt-4 border-t text-sm text-gray-500">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>Created: {new Date(modalScheme.createdAt).toLocaleDateString()}</div>
-                    <div>Updated: {new Date(modalScheme.updatedAt).toLocaleDateString()}</div>
+                    <div>
+                      Created:{" "}
+                      {new Date(modalScheme.createdAt).toLocaleDateString()}
+                    </div>
+                    <div>
+                      Updated:{" "}
+                      {new Date(modalScheme.updatedAt).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
               </div>
