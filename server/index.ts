@@ -11,6 +11,8 @@ import schemeServiceRoutes from "./routes/schemeService.js";
 import certificateServiceRoutes from "./routes/certificateService.js";
 import contactServiceRoutes from "./routes/contactService.js";
 import officeManagementRoutes from "./routes/officeManagement.js";
+import feedbackRoutes from "./routes/feedback.js";
+import grievanceRoutes from "./routes/grievance.js";
 
 dotenv.config();
 
@@ -50,6 +52,10 @@ app.use("/api/scheme-services", schemeServiceRoutes);
 app.use("/api/certificate-services", certificateServiceRoutes);
 app.use("/api/contact-services", contactServiceRoutes);
 app.use("/api/offices", officeManagementRoutes);
+app.use("/api/feedbacks", feedbackRoutes);
+app.use("/api/grievances", grievanceRoutes);
+app.use("/api/feedbacks", feedbackRoutes);
+app.use("/api/grievances", grievanceRoutes);
 
 app.get("/api/test", (req, res) => {
   res.json({ status: "OK", message: "Test route working" });

@@ -9,52 +9,83 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CheckCircle, Activity, Clock, Users } from "lucide-react";
-import { useState } from "react";
-
-const initialNewFeedbacks = [
-  {
-    id: 1,
-    user: "John Doe",
-    date: "2024-07-20",
-    message: "Great service, but could be faster.",
-  },
-  {
-    id: 2,
-    user: "Jane Smith",
-    date: "2024-07-19",
-    message: "Had trouble with the application form.",
-  },
-];
-const initialOldFeedbacks = [
-  {
-    id: 3,
-    user: "Alice Brown",
-    date: "2024-07-15",
-    message: "Resolved: Thanks for fixing my issue!",
-  },
-];
+import {
+  CheckCircle,
+  Activity,
+  Clock,
+  Users,
+  MessageSquare,
+  ThumbsUp,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { apiClient } from "../../shared/api";
+import type { Feedback } from "../../shared/api";
 
 export default function AdminFeedbackService() {
   const [activeTab, setActiveTab] = useState("new");
-  const [newFeedbacks, setNewFeedbacks] = useState(initialNewFeedbacks);
-  const [oldFeedbacks, setOldFeedbacks] = useState(initialOldFeedbacks);
-  const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-    users: 1234,
-    pending: 2,
+  const [newFeedbacks, setNewFeedbacks] = useState<Feedback[]>([]);
+  const [resolvedFeedbacks, setResolvedFeedbacks] = useState<Feedback[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    newFeedbacks: 0,
+    resolvedFeedbacks: 0,
+    totalFeedbacks: 0,
+    avgRating: 0,
+  });
+
+  useEffect(() => {
+    fetchFeedbacks();
+  }, []);
+
+  const fetchFeedbacks = async () => {
+    setLoading(true);
+    try {
+      // Fetch new feedbacks
+      const newResponse = await apiClient.getFeedbacks({ status: "new" });
+      const newFeedbacksList = newResponse.feedbacks || [];
+      setNewFeedbacks(newFeedbacksList);
+
+      // Fetch resolved feedbacks
+      const resolvedResponse = await apiClient.getFeedbacks({
+        status: "resolved",
+      });
+      const resolvedFeedbacksList = resolvedResponse.feedbacks || [];
+      setResolvedFeedbacks(resolvedFeedbacksList);
+
+      // Calculate stats
+      const totalFeedbacks =
+        newFeedbacksList.length + resolvedFeedbacksList.length;
+      const ratingsSum = [...newFeedbacksList, ...resolvedFeedbacksList]
+        .filter((f) => f.rating)
+        .reduce((sum, f) => sum + (f.rating || 0), 0);
+      const ratingsCount = [
+        ...newFeedbacksList,
+        ...resolvedFeedbacksList,
+      ].filter((f) => f.rating).length;
+
+      setStats({
+        newFeedbacks: newFeedbacksList.length,
+        resolvedFeedbacks: resolvedFeedbacksList.length,
+        totalFeedbacks,
+        avgRating:
+          ratingsCount > 0
+            ? Math.round((ratingsSum / ratingsCount) * 10) / 10
+            : 0,
+      });
+    } catch (error) {
+      console.error("Error fetching feedbacks:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResolve = (id: number) => {
-    const feedback = newFeedbacks.find((f) => f.id === id);
-    if (feedback) {
-      setNewFeedbacks(newFeedbacks.filter((f) => f.id !== id));
-      setOldFeedbacks([
-        { ...feedback, message: "Resolved: " + feedback.message },
-        ...oldFeedbacks,
-      ]);
+  const handleResolve = async (id: number) => {
+    try {
+      await apiClient.resolveFeedback(id, "Resolved by admin");
+      // Refresh feedbacks after resolving
+      fetchFeedbacks();
+    } catch (error) {
+      console.error("Error resolving feedback:", error);
     }
   };
 
@@ -72,62 +103,60 @@ export default function AdminFeedbackService() {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Published Services
+                  New Feedbacks
+                </CardTitle>
+                <MessageSquare className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.newFeedbacks}
+                </div>
+                <p className="text-xs text-muted-foreground">Awaiting review</p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Resolved Feedbacks
                 </CardTitle>
                 <CheckCircle className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  {stats.published}
+                  {stats.resolvedFeedbacks}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  +12% from last month
+                  Successfully resolved
                 </p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Services
+                  Total Feedbacks
                 </CardTitle>
-                <Activity className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  {stats.active}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Currently in use
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Pending Services
-                </CardTitle>
-                <Clock className="h-4 w-4 text-orange-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
-                  {stats.pending}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Awaiting approval
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Users</CardTitle>
-                <Users className="h-4 w-4 text-purple-600" />
+                <Activity className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
-                  {stats.users}
+                  {stats.totalFeedbacks}
+                </div>
+                <p className="text-xs text-muted-foreground">All time total</p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Average Rating
+                </CardTitle>
+                <ThumbsUp className="h-4 w-4 text-yellow-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {stats.avgRating}/5
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Users who saw service details
+                  User satisfaction
                 </p>
               </CardContent>
             </Card>
@@ -139,14 +168,20 @@ export default function AdminFeedbackService() {
           >
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="new" className="flex items-center gap-2">
-                New Feedbacks
+                New Feedbacks ({stats.newFeedbacks})
               </TabsTrigger>
-              <TabsTrigger value="old" className="flex items-center gap-2">
-                Old Feedbacks
+              <TabsTrigger value="resolved" className="flex items-center gap-2">
+                Resolved Feedbacks ({stats.resolvedFeedbacks})
               </TabsTrigger>
             </TabsList>
             <TabsContent value="new" className="space-y-6">
-              {newFeedbacks.length === 0 ? (
+              {loading ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    Loading feedbacks...
+                  </CardContent>
+                </Card>
+              ) : newFeedbacks.length === 0 ? (
                 <Card>
                   <CardContent className="py-8 text-center text-gray-500">
                     No new feedbacks.
@@ -160,46 +195,102 @@ export default function AdminFeedbackService() {
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        {fb.user}
+                        {fb.name}
+                        {fb.rating && (
+                          <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                            ⭐ {fb.rating}/5
+                          </span>
+                        )}
                       </CardTitle>
-                      <CardDescription>{fb.date}</CardDescription>
+                      <CardDescription>
+                        {fb.email} •{" "}
+                        {new Date(fb.createdAt).toLocaleDateString()}
+                        {fb.category && (
+                          <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                            {fb.category}
+                          </span>
+                        )}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
+                      <div className="mb-2">
+                        <strong>Subject:</strong> {fb.subject}
+                      </div>
                       <div className="mb-4">{fb.message}</div>
+                      {fb.phone && (
+                        <div className="text-sm text-gray-600">
+                          <strong>Phone:</strong> {fb.phone}
+                        </div>
+                      )}
                     </CardContent>
                     <CardFooter>
                       <Button
                         onClick={() => handleResolve(fb.id)}
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
-                        Resolved
+                        Mark as Resolved
                       </Button>
                     </CardFooter>
                   </Card>
                 ))
               )}
             </TabsContent>
-            <TabsContent value="old" className="space-y-6">
-              {oldFeedbacks.length === 0 ? (
+            <TabsContent value="resolved" className="space-y-6">
+              {loading ? (
                 <Card>
                   <CardContent className="py-8 text-center text-gray-500">
-                    No old feedbacks.
+                    Loading feedbacks...
+                  </CardContent>
+                </Card>
+              ) : resolvedFeedbacks.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center text-gray-500">
+                    No resolved feedbacks.
                   </CardContent>
                 </Card>
               ) : (
-                oldFeedbacks.map((fb) => (
+                resolvedFeedbacks.map((fb) => (
                   <Card
                     key={fb.id}
-                    className="hover:shadow-lg transition-shadow"
+                    className="hover:shadow-lg transition-shadow bg-green-50"
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        {fb.user}
+                        {fb.name}
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        {fb.rating && (
+                          <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                            ⭐ {fb.rating}/5
+                          </span>
+                        )}
                       </CardTitle>
-                      <CardDescription>{fb.date}</CardDescription>
+                      <CardDescription>
+                        {fb.email} • Resolved:{" "}
+                        {fb.resolvedAt
+                          ? new Date(fb.resolvedAt).toLocaleDateString()
+                          : "N/A"}
+                        {fb.category && (
+                          <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                            {fb.category}
+                          </span>
+                        )}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
+                      <div className="mb-2">
+                        <strong>Subject:</strong> {fb.subject}
+                      </div>
                       <div className="mb-4">{fb.message}</div>
+                      {fb.adminNotes && (
+                        <div className="bg-gray-100 p-3 rounded text-sm">
+                          <strong>Admin Notes:</strong> {fb.adminNotes}
+                        </div>
+                      )}
+                      {fb.resolvedBy && (
+                        <div className="text-sm text-gray-600 mt-2">
+                          <strong>Resolved by:</strong> {fb.resolvedBy}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))

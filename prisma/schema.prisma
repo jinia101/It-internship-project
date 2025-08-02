@@ -260,3 +260,44 @@ model Employee {
   postId       Int
   post         Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
+
+model Feedback {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  rating      Int?     // 1-5 star rating (optional)
+  category    String?  // General, Service, Technical, etc.
+  status      String   @default("new") // new, resolved
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resolvedAt  DateTime?
+  resolvedBy  String?  // Admin name who resolved it
+  adminNotes  String?  // Internal notes by admin
+}
+
+model Grievance {
+  id            Int      @id @default(autoincrement())
+  name          String
+  email         String
+  phone         String
+  address       String
+  subject       String
+  description   String
+  category      String?  // Service Related, Technical, Policy, etc.
+  priority      String   @default("medium") // low, medium, high, urgent
+  status        String   @default("new") // new, pending, solved
+  attachments   String[] // File paths or URLs
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Admin tracking
+  assignedTo    String?  // Admin name who is handling
+  adminNotes    String?  // Internal notes by admin
+  resolvedAt    DateTime?
+  
+  // Tracking information
+  trackingId    String   @unique // Unique tracking ID for users
+}

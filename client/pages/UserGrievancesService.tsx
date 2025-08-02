@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -10,88 +10,140 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ServicesMenu } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
-import { Search } from "lucide-react";
-
-const dummyGrievances = [
-  { id: 1, subject: "Water Issue", status: "Pending" },
-  { id: 2, subject: "Road Repair", status: "Resolved" },
-  { id: 3, subject: "Electricity", status: "In Progress" },
-];
-
-const departments = [
-  "Electricity",
-  "Water Supply",
-  "Public Works",
-  "Sanitation",
-  "Police",
-  "Other",
-];
-const urgencyLevels = ["Low", "Medium", "High", "Emergency"];
-const districts = [
-  "Agartala",
-  "Udaipur",
-  "Dharmanagar",
-  "Kailashahar",
-  "Other",
-];
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ServicesMenu } from "@/components/ui/sidebar";
+import { AlertTriangle, FileText, Clock, CheckCircle, MapPin } from "lucide-react";
+import { apiClient } from "../../shared/api";
+import type { Grievance, CreateGrievanceRequest } from "../../shared/api";
 
 export default function UserGrievancesService() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("");
-  const [form, setForm] = useState({
-    fullName: "",
-    mobile: "",
+  const [trackingId, setTrackingId] = useState("");
+  const [trackingResult, setTrackingResult] = useState<Grievance | null>(null);
+  const [formData, setFormData] = useState<CreateGrievanceRequest>({
+    name: "",
     email: "",
+    phone: "",
     address: "",
-    department: "",
-    district: "",
     subject: "",
     description: "",
-    date: "",
-    urgency: "",
-    attachment: null as File | null,
+    category: "",
+    priority: "medium",
+    attachments: [],
   });
-  const stats = {
-    published: 156,
-    active: 23,
-    total: 179,
-  };
-  const filteredGrievances = dummyGrievances.filter((g) =>
-    g.subject.toLowerCase().includes(search.toLowerCase()),
-  );
+  const [userGrievances, setUserGrievances] = useState<Grievance[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [stats, setStats] = useState({
+    totalGrievances: 0,
+    newGrievances: 0,
+    pendingGrievances: 0,
+    solvedGrievances: 0,
+    highPriority: 0,
+  });
 
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    const { name, value, files } = e.target as any;
-    setForm((prev) => ({
+  useEffect(() => {
+    fetchGrievances();
+  }, []);
+
+  const fetchGrievances = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.getGrievances();
+      const grievances = response.grievances || [];
+      setUserGrievances(grievances);
+
+      // Calculate stats
+      setStats({
+        totalGrievances: grievances.length,
+        newGrievances: grievances.filter(g => g.status === "new").length,
+        pendingGrievances: grievances.filter(g => g.status === "pending").length,
+        solvedGrievances: grievances.filter(g => g.status === "solved").length,
+        highPriority: grievances.filter(g => g.priority === "high" || g.priority === "urgent").length,
+      });
+    } catch (error) {
+      console.error("Error fetching grievances:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof CreateGrievanceRequest, value: string | string[]) => {
+    setFormData(prev => ({
       ...prev,
-      [name]: files ? files[0] : value,
+      [field]: value
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Submit logic here
-    alert("Grievance submitted! (Demo)");
-    setForm({
-      fullName: "",
-      mobile: "",
-      email: "",
-      address: "",
-      department: "",
-      district: "",
-      subject: "",
-      description: "",
-      date: "",
-      urgency: "",
-      attachment: null,
-    });
+    setSubmitting(true);
+    
+    try {
+      const response = await apiClient.createGrievance(formData);
+      
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        subject: "",
+        description: "",
+        category: "",
+        priority: "medium",
+        attachments: [],
+      });
+      
+      // Refresh grievance list
+      fetchGrievances();
+      
+      alert(`Grievance submitted successfully! Your tracking ID is: ${response.trackingId}`);
+    } catch (error) {
+      console.error("Error submitting grievance:", error);
+      alert("Failed to submit grievance. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const handleTrackGrievance = async () => {
+    if (!trackingId.trim()) return;
+    
+    try {
+      const response = await apiClient.getGrievanceByTracking(trackingId.trim());
+      setTrackingResult(response.grievance || null);
+    } catch (error) {
+      console.error("Error tracking grievance:", error);
+      setTrackingResult(null);
+      alert("Grievance not found with this tracking ID.");
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-100 text-red-800';
+      case 'high': return 'bg-orange-100 text-orange-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'new': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-orange-100 text-orange-800';
+      case 'solved': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const filteredGrievances = userGrievances.filter((g) =>
+    g.subject.toLowerCase().includes(search.toLowerCase()) ||
+    g.description.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="flex min-h-screen">
@@ -100,265 +152,358 @@ export default function UserGrievancesService() {
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-2">Grievances Service</h1>
           <p className="text-gray-600 mb-8">
-            Track and submit your grievances.
+            Submit your grievances and track their status.
           </p>
 
           {/* Status Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Published Services
+                  Total Grievances
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {stats.published}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  +12% from last month
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Active Services
-                </CardTitle>
+                <FileText className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  {stats.active}
+                  {stats.totalGrievances}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Currently in use
+                  All submissions
                 </p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Services
+                  New
                 </CardTitle>
+                <FileText className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-600">
-                  {stats.total}
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.newGrievances}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Across all categories
+                  Under review
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Pending
+                </CardTitle>
+                <Clock className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">
+                  {stats.pendingGrievances}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  In progress
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Solved
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.solvedGrievances}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Resolved
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  High Priority
+                </CardTitle>
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {stats.highPriority}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Urgent cases
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Grievance Form */}
-          <Card className="max-w-3xl mx-auto mb-12 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-2xl">Submit a Grievance</CardTitle>
-              <CardDescription>
-                Fill out the form below to submit your grievance. Fields marked
-                * are required.
-              </CardDescription>
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Full Name *
-                    </label>
-                    <Input
-                      name="fullName"
-                      value={form.fullName}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Your full name"
-                    />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Grievance Submission Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Submit New Grievance
+                </CardTitle>
+                <CardDescription>
+                  Fill out this form to submit your grievance. You'll receive a tracking ID to monitor progress.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Full Name *
+                      </label>
+                      <Input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        required
+                        placeholder="Your full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Email *
+                      </label>
+                      <Input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        required
+                        placeholder="your.email@example.com"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Mobile Number *
-                    </label>
-                    <Input
-                      name="mobile"
-                      value={form.mobile}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="10-digit mobile number"
-                      type="tel"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Email ID</label>
-                    <Input
-                      name="email"
-                      value={form.email}
-                      onChange={handleInputChange}
-                      placeholder="Optional email address"
-                      type="email"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Address *</label>
-                    <Input
-                      name="address"
-                      value={form.address}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Your address"
-                    />
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Department Concerned *
-                    </label>
-                    <select
-                      name="department"
-                      value={form.department}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full border rounded px-3 py-2"
-                    >
-                      <option value="">Select Department</option>
-                      {departments.map((dep) => (
-                        <option key={dep} value={dep}>
-                          {dep}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">
-                      District / Block / Area *
-                    </label>
-                    <select
-                      name="district"
-                      value={form.district}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full border rounded px-3 py-2"
-                    >
-                      <option value="">Select Area</option>
-                      {districts.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Subject / Title *
-                    </label>
-                    <Input
-                      name="subject"
-                      value={form.subject}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="Short summary of grievance"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Date of Incident *
-                    </label>
-                    <Input
-                      name="date"
-                      value={form.date}
-                      onChange={handleInputChange}
-                      required
-                      type="date"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">
-                    Grievance Description *
-                  </label>
-                  <Textarea
-                    name="description"
-                    value={form.description}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Describe your grievance (up to 500 words)"
-                    rows={5}
-                    maxLength={500}
-                  />
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Urgency Level *
-                    </label>
-                    <select
-                      name="urgency"
-                      value={form.urgency}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full border rounded px-3 py-2"
-                    >
-                      <option value="">Select Urgency</option>
-                      {urgencyLevels.map((u) => (
-                        <option key={u} value={u}>
-                          {u}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">
-                      Attachments (Optional)
-                    </label>
-                    <Input
-                      name="attachment"
-                      type="file"
-                      accept="image/*,video/*,application/pdf"
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button type="submit" size="lg" className="w-full">
-                  Submit Grievance
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
 
-          {/* Grievances Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGrievances.map((g) => (
-              <Card
-                key={g.id}
-                className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
-              >
-                <CardHeader>
-                  <CardTitle>{g.subject}</CardTitle>
-                  <CardDescription>
-                    Status:{" "}
-                    <Badge
-                      variant={
-                        g.status === "Resolved" ? "default" : "secondary"
-                      }
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Phone *
+                      </label>
+                      <Input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                        required
+                        placeholder="Your phone number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Priority
+                      </label>
+                      <Select value={formData.priority} onValueChange={(value) => handleInputChange("priority", value as any)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Address *
+                    </label>
+                    <Input
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange("address", e.target.value)}
+                      required
+                      placeholder="Your complete address"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Category
+                    </label>
+                    <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="service-related">Service Related</SelectItem>
+                        <SelectItem value="technical">Technical Issue</SelectItem>
+                        <SelectItem value="policy">Policy Related</SelectItem>
+                        <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Subject *
+                    </label>
+                    <Input
+                      type="text"
+                      value={formData.subject}
+                      onChange={(e) => handleInputChange("subject", e.target.value)}
+                      required
+                      placeholder="Brief subject of your grievance"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Description *
+                    </label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      required
+                      placeholder="Provide detailed description of your grievance..."
+                      rows={4}
+                    />
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Submitting..." : "Submit Grievance"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Track Grievance */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Track Your Grievance
+                </CardTitle>
+                <CardDescription>
+                  Enter your tracking ID to check the status of your grievance.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Tracking ID
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={trackingId}
+                      onChange={(e) => setTrackingId(e.target.value)}
+                      placeholder="Enter your tracking ID"
+                    />
+                    <Button 
+                      onClick={handleTrackGrievance}
+                      disabled={!trackingId.trim()}
                     >
-                      {g.status}
-                    </Badge>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full">View</Button>
+                      Track
+                    </Button>
+                  </div>
+                </div>
+
+                {trackingResult && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2">Grievance Status</h4>
+                    <div className="space-y-2 text-sm">
+                      <div><strong>Subject:</strong> {trackingResult.subject}</div>
+                      <div className="flex items-center gap-2">
+                        <strong>Status:</strong>
+                        <Badge className={getStatusColor(trackingResult.status)} variant="secondary">
+                          {trackingResult.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <strong>Priority:</strong>
+                        <Badge className={getPriorityColor(trackingResult.priority)} variant="secondary">
+                          {trackingResult.priority}
+                        </Badge>
+                      </div>
+                      <div><strong>Submitted:</strong> {new Date(trackingResult.createdAt).toLocaleDateString()}</div>
+                      {trackingResult.resolvedAt && (
+                        <div><strong>Resolved:</strong> {new Date(trackingResult.resolvedAt).toLocaleDateString()}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Grievances */}
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Recent Community Grievances</h2>
+            <div className="mb-4">
+              <Input
+                type="text"
+                placeholder="Search grievances..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="max-w-md"
+              />
+            </div>
+
+            {loading ? (
+              <Card>
+                <CardContent className="py-8 text-center text-gray-500">
+                  Loading grievances...
                 </CardContent>
               </Card>
-            ))}
-            {filteredGrievances.length === 0 && (
-              <div className="col-span-full text-center text-gray-500 py-8">
-                No grievances found.
+            ) : filteredGrievances.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-gray-500">
+                  {search ? `No grievances found matching "${search}".` : "No grievances yet."}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredGrievances.slice(0, 9).map((grievance) => (
+                  <Card key={grievance.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between text-lg">
+                        <span className="truncate">{grievance.subject}</span>
+                        <Badge className={getPriorityColor(grievance.priority)} variant="secondary">
+                          {grievance.priority}
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        <div className="flex items-center gap-2">
+                          <span>{grievance.name}</span>
+                          <Badge className={getStatusColor(grievance.status)} variant="secondary">
+                            {grievance.status}
+                          </Badge>
+                        </div>
+                        <div className="mt-1 text-xs">
+                          <strong>ID:</strong> {grievance.trackingId}
+                        </div>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600 line-clamp-3">
+                        {grievance.description}
+                      </p>
+                      {grievance.category && (
+                        <Badge variant="outline" className="mt-2">
+                          {grievance.category}
+                        </Badge>
+                      )}
+                    </CardContent>
+                    <CardFooter>
+                      <div className="text-xs text-gray-500">
+                        Submitted: {new Date(grievance.createdAt).toLocaleDateString()}
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
             )}
           </div>

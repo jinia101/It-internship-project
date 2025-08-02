@@ -181,6 +181,47 @@ export interface ContactService {
   documents: ContactServiceDocument[];
 }
 
+export interface Feedback {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  rating?: number; // 1-5 star rating
+  category?: string; // General, Service, Technical, etc.
+  status: "new" | "resolved";
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+  resolvedBy?: string; // Admin name who resolved it
+  adminNotes?: string; // Internal notes by admin
+}
+
+export interface Grievance {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  subject: string;
+  description: string;
+  category?: string; // Service Related, Technical, Policy, etc.
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "new" | "pending" | "solved";
+  attachments: string[]; // File paths or URLs
+  createdAt: string;
+  updatedAt: string;
+
+  // Admin tracking
+  assignedTo?: string; // Admin name who is handling
+  adminNotes?: string; // Internal notes by admin
+  resolvedAt?: string;
+
+  // Tracking information
+  trackingId: string; // Unique tracking ID for users
+}
+
 // API Response Types
 export interface ApiResponse<T = any> {
   message?: string;
@@ -204,6 +245,24 @@ export interface CertificateServiceResponse extends ApiResponse {
 
 export interface ContactServiceResponse extends ApiResponse {
   contactService?: ContactService;
+}
+
+export interface FeedbackResponse extends ApiResponse {
+  feedback?: Feedback;
+}
+
+export interface FeedbackListResponse extends ApiResponse {
+  feedbacks?: Feedback[];
+  total?: number;
+}
+
+export interface GrievanceResponse extends ApiResponse {
+  grievance?: Grievance;
+}
+
+export interface GrievanceListResponse extends ApiResponse {
+  grievances?: Grievance[];
+  total?: number;
 }
 
 export interface SchemeServicesListResponse extends ApiResponse {
@@ -361,6 +420,42 @@ export interface UpdateEmployeeRequest {
   email: string;
   phone: string;
   designation: string;
+}
+
+// Feedback and Grievance Request Types
+export interface CreateFeedbackRequest {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  rating?: number; // 1-5 star rating
+  category?: string; // General, Service, Technical, etc.
+}
+
+export interface UpdateFeedbackRequest {
+  status?: "new" | "resolved";
+  adminNotes?: string;
+  resolvedBy?: string;
+}
+
+export interface CreateGrievanceRequest {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  subject: string;
+  description: string;
+  category?: string; // Service Related, Technical, Policy, etc.
+  priority?: "low" | "medium" | "high" | "urgent";
+  attachments?: string[]; // File paths or URLs
+}
+
+export interface UpdateGrievanceRequest {
+  status?: "new" | "pending" | "solved";
+  assignedTo?: string;
+  adminNotes?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
 }
 
 // API Client Configuration
@@ -728,6 +823,142 @@ export class ApiClient {
         method: "DELETE",
       },
     );
+  }
+
+  // Feedback Services
+  async createFeedback(data: CreateFeedbackRequest): Promise<FeedbackResponse> {
+    return this.makeRequest<FeedbackResponse>("/feedbacks", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getFeedbacks(params?: {
+    status?: "new" | "resolved";
+    page?: number;
+    limit?: number;
+  }): Promise<FeedbackListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+    const query = queryParams.toString();
+    return this.makeRequest<FeedbackListResponse>(
+      `/feedbacks${query ? `?${query}` : ""}`,
+    );
+  }
+
+  async getFeedback(id: number): Promise<FeedbackResponse> {
+    return this.makeRequest<FeedbackResponse>(`/feedbacks/${id}`);
+  }
+
+  async updateFeedback(
+    id: number,
+    data: UpdateFeedbackRequest,
+  ): Promise<FeedbackResponse> {
+    return this.makeRequest<FeedbackResponse>(`/feedbacks/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async resolveFeedback(
+    id: number,
+    adminNotes?: string,
+  ): Promise<FeedbackResponse> {
+    return this.makeRequest<FeedbackResponse>(`/feedbacks/${id}/resolve`, {
+      method: "PATCH",
+      body: JSON.stringify({ adminNotes }),
+    });
+  }
+
+  async deleteFeedback(id: number): Promise<ApiResponse> {
+    return this.makeRequest<ApiResponse>(`/feedbacks/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  // Grievance Services
+  async createGrievance(
+    data: CreateGrievanceRequest,
+  ): Promise<GrievanceResponse> {
+    return this.makeRequest<GrievanceResponse>("/grievances", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getGrievances(params?: {
+    status?: "new" | "pending" | "solved";
+    page?: number;
+    limit?: number;
+  }): Promise<GrievanceListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append("status", params.status);
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+    const query = queryParams.toString();
+    return this.makeRequest<GrievanceListResponse>(
+      `/grievances${query ? `?${query}` : ""}`,
+    );
+  }
+
+  async getGrievance(id: number): Promise<GrievanceResponse> {
+    return this.makeRequest<GrievanceResponse>(`/grievances/${id}`);
+  }
+
+  async getGrievanceByTracking(trackingId: string): Promise<GrievanceResponse> {
+    return this.makeRequest<GrievanceResponse>(
+      `/grievances/track/${trackingId}`,
+    );
+  }
+
+  async updateGrievance(
+    id: number,
+    data: UpdateGrievanceRequest,
+  ): Promise<GrievanceResponse> {
+    return this.makeRequest<GrievanceResponse>(`/grievances/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async markGrievanceAsSolved(
+    id: number,
+    adminNotes?: string,
+  ): Promise<GrievanceResponse> {
+    return this.makeRequest<GrievanceResponse>(`/grievances/${id}/solve`, {
+      method: "PATCH",
+      body: JSON.stringify({ adminNotes }),
+    });
+  }
+
+  async markGrievanceAsPending(
+    id: number,
+    adminNotes?: string,
+  ): Promise<GrievanceResponse> {
+    return this.makeRequest<GrievanceResponse>(`/grievances/${id}/pending`, {
+      method: "PATCH",
+      body: JSON.stringify({ adminNotes }),
+    });
+  }
+
+  async assignGrievance(
+    id: number,
+    assignedTo: string,
+  ): Promise<GrievanceResponse> {
+    return this.makeRequest<GrievanceResponse>(`/grievances/${id}/assign`, {
+      method: "PATCH",
+      body: JSON.stringify({ assignedTo }),
+    });
+  }
+
+  async deleteGrievance(id: number): Promise<ApiResponse> {
+    return this.makeRequest<ApiResponse>(`/grievances/${id}`, {
+      method: "DELETE",
+    });
   }
 }
 
