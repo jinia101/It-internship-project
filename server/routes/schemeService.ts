@@ -26,7 +26,21 @@ router.post(
     body("applicationMode")
       .isIn(["online", "offline", "both"])
       .withMessage("Invalid application mode"),
-    body("onlineUrl").optional().isURL().withMessage("Invalid URL"),
+    body("onlineUrl")
+      .optional()
+      .custom((value, { req }) => {
+        // Only validate URL format if it's provided and application mode requires it
+        if (
+          value &&
+          (req.body.applicationMode === "online" ||
+            req.body.applicationMode === "both")
+        ) {
+          if (!value.startsWith("http://") && !value.startsWith("https://")) {
+            throw new Error("Online URL must start with http:// or https://");
+          }
+        }
+        return true;
+      }),
     body("offlineAddress").optional().trim(),
   ],
   async (req: any, res) => {
@@ -431,11 +445,7 @@ router.patch(
         return res.status(404).json({ error: "Scheme service not found" });
       }
 
-      if (existingService.status === "published") {
-        return res
-          .status(400)
-          .json({ error: "Scheme service is already published" });
-      }
+      // Allow republishing - just update the existing published service
 
       // Validate completeness before publishing
       const validationErrors = [];

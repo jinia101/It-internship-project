@@ -154,13 +154,13 @@ export default function AdminContactService() {
             </div>
           )}
 
-          {loading && (
-            <div className="text-center py-8">
-              <div className="text-lg">Loading contact services...</div>
-            </div>
-          )}
-
-          {!loading && (
+          {loading ? (
+            <Card>
+              <CardContent className="py-8 text-center text-gray-500">
+                Loading contact services...
+              </CardContent>
+            </Card>
+          ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <Card className="hover:shadow-lg transition-shadow">
@@ -241,18 +241,33 @@ export default function AdminContactService() {
                 <TabsContent value="create" className="space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Create New Contact Service</CardTitle>
+                      <CardTitle className="flex items-center gap-2">
+                        <Plus className="h-5 w-5" />
+                        Create New Service
+                      </CardTitle>
                       <CardDescription>
-                        Add a new contact department service to the system
+                        Add a new contact service to the platform
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Button asChild>
-                        <Link to="/admin/create-contact-service">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create New Service
-                        </Link>
-                      </Button>
+                      <div className="text-center py-8">
+                        <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                          <Plus className="h-8 w-8 text-primary" />
+                        </div>
+                        <h3 className="text-lg font-medium mb-2">
+                          Ready to create a new contact service?
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                          Use our service creation form to add new contact
+                          offerings to the platform
+                        </p>
+                        <Button size="lg" asChild>
+                          <Link to="/admin/create-contact-service">
+                            Create New Contact Service
+                            <Plus className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </TabsContent>

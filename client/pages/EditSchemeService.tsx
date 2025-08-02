@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -10,10 +10,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2, PlusCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiClient } from "../../shared/api";
 import { SchemeService } from "../../shared/api";
 import { useAuth } from "../contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 export default function EditSchemeService() {
   const { id } = useParams();
@@ -21,10 +30,22 @@ export default function EditSchemeService() {
   const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [schemeService, setSchemeService] = useState<SchemeService | null>(
     null,
   );
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(1); // Start with step 1 for eligibility
+
+  // Basic form fields
+  const [name, setName] = useState("");
+  const [summary, setSummary] = useState("");
+  const [type, setType] = useState("");
+  const [targetAudience, setTargetAudience] = useState([""]);
+  const [applicationMode, setApplicationMode] = useState("online");
+  const [onlineUrl, setOnlineUrl] = useState("");
+  const [offlineAddress, setOfflineAddress] = useState("");
+
+  // Detailed form fields
   const [eligibility, setEligibility] = useState([""]);
   const [schemeDetails, setSchemeDetails] = useState([""]);
   const [process, setProcess] = useState([""]);
@@ -62,6 +83,16 @@ export default function EditSchemeService() {
 
         setSchemeService(scheme);
 
+        // Populate basic fields
+        if (scheme?.name) setName(scheme.name);
+        if (scheme?.summary) setSummary(scheme.summary);
+        if (scheme?.type) setType(scheme.type);
+        if (scheme?.targetAudience) setTargetAudience(scheme.targetAudience);
+        if (scheme?.applicationMode) setApplicationMode(scheme.applicationMode);
+        if (scheme?.onlineUrl) setOnlineUrl(scheme.onlineUrl);
+        if (scheme?.offlineAddress) setOfflineAddress(scheme.offlineAddress);
+
+        // Populate detailed fields
         if (scheme?.eligibilityDetails)
           setEligibility(scheme.eligibilityDetails);
         if (scheme?.schemeDetails) setSchemeDetails(scheme.schemeDetails);
@@ -80,11 +111,96 @@ export default function EditSchemeService() {
     fetchSchemeService();
   }, [id, isAuthenticated, navigate]);
 
-  const handleAdd = (setter, arr) => setter([...arr, ""]);
-  const handleChange = (setter, arr, idx, value) =>
+  // Cleanup auto-save timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleAdd = (setter, arr) => {
+    setter([...arr, ""]);
+    autoSave();
+  };
+
+  const handleChange = (setter, arr, idx, value) => {
     setter(arr.map((v, i) => (i === idx ? value : v)));
-  const handleRemove = (setter, arr, idx) =>
+    autoSave();
+  };
+
+  const handleRemove = (setter, arr, idx) => {
     setter(arr.filter((_, i) => i !== idx));
+    autoSave();
+  };
+
+  const handleTargetAudienceChange = (index: number, value: string) => {
+    const newTargetAudience = [...targetAudience];
+    newTargetAudience[index] = value;
+    setTargetAudience(newTargetAudience);
+    autoSave();
+  };
+
+  const addTargetAudience = () => {
+    setTargetAudience([...targetAudience, ""]);
+    autoSave();
+  };
+
+  const removeTargetAudience = (index: number) => {
+    if (targetAudience.length > 1) {
+      const newTargetAudience = [...targetAudience];
+      newTargetAudience.splice(index, 1);
+      setTargetAudience(newTargetAudience);
+      autoSave();
+    }
+  };
+
+  // Auto-save functionality with debounce
+  const autoSave = async () => {
+    if (!schemeService) return;
+
+    // Clear any existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const updateData = {
+          name,
+          summary,
+          type,
+          targetAudience: targetAudience.filter((ta) => ta.trim() !== ""),
+          applicationMode,
+          onlineUrl,
+          offlineAddress,
+          eligibilityDetails: eligibility.filter((e) => e.trim() !== ""),
+          schemeDetails: schemeDetails.filter((sd) => sd.trim() !== ""),
+          processDetails: process.filter((p) => p.trim() !== ""),
+          contacts: contacts.filter((c) => c.serviceName.trim() !== ""),
+        };
+
+        await apiClient.updateSchemeService(schemeService.id, updateData);
+
+        // Show success toast briefly
+        toast({
+          title: "Auto-saved",
+          description: "Changes saved automatically",
+          duration: 1000,
+        });
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+        toast({
+          title: "Auto-save failed",
+          description: "Your changes could not be saved automatically",
+          variant: "destructive",
+          duration: 2000,
+        });
+      }
+    }, 2000); // Auto-save after 2 seconds of inactivity
+  };
 
   const saveData = async (status?: string) => {
     if (!schemeService) return;
@@ -121,10 +237,10 @@ export default function EditSchemeService() {
       // First save any pending changes
       await saveData();
 
-      // Then publish the scheme service
+      // Then publish/republish the scheme service
       await apiClient.publishSchemeService(schemeService.id);
 
-      navigate("/admin-scheme-service");
+      navigate("/admin-scheme-service", { replace: true });
     } catch (error) {
       console.error("Error publishing scheme:", error);
       setError("Failed to publish scheme service");
@@ -418,39 +534,191 @@ export default function EditSchemeService() {
           <div className="flex flex-col items-center justify-center">
             <div className="grid grid-cols-2 gap-4 place-content-center bg-white p-6 rounded-lg shadow-md">
               <div className="border p-4 mb-6 rounded-md bg-white shadow-md">
-                <div className="font-semibold">
-                  1. Scheme Name:
-                  <p className="border-b mb-2 text-gray-500">
-                    {schemeService?.name || "Loading..."}
-                  </p>
-                </div>{" "}
-                <div className="font-semibold">
-                  2. Scheme Summary:
-                  <p className="border-b mb-2 text-gray-500">
-                    {schemeService?.summary || "Loading..."}
-                  </p>
-                </div>
-                <div className="font-semibold">
-                  3. Scheme Type:
-                  <p className="border-b mb-2 text-gray-500">Central</p>
-                </div>
-                <div className="font-semibold">
-                  4. Target Audience:
-                  <p className="border-b mb-2 text-gray-500">Everyone</p>
-                </div>
-                <div className="font-semibold">
-                  5. Where to Apply:
-                  <p className="border-b mb-2 text-gray-500">
-                    Online (https://example.com)
-                  </p>
-                </div>
-                <div className="flex justify-center gap-2 mt-4">
-                  <Button variant="outline">Edit</Button>
-                  <Button className="bg-green-600 hover:bg-green-700 text-white">
-                    Activate
-                  </Button>
-                  <Button variant="destructive">Deactivate</Button>
-                </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Basic Scheme Details</CardTitle>
+                    <CardDescription>
+                      Edit the basic information about this scheme.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Scheme Name *</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={name}
+                        onChange={(e) => {
+                          setName(e.target.value);
+                          autoSave();
+                        }}
+                        placeholder="Enter scheme name"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="summary">
+                        Scheme Summary * (minimum 10 characters)
+                      </Label>
+                      <Textarea
+                        id="summary"
+                        name="summary"
+                        value={summary}
+                        onChange={(e) => {
+                          setSummary(e.target.value);
+                          autoSave();
+                        }}
+                        placeholder="Enter a brief summary of the scheme"
+                        required
+                        rows={3}
+                      />
+                      <div className="text-sm text-gray-500">
+                        {summary.length}/10 characters minimum
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="type">Scheme Type</Label>
+                      <Select
+                        name="type"
+                        value={type}
+                        onValueChange={(value) => {
+                          setType(value);
+                          autoSave();
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select scheme type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Central">
+                            Central Government
+                          </SelectItem>
+                          <SelectItem value="State">
+                            State Government
+                          </SelectItem>
+                          <SelectItem value="Social Welfare">
+                            Social Welfare
+                          </SelectItem>
+                          <SelectItem value="Education">Education</SelectItem>
+                          <SelectItem value="Healthcare">Healthcare</SelectItem>
+                          <SelectItem value="Agriculture">
+                            Agriculture
+                          </SelectItem>
+                          <SelectItem value="Employment">Employment</SelectItem>
+                          <SelectItem value="Housing">Housing</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Target Audience *</Label>
+                      {targetAudience.map((audience, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
+                        >
+                          <Input
+                            value={audience}
+                            onChange={(e) =>
+                              handleTargetAudienceChange(index, e.target.value)
+                            }
+                            placeholder="e.g., Students, Farmers, Women, Senior Citizens"
+                            required
+                          />
+                          {targetAudience.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeTargetAudience(index)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={addTargetAudience}
+                      >
+                        + Add Target Audience
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="applicationMode">
+                        Application Mode *
+                      </Label>
+                      <Select
+                        name="applicationMode"
+                        value={applicationMode}
+                        onValueChange={(value) => {
+                          setApplicationMode(value);
+                          autoSave();
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select application mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="online">Online Only</SelectItem>
+                          <SelectItem value="offline">Offline Only</SelectItem>
+                          <SelectItem value="both">
+                            Both Online and Offline
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {(applicationMode === "online" ||
+                      applicationMode === "both") && (
+                      <div className="space-y-2">
+                        <Label htmlFor="onlineUrl">
+                          Online Application URL *
+                        </Label>
+                        <Input
+                          id="onlineUrl"
+                          name="onlineUrl"
+                          type="url"
+                          value={onlineUrl}
+                          onChange={(e) => {
+                            setOnlineUrl(e.target.value);
+                            autoSave();
+                          }}
+                          placeholder="https://example.com/apply"
+                          required
+                        />
+                        <div className="text-sm text-gray-500">
+                          Must start with http:// or https://
+                        </div>
+                      </div>
+                    )}
+
+                    {(applicationMode === "offline" ||
+                      applicationMode === "both") && (
+                      <div className="space-y-2">
+                        <Label htmlFor="offlineAddress">
+                          Offline Application Address *
+                        </Label>
+                        <Textarea
+                          id="offlineAddress"
+                          name="offlineAddress"
+                          value={offlineAddress}
+                          onChange={(e) => {
+                            setOfflineAddress(e.target.value);
+                            autoSave();
+                          }}
+                          placeholder="Enter the physical address where applications can be submitted"
+                          required
+                          rows={3}
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
               <div className="max-w-2xl mx-auto">
                 <div className="mb-4 flex items-center justify-center space-x-4">
@@ -499,14 +767,16 @@ export default function EditSchemeService() {
                         {loading ? "Saving..." : "Save and Next"}
                       </Button>
                     )}
-                    {(step === 3 || step === 4) && (
+                    {step === 4 && (
                       <Button
                         type="submit"
                         className="bg-green-600 text-white"
                         onClick={handlePublish}
                         disabled={loading}
                       >
-                        {loading ? "Publishing..." : "Publish"}
+                        {loading
+                          ? "Saving and Publishing..."
+                          : "Save and Publish"}
                       </Button>
                     )}
                   </div>

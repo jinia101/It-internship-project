@@ -56,8 +56,6 @@ export default function EmergencyService() {
         applicationMode: "",
         eligibility: "",
       };
-      saveService(dummy1);
-      saveService(dummy2);
       loaded = getServices();
     }
     setServices(loaded);
