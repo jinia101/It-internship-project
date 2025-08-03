@@ -168,7 +168,8 @@ router.get("/", authenticateAdmin, async (req: any, res) => {
 
     const statsFormatted = {
       draft: stats.find((s: any) => s.status === "draft")?._count?.status || 0,
-      pending: stats.find((s: any) => s.status === "pending")?._count?.status || 0,
+      pending:
+        stats.find((s: any) => s.status === "pending")?._count?.status || 0,
       published:
         stats.find((s: any) => s.status === "published")?._count?.status || 0,
       total: stats.reduce((sum: any, s: any) => sum + s._count.status, 0),
