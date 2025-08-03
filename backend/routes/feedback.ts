@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { body, validationResult, query } from "express-validator";
-import { PrismaClient } from "../../generated/prisma";
+import { PrismaClient } from "@prisma/client";
 
 const router = express.Router();
 const prisma = new PrismaClient();

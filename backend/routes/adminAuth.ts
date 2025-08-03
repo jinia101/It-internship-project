@@ -2,8 +2,8 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
-import { PrismaClient } from "../../generated/prisma/index.js";
-import "../types/express.js";
+import { PrismaClient } from "@prisma/client";
+import "../types/express";
 
 const router = express.Router();
 const prisma = new PrismaClient();

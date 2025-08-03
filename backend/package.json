@@ -3,17 +3,19 @@
   "version": "1.0.0",
   "description": "Backend API for Government Services Platform",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "build": "tsc",
+    "build": "rimraf dist && tsc && echo TypeScript compilation completed && echo Build artifacts generated successfully",
     "start": "node dist/index.js",
     "test": "vitest --run",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "build:verbose": "rimraf dist && tsc --listFiles && echo TypeScript compilation completed with verbose output",
+    "build:check": "tsc --noEmit && echo Type checking passed"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
@@ -35,6 +37,7 @@
     "@types/multer": "^2.0.0",
     "@types/uuid": "^10.0.0",
     "prisma": "^6.13.0",
+    "rimraf": "^6.0.1",
     "tsx": "^4.20.3",
     "typescript": "^5.5.3",
     "vitest": "^3.1.4"

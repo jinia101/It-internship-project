@@ -2,7 +2,7 @@ import { Router, Response, Request } from "express";
 import { body, param, validationResult } from "express-validator";
 import { prisma } from "../index";
 import { authenticateAdmin } from "./adminAuth";
-import "../types/express.js";
+import "../types/express";
 
 const router = Router();
 

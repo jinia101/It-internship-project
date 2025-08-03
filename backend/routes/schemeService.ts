@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
 import { body, validationResult, param } from "express-validator";
-import { PrismaClient } from "../../generated/prisma/index.js";
+import { PrismaClient } from "@prisma/client";
 import { authenticateAdmin } from "./adminAuth";
-import "../types/express.js";
+import "../types/express";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -167,11 +167,11 @@ router.get("/", authenticateAdmin, async (req: any, res) => {
     });
 
     const statsFormatted = {
-      draft: stats.find((s) => s.status === "draft")?._count?.status || 0,
-      pending: stats.find((s) => s.status === "pending")?._count?.status || 0,
+      draft: stats.find((s: any) => s.status === "draft")?._count?.status || 0,
+      pending: stats.find((s: any) => s.status === "pending")?._count?.status || 0,
       published:
-        stats.find((s) => s.status === "published")?._count?.status || 0,
-      total: stats.reduce((sum, s) => sum + s._count.status, 0),
+        stats.find((s: any) => s.status === "published")?._count?.status || 0,
+      total: stats.reduce((sum: any, s: any) => sum + s._count.status, 0),
     };
 
     res.json({
@@ -302,7 +302,7 @@ router.put(
       }
 
       // Update using transaction
-      const updatedService = await prisma.$transaction(async (tx) => {
+      const updatedService = await prisma.$transaction(async (tx: any) => {
         // Update main service
         const service = await tx.schemeService.update({
           where: { id: serviceId },

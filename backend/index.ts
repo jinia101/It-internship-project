@@ -2,22 +2,18 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
-import { fileURLToPath } from "url";
-import { PrismaClient } from "../generated/prisma/index.js";
+import { PrismaClient } from "@prisma/client";
 
 // Import routes
-import adminAuthRoutes from "./routes/adminAuth.js";
-import schemeServiceRoutes from "./routes/schemeService.js";
-import certificateServiceRoutes from "./routes/certificateService.js";
-import contactServiceRoutes from "./routes/contactService.js";
-import officeManagementRoutes from "./routes/officeManagement.js";
-import feedbackRoutes from "./routes/feedback.js";
-import grievanceRoutes from "./routes/grievance.js";
+import adminAuthRoutes from "./routes/adminAuth";
+import schemeServiceRoutes from "./routes/schemeService";
+import certificateServiceRoutes from "./routes/certificateService";
+import contactServiceRoutes from "./routes/contactService";
+import officeManagementRoutes from "./routes/officeManagement";
+import feedbackRoutes from "./routes/feedback";
+import grievanceRoutes from "./routes/grievance";
 
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const prisma = new PrismaClient();
