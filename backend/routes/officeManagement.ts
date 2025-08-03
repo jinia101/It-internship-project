@@ -6,11 +6,11 @@ import "../types/express";
 
 const router = Router();
 
-// GET /api/offices/by-name/:officeName - Get office by name
+// GET /api/offices/by-id/:officeId - Get office by id
 router.get(
-  "/by-name/:officeName",
+  "/by-id/:officeId",
   authenticateAdmin,
-  param("officeName").notEmpty().withMessage("Office name is required"),
+  param("officeId").notEmpty().withMessage("Office id is required"),
   async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
@@ -22,15 +22,12 @@ router.get(
         });
       }
 
-      const officeName = req.params.officeName;
+      const officeId = parseInt(req.params.officeId);
 
       // Find office by name
       const office = await prisma.contactServiceContact.findFirst({
         where: {
-          name: {
-            equals: officeName,
-            mode: "insensitive", // Case-insensitive search
-          },
+          id: officeId
         },
       });
 
