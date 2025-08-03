@@ -262,7 +262,7 @@ export default function AdminCertificateService() {
                                       {cert.status}
                                     </span>
                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                                      {cert.certificateType}
+                                      {cert.applicationMode}
                                     </span>
                                   </div>
                                 </div>
@@ -324,7 +324,7 @@ export default function AdminCertificateService() {
                                       {cert.status}
                                     </span>
                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                                      {cert.certificateType}
+                                      {cert.applicationMode}
                                     </span>
                                   </div>
                                 </div>

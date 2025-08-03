@@ -64,56 +64,6 @@ export default function AdminContactService() {
     navigate(`/admin/edit-contact-department/${service.id}`);
   };
 
-  const handleView = (service) => {
-    navigate(`/admin/view-contact-service/${encodeURIComponent(service.name)}`);
-  };
-
-  const handlePublish = async (service) => {
-    try {
-      // Only send the fields that should be updated, not the entire service object
-      const updateData = {
-        name: service.name,
-        summary: service.summary,
-        type: service.type,
-        targetAudience: service.targetAudience,
-        applicationMode: service.applicationMode,
-        onlineUrl: service.onlineUrl,
-        offlineAddress: service.offlineAddress,
-        eligibilityDetails: service.eligibilityDetails,
-        contactDetails: service.contactDetails,
-        processDetails: service.processDetails,
-        processNew: service.processNew,
-        processUpdate: service.processUpdate,
-        processLost: service.processLost,
-        processSurrender: service.processSurrender,
-        docNew: service.docNew,
-        docUpdate: service.docUpdate,
-        docLost: service.docLost,
-        docSurrender: service.docSurrender,
-        status: "published",
-        contacts: service.contacts || [],
-      };
-
-      await apiClient.updateContactService(service.id, updateData);
-
-      // Refresh the services list
-      const response = await apiClient.getContactServices();
-      setServices(response.contactServices || []);
-
-      toast({
-        title: "Success",
-        description: "Contact service published successfully",
-      });
-    } catch (error) {
-      console.error("Error publishing contact service:", error);
-      toast({
-        title: "Error",
-        description: "Failed to publish contact service",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleDelete = async (service) => {
     try {
       await apiClient.deleteContactService(service.id);
@@ -282,98 +232,25 @@ export default function AdminContactService() {
                       </CardContent>
                     </Card>
                   ) : (
-                    pendingServices.map((service) => (
-                      <Card
-                        key={service.id}
-                        className="hover:shadow-lg transition-shadow"
-                      >
-                        <CardHeader>
+                    <div className="space-y-4">
+                      {pendingServices.map((service) => (
+                        <Card key={service.id} className="p-4">
                           <div className="flex justify-between items-start">
                             <div>
-                              <CardTitle className="text-lg">
-                                {service.name}
-                              </CardTitle>
-                              <CardDescription className="mt-2">
+                              <h3 className="font-semibold">{service.name}</h3>
+                              <p className="text-gray-600 text-sm">
                                 {service.summary}
-                              </CardDescription>
+                              </p>
+                              <div className="flex gap-2 mt-2">
+                                <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">
+                                  {service.status}
+                                </span>
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                  {service.applicationMode}
+                                </span>
+                              </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleView(service)}
-                              >
-                                View
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEdit(service)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700"
-                                onClick={() => handlePublish(service)}
-                              >
-                                Publish
-                              </Button>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardFooter className="pt-0">
-                          <div className="flex justify-between items-center w-full">
-                            <p className="text-sm text-gray-500">
-                              Status:{" "}
-                              <span className="font-medium">
-                                {service.status}
-                              </span>
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Created:{" "}
-                              {new Date(service.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </CardFooter>
-                      </Card>
-                    ))
-                  )}
-                </TabsContent>
-
-                <TabsContent value="published" className="space-y-6">
-                  {publishedServices.length === 0 ? (
-                    <Card>
-                      <CardContent className="pt-6">
-                        <p className="text-center text-gray-500">
-                          No published services found.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    publishedServices.map((service) => (
-                      <Card
-                        key={service.id}
-                        className="hover:shadow-lg transition-shadow"
-                      >
-                        <CardHeader>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg">
-                                {service.name}
-                              </CardTitle>
-                              <CardDescription className="mt-2">
-                                {service.summary}
-                              </CardDescription>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleView(service)}
-                              >
-                                View
-                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -390,23 +267,60 @@ export default function AdminContactService() {
                               </Button>
                             </div>
                           </div>
-                        </CardHeader>
-                        <CardFooter className="pt-0">
-                          <div className="flex justify-between items-center w-full">
-                            <p className="text-sm text-gray-500">
-                              Status:{" "}
-                              <span className="font-medium text-green-600">
-                                {service.status}
-                              </span>
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Published:{" "}
-                              {new Date(service.updatedAt).toLocaleDateString()}
-                            </p>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="published" className="space-y-6">
+                  {publishedServices.length === 0 ? (
+                    <Card>
+                      <CardContent className="pt-6">
+                        <p className="text-center text-gray-500">
+                          No published services found.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-4">
+                      {publishedServices.map((service) => (
+                        <Card key={service.id} className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-semibold">{service.name}</h3>
+                              <p className="text-gray-600 text-sm">
+                                {service.summary}
+                              </p>
+                              <div className="flex gap-2 mt-2">
+                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                                  {service.status}
+                                </span>
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                                  {service.applicationMode}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit(service)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDelete(service)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
                           </div>
-                        </CardFooter>
-                      </Card>
-                    ))
+                        </Card>
+                      ))}
+                    </div>
                   )}
                 </TabsContent>
               </Tabs>

@@ -176,7 +176,12 @@ export default function EditContactDepartment() {
   };
 
   const handleNewOfficeSelectChange = (name, value) => {
-    setNewOffice((prev) => ({ ...prev, [name]: value }));
+    if (name === "level" && value === "State") {
+      // Clear district when level is set to State
+      setNewOffice((prev) => ({ ...prev, [name]: value, district: "" }));
+    } else {
+      setNewOffice((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleAddOffice = async () => {
@@ -195,11 +200,21 @@ export default function EditContactDepartment() {
     }
 
     // Validate required fields
-    if (!newOffice.officeName || !newOffice.level || !newOffice.district) {
+    const isDistrictRequired = newOffice.level !== "State";
+    if (
+      !newOffice.officeName ||
+      !newOffice.level ||
+      (isDistrictRequired && !newOffice.district)
+    ) {
+      const missingFields = [];
+      if (!newOffice.officeName) missingFields.push("Office Name");
+      if (!newOffice.level) missingFields.push("Level");
+      if (isDistrictRequired && !newOffice.district)
+        missingFields.push("District");
+
       toast({
         title: "Error",
-        description:
-          "Please fill in all required fields (Office Name, Level, District)",
+        description: `Please fill in all required fields (${missingFields.join(", ")})`,
         variant: "destructive",
       });
       return;
@@ -211,12 +226,16 @@ export default function EditContactDepartment() {
       designation: newOffice.level,
       contact: newOffice.officePinCode,
       email: "",
-      district: newOffice.district,
+      district:
+        newOffice.level === "State" ? "All Districts" : newOffice.district,
       subDistrict: newOffice.subdivision || "",
       block: newOffice.block,
     };
 
     console.log("newContact to be added:", newContact);
+    console.log("newOffice.level:", newOffice.level);
+    console.log("designation field:", newContact.designation);
+    console.log("district field:", newContact.district);
 
     try {
       // Create update data with all contacts including the new one
@@ -329,6 +348,36 @@ export default function EditContactDepartment() {
     navigate(`/admin/office-details/${office.officeName}`);
   };
 
+  const handlePublishService = async () => {
+    try {
+      // Update service details first
+      const updateData = {
+        name: serviceDetails?.name,
+        summary: serviceDetails?.summary,
+        type: serviceDetails?.type,
+      };
+
+      await apiClient.updateContactService(parseInt(id), updateData);
+
+      // Then publish the service
+      await apiClient.publishContactService(parseInt(id));
+
+      toast({
+        title: "Service Published Successfully!",
+        description: "The contact service has been published and is now live.",
+      });
+
+      navigate("/admin-contact-service?tab=published");
+    } catch (error) {
+      console.error("Error publishing service:", error);
+      toast({
+        title: "Error",
+        description: "Failed to publish service. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8">
@@ -341,19 +390,66 @@ export default function EditContactDepartment() {
             <Card>
               <CardHeader>
                 <CardTitle>Service Details</CardTitle>
+                <CardDescription>
+                  Update the essential details about your Department
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <Label className="text-gray-600">Name:</Label>
-                  <p className="font-medium">{serviceDetails?.name}</p>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="serviceName">Department Name *</Label>
+                  <Input
+                    id="serviceName"
+                    name="serviceName"
+                    value={serviceDetails?.name || ""}
+                    onChange={(e) =>
+                      setServiceDetails((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter department name"
+                  />
                 </div>
-                <div className="mb-4">
-                  <Label className="text-gray-600">Type:</Label>
-                  <p className="font-medium">{serviceDetails?.type}</p>
+                <div className="space-y-2">
+                  <Label htmlFor="serviceSummary">Department Summary *</Label>
+                  <textarea
+                    id="serviceSummary"
+                    name="serviceSummary"
+                    value={serviceDetails?.summary || ""}
+                    onChange={(e) =>
+                      setServiceDetails((prev) => ({
+                        ...prev,
+                        summary: e.target.value,
+                      }))
+                    }
+                    placeholder="Short summary of the service"
+                    rows={3}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  />
                 </div>
-                <div className="mb-4">
-                  <Label className="text-gray-600">Summary:</Label>
-                  <p className="font-medium">{serviceDetails?.summary}</p>
+                <div className="space-y-2">
+                  <Label htmlFor="serviceType">Department Type *</Label>
+                  <Select
+                    value={serviceDetails?.type || ""}
+                    onValueChange={(value) =>
+                      setServiceDetails((prev) => ({
+                        ...prev,
+                        type: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger id="serviceType" name="serviceType">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Emergency Contacts">
+                        Emergency Service Provider
+                      </SelectItem>
+                      <SelectItem value="General Contacts">
+                        Regular Service Provider
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -362,6 +458,12 @@ export default function EditContactDepartment() {
               className="mt-4 w-full"
             >
               + Add Office
+            </Button>
+            <Button
+              onClick={handlePublishService}
+              className="mt-2 w-full bg-green-600 hover:bg-green-700"
+            >
+              Publish Service
             </Button>
           </div>
 
@@ -456,13 +558,8 @@ export default function EditContactDepartment() {
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="state">State</SelectItem>
-                    <SelectItem value="district">District</SelectItem>
-                    <SelectItem value="sub division">Sub Division</SelectItem>
-                    <SelectItem value="nagar panchayat">
-                      Nagar Panchayat
-                    </SelectItem>
-                    <SelectItem value="AMC">AMC</SelectItem>
+                    <SelectItem value="State">State</SelectItem>
+                    <SelectItem value="District">District</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -482,13 +579,33 @@ export default function EditContactDepartment() {
                 <Label htmlFor="district" className="text-right">
                   District
                 </Label>
-                <Input
-                  id="district"
-                  name="district"
+                <Select
                   value={newOffice.district}
-                  onChange={handleNewOfficeChange}
-                  className="col-span-3"
-                />
+                  onValueChange={(value) =>
+                    handleNewOfficeSelectChange("district", value)
+                  }
+                  disabled={newOffice.level === "State"}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue
+                      placeholder={
+                        newOffice.level === "State"
+                          ? "Not applicable for State level"
+                          : "Select district"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Dhalai">Dhalai</SelectItem>
+                    <SelectItem value="Gomati">Gomati</SelectItem>
+                    <SelectItem value="Khowai">Khowai</SelectItem>
+                    <SelectItem value="North Tripura">North Tripura</SelectItem>
+                    <SelectItem value="Sepahijala">Sepahijala</SelectItem>
+                    <SelectItem value="South Tripura">South Tripura</SelectItem>
+                    <SelectItem value="Unakoti">Unakoti</SelectItem>
+                    <SelectItem value="West Tripura">West Tripura</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="block" className="text-right">

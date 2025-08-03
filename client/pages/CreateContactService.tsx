@@ -53,15 +53,22 @@ export default function CreateContactService() {
     setIsSubmitting(true);
 
     try {
+      // Map the selected type to application mode
+      let applicationMode: "emergency" | "regular" = "regular";
+      if (formData.type === "Emergency Contacts") {
+        applicationMode = "emergency";
+      } else if (formData.type === "General Contacts") {
+        applicationMode = "regular";
+      }
+
       const contactData = {
         name: formData.name,
         summary: formData.summary,
         type: formData.type,
         targetAudience: [],
-        applicationMode: "both" as "online" | "offline" | "both",
+        applicationMode,
         onlineUrl: undefined,
         offlineAddress: undefined,
-        status: "draft",
       };
 
       const response = await apiClient.createContactService(contactData);

@@ -165,7 +165,7 @@ export interface ContactService {
   summary: string;
   type?: string;
   targetAudience: string[];
-  applicationMode: "online" | "offline" | "both";
+  applicationMode: "emergency" | "regular";
   onlineUrl?: string;
   offlineAddress?: string;
   status: "draft" | "pending" | "published";
@@ -366,6 +366,25 @@ export interface UpdateCertificateServiceRequest {
   eligibilityItems?: CertificateEligibility[];
   documents?: CertificateDocument[];
   contacts?: CertificateContact[];
+}
+
+export interface CreateContactServiceRequest {
+  name: string;
+  summary: string;
+  type?: string;
+  targetAudience: string[];
+  applicationMode: "emergency" | "regular";
+  onlineUrl?: string;
+  offlineAddress?: string;
+}
+
+export interface UpdateContactServiceRequest {
+  name?: string;
+  summary?: string;
+  type?: string;
+  applicationMode?: "emergency" | "regular";
+  onlineUrl?: string;
+  offlineAddress?: string;
 }
 
 export interface LoginRequest {
@@ -706,7 +725,7 @@ export class ApiClient {
 
   // Contact Services
   async createContactService(
-    data: CreateSchemeServiceRequest,
+    data: CreateContactServiceRequest,
   ): Promise<ContactServiceResponse> {
     return this.makeRequest<ContactServiceResponse>("/contact-services", {
       method: "POST",
@@ -736,7 +755,7 @@ export class ApiClient {
 
   async updateContactService(
     id: number,
-    data: UpdateSchemeServiceRequest,
+    data: UpdateContactServiceRequest,
   ): Promise<ContactServiceResponse> {
     return this.makeRequest<ContactServiceResponse>(`/contact-services/${id}`, {
       method: "PATCH",
@@ -792,6 +811,16 @@ export class ApiClient {
       success: boolean;
       office: ContactServiceContact;
     }>(`/offices/by-name/${encodeURIComponent(officeName)}`);
+  }
+
+  // Get all offices for a contact service
+  async getContactServiceOffices(
+    serviceId: number,
+  ): Promise<{ success: boolean; offices: any[] }> {
+    return this.makeRequest<{
+      success: boolean;
+      offices: any[];
+    }>(`/contact-services/${serviceId}/offices`);
   }
 
   // Get all posts for an office

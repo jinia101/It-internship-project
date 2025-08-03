@@ -29,6 +29,7 @@ export default function UserContactService() {
   const [filterType, setFilterType] = useState("State"); // 'State' or 'District'
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [loading, setLoading] = useState(false);
+  const [officeDetails, setOfficeDetails] = useState({});
 
   const tripuraDistricts = [
     "Dhalai",
@@ -40,6 +41,75 @@ export default function UserContactService() {
     "Unakoti",
     "West Tripura",
   ];
+
+  const fetchOfficeDetails = async (serviceName) => {
+    try {
+      // Fetch office details for the service
+      const officeResponse = await apiClient.getOfficeByName(serviceName);
+      if (officeResponse.success && officeResponse.office) {
+        const office = officeResponse.office;
+
+        // Fetch posts for this office (assuming office has an ID)
+        let posts = [];
+        let employees = [];
+        try {
+          const postsResponse = await apiClient.getOfficePosts(office.id || 1);
+          if (postsResponse.success) {
+            posts = postsResponse.posts || [];
+            // Extract employees from posts
+            employees = posts.flatMap((post) => post.employees || []);
+          }
+        } catch (error) {
+          console.log("Posts not found for office:", error);
+        }
+
+        console.log("Office data from API:", office);
+        console.log("office.designation:", office.designation);
+        console.log("office.district:", office.district);
+
+        return {
+          offices: [
+            {
+              officeName: office.serviceName,
+              level: office.designation, // Use the designation field which stores the actual level
+              district: office.district,
+              subDistrict: office.subDistrict,
+              block: office.block,
+              pincode: "799001", // Default
+              address: `${office.subDistrict}, ${office.block}, ${office.district}`,
+              contact: office.contact,
+              email: office.email,
+              designation: office.designation,
+              name: office.name,
+            },
+          ],
+          posts: posts.map((post, index) => ({
+            postName: post.postName,
+            postRank: post.rank,
+            officeIndex: 0,
+            description: post.description,
+            department: post.department,
+            status: post.status,
+          })),
+          employees: employees.map((employee, index) => ({
+            employeeName: employee.name,
+            email: employee.email,
+            phone: employee.phone,
+            designation: employee.designation,
+            employeeId: employee.employeeId,
+            salary: employee.salary,
+            status: employee.status,
+            postIndex: 0, // You might need to map this properly
+          })),
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching office details:", error);
+    }
+
+    // Fallback to contact data if office details not found
+    return null;
+  };
 
   useEffect(() => {
     fetchApiContactServices();
@@ -431,40 +501,67 @@ export default function UserContactService() {
                       Type: {service.type || "Regular"}
                     </p>
                     <Button
-                      onClick={() =>
-                        setModalService({
-                          ...service,
-                          // Transform API data to match modal expectations
-                          offices:
-                            service.contacts?.map((contact, index) => ({
-                              officeName: `${contact.serviceName} Office - ${contact.district}`,
-                              level:
-                                contact.district === "West Tripura"
-                                  ? "State"
-                                  : "District",
-                              district: contact.district,
-                              pincode: "799001", // Default pincode
-                              address: `${contact.subDistrict}, ${contact.block}, ${contact.district}`,
-                            })) || [],
-                          posts:
-                            service.contacts?.map((contact, index) => ({
-                              postName: contact.designation,
-                              postRank: contact.designation,
-                              officeIndex: index,
-                            })) || [],
-                          employees:
-                            service.contacts?.map((contact, index) => ({
-                              employeeName: contact.name,
-                              email: contact.email,
-                              phone: contact.contact,
-                              designation: contact.designation,
-                              postIndex: index,
-                            })) || [],
-                        })
-                      }
+                      onClick={async () => {
+                        setLoading(true);
+                        try {
+                          const officeData = await fetchOfficeDetails(
+                            service.name,
+                          );
+
+                          if (officeData) {
+                            setModalService({
+                              ...service,
+                              ...officeData,
+                            });
+                          } else {
+                            // Fallback to contact data if office details not found
+                            setModalService({
+                              ...service,
+                              offices:
+                                service.contacts?.map((contact, index) => ({
+                                  officeName: `${contact.serviceName} Office - ${contact.district}`,
+                                  level:
+                                    contact.district === "West Tripura"
+                                      ? "State"
+                                      : "District",
+                                  district: contact.district,
+                                  subDistrict: contact.subDistrict,
+                                  block: contact.block,
+                                  pincode: "799001",
+                                  address: `${contact.subDistrict}, ${contact.block}, ${contact.district}`,
+                                  contact: contact.contact,
+                                  email: contact.email,
+                                  designation: contact.designation,
+                                  name: contact.name,
+                                })) || [],
+                              posts:
+                                service.contacts?.map((contact, index) => ({
+                                  postName: contact.designation,
+                                  postRank: contact.designation,
+                                  officeIndex: index,
+                                })) || [],
+                              employees:
+                                service.contacts?.map((contact, index) => ({
+                                  employeeName: contact.name,
+                                  email: contact.email,
+                                  phone: contact.contact,
+                                  designation: contact.designation,
+                                  postIndex: index,
+                                })) || [],
+                            });
+                          }
+                        } catch (error) {
+                          console.error("Error loading office details:", error);
+                          // Fallback to basic service data
+                          setModalService(service);
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
                       className="w-full mt-2 bg-blue-600 text-white"
+                      disabled={loading}
                     >
-                      View Details
+                      {loading ? "Loading..." : "View Details"}
                     </Button>
                   </CardContent>
                 </Card>
@@ -558,10 +655,8 @@ export default function UserContactService() {
                           filterType === "District" &&
                           selectedDistrict
                         ) {
-                          return (
-                            office.level === "District" &&
-                            office.district === selectedDistrict
-                          );
+                          // Show any office in the selected district, regardless of level
+                          return office.district === selectedDistrict;
                         }
                         return true; // Show all if no filter or initial state
                       })
