@@ -46,19 +46,22 @@ government-services-platform/
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd government-services-platform
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm run install:all
    ```
 
 3. **Set up environment variables**
-   
+
    Create `.env` file in the backend directory:
+
    ```env
    DATABASE_URL="postgresql://username:password@localhost:5432/government_services"
    JWT_SECRET="your-jwt-secret-key"
@@ -66,17 +69,20 @@ government-services-platform/
    ```
 
 4. **Set up the database**
+
    ```bash
    npm run db:generate
    npm run db:push
    ```
 
 5. **Start development servers**
+
    ```bash
    npm run dev
    ```
 
    This will start:
+
    - Frontend: http://localhost:5173
    - Backend: http://localhost:3001
 
@@ -111,6 +117,7 @@ government-services-platform/
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **React 18** with TypeScript
 - **Vite** for build tooling
 - **Tailwind CSS** for styling
@@ -120,6 +127,7 @@ government-services-platform/
 - **React Hook Form** for form management
 
 ### Backend
+
 - **Node.js** with TypeScript
 - **Express.js** web framework
 - **Prisma** ORM with PostgreSQL
@@ -131,6 +139,7 @@ government-services-platform/
 ## 🎯 Features
 
 ### User Services
+
 - **Scheme Services** - Browse and access government schemes
 - **Certificate Services** - Apply for various certificates
 - **Contact Services** - Find contact information for departments
@@ -139,12 +148,14 @@ government-services-platform/
 - **Grievance Portal** - File and track grievances
 
 ### Admin Dashboard
+
 - **Service Management** - Create, edit, and manage all services
 - **User Management** - Manage user accounts and permissions
 - **Content Management** - Update service information and documents
 - **Analytics** - View usage statistics and reports
 
 ### Technical Features
+
 - **Responsive Design** - Works on all device sizes
 - **Authentication & Authorization** - Secure login system
 - **File Upload** - Support for document uploads
@@ -156,16 +167,19 @@ government-services-platform/
 ### Building for Production
 
 1. **Build the applications**
+
    ```bash
    npm run build
    ```
 
 2. **Set up production environment variables**
+
    - Configure production database
    - Set secure JWT secrets
    - Configure CORS settings
 
 3. **Deploy backend**
+
    - Upload `backend/dist` folder to your server
    - Install production dependencies
    - Set up process manager (PM2 recommended)
@@ -178,6 +192,7 @@ government-services-platform/
 ### Environment Variables
 
 #### Backend (.env)
+
 ```env
 DATABASE_URL="postgresql://user:password@host:port/database"
 JWT_SECRET="your-secure-jwt-secret"
@@ -191,6 +206,7 @@ CORS_ORIGIN="https://your-frontend-domain.com"
 ### Adding New Features
 
 1. **Backend API Endpoints**
+
    - Create route handlers in `backend/routes/`
    - Add types to `backend/shared/api.ts`
    - Update database schema if needed
