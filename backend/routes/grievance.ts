@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { body, validationResult, query } from "express-validator";
 import { PrismaClient } from "../../generated/prisma";
 
@@ -29,7 +29,7 @@ router.post(
       .withMessage("Invalid priority"),
     body("attachments").optional().isArray(),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -104,7 +104,7 @@ router.get(
       .isInt({ min: 1, max: 100 })
       .withMessage("Limit must be between 1 and 100"),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -159,7 +159,7 @@ router.get(
 );
 
 // Get grievance by ID (admin only)
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -187,7 +187,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Get grievance by tracking ID (public endpoint)
-router.get("/track/:trackingId", async (req, res) => {
+router.get("/track/:trackingId", async (req: Request, res: Response) => {
   try {
     const { trackingId } = req.params;
 
@@ -240,7 +240,7 @@ router.put(
     body("assignedTo").optional().isString(),
     body("adminNotes").optional().isString(),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -269,7 +269,7 @@ router.put(
         message: "Grievance updated successfully",
         grievance,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating grievance:", error);
       if (error.code === "P2025") {
         return res.status(404).json({
@@ -288,7 +288,7 @@ router.put(
 router.patch(
   "/:id/solve",
   [body("adminNotes").optional().isString()],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -302,7 +302,7 @@ router.patch(
       const { adminNotes } = req.body;
 
       // Get admin info from token (assuming you have auth middleware)
-      const assignedTo = req.user?.name || "Admin";
+      const assignedTo = "Admin";
 
       const grievance = await prisma.grievance.update({
         where: { id: parseInt(id) },
@@ -318,7 +318,7 @@ router.patch(
         message: "Grievance marked as solved successfully",
         grievance,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error solving grievance:", error);
       if (error.code === "P2025") {
         return res.status(404).json({
@@ -337,7 +337,7 @@ router.patch(
 router.patch(
   "/:id/pending",
   [body("adminNotes").optional().isString()],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -351,7 +351,7 @@ router.patch(
       const { adminNotes } = req.body;
 
       // Get admin info from token (assuming you have auth middleware)
-      const assignedTo = req.user?.name || "Admin";
+      const assignedTo = "Admin";
 
       const grievance = await prisma.grievance.update({
         where: { id: parseInt(id) },
@@ -366,7 +366,7 @@ router.patch(
         message: "Grievance marked as pending successfully",
         grievance,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error marking grievance as pending:", error);
       if (error.code === "P2025") {
         return res.status(404).json({
@@ -385,7 +385,7 @@ router.patch(
 router.patch(
   "/:id/assign",
   [body("assignedTo").notEmpty().withMessage("Assigned to is required")],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -409,7 +409,7 @@ router.patch(
         message: "Grievance assigned successfully",
         grievance,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error assigning grievance:", error);
       if (error.code === "P2025") {
         return res.status(404).json({
@@ -425,7 +425,7 @@ router.patch(
 );
 
 // Delete grievance (admin only)
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -436,7 +436,7 @@ router.delete("/:id", async (req, res) => {
     res.json({
       message: "Grievance deleted successfully",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting grievance:", error);
     if (error.code === "P2025") {
       return res.status(404).json({

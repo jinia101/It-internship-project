@@ -2,24 +2,16 @@ import express, { Request, Response } from "express";
 import { PrismaClient } from "../../generated/prisma";
 import { body, param, validationResult } from "express-validator";
 import { authenticateAdmin } from "./adminAuth";
+import "../types/express.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-interface AuthenticatedRequest extends Request {
-  admin?: {
-    id: number;
-    email: string;
-    name: string;
-    role: string;
-  };
-}
 
 // GET /api/contact-services - Get all contact services
 router.get(
   "/",
   authenticateAdmin,
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       console.log("Fetching contact services for admin:", req.admin?.id);
 
@@ -56,7 +48,7 @@ router.get(
   "/:id",
   authenticateAdmin,
   param("id").isInt().withMessage("ID must be a valid integer"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -120,7 +112,7 @@ router.post(
       .isArray()
       .withMessage("Target audience must be an array"),
   ],
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -192,7 +184,7 @@ router.patch(
   "/:id",
   authenticateAdmin,
   param("id").isInt().withMessage("ID must be a valid integer"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -297,7 +289,7 @@ router.patch(
   "/:id/publish",
   authenticateAdmin,
   param("id").isInt().withMessage("ID must be a valid integer"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -360,7 +352,7 @@ router.patch(
     param("id").isInt().withMessage("Invalid service ID"),
     body("isActive").isBoolean().withMessage("isActive must be a boolean"),
   ],
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -373,6 +365,14 @@ router.patch(
 
       const serviceId = parseInt(req.params.id);
       const { isActive } = req.body;
+
+      // Ensure admin is authenticated
+      if (!req.admin) {
+        return res.status(401).json({
+          success: false,
+          message: "Authentication required",
+        });
+      }
 
       // Verify ownership
       const existingService = await prisma.contactService.findFirst({
@@ -426,7 +426,7 @@ router.delete(
   "/:id",
   authenticateAdmin,
   param("id").isInt().withMessage("ID must be a valid integer"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {

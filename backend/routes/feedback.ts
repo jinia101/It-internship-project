@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { body, validationResult, query } from "express-validator";
 import { PrismaClient } from "../../generated/prisma";
 
@@ -23,7 +23,7 @@ router.post(
       .withMessage("Rating must be between 1 and 5"),
     body("category").optional().isString(),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -79,7 +79,7 @@ router.get(
       .isInt({ min: 1, max: 100 })
       .withMessage("Limit must be between 1 and 100"),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -169,7 +169,7 @@ router.put(
     body("adminNotes").optional().isString(),
     body("resolvedBy").optional().isString(),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -197,7 +197,7 @@ router.put(
         message: "Feedback updated successfully",
         feedback,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating feedback:", error);
       if (error.code === "P2025") {
         return res.status(404).json({
@@ -216,7 +216,7 @@ router.put(
 router.patch(
   "/:id/resolve",
   [body("adminNotes").optional().isString()],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -230,7 +230,7 @@ router.patch(
       const { adminNotes } = req.body;
 
       // Get admin info from token (assuming you have auth middleware)
-      const resolvedBy = req.user?.name || "Admin";
+      const resolvedBy = "Admin";
 
       const feedback = await prisma.feedback.update({
         where: { id: parseInt(id) },
@@ -246,7 +246,7 @@ router.patch(
         message: "Feedback resolved successfully",
         feedback,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error resolving feedback:", error);
       if (error.code === "P2025") {
         return res.status(404).json({
@@ -273,7 +273,7 @@ router.delete("/:id", async (req, res) => {
     res.json({
       message: "Feedback deleted successfully",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting feedback:", error);
     if (error.code === "P2025") {
       return res.status(404).json({

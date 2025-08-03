@@ -1,8 +1,9 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
 import { PrismaClient } from "../../generated/prisma/index.js";
+import "../types/express.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -15,7 +16,7 @@ router.post(
     body("password").isLength({ min: 6 }),
     body("name").trim().isLength({ min: 2 }),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -79,7 +80,7 @@ router.post(
 router.post(
   "/login",
   [body("email").isEmail().normalizeEmail(), body("password").notEmpty()],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {

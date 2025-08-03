@@ -2,10 +2,7 @@ import { Router, Response, Request } from "express";
 import { body, param, validationResult } from "express-validator";
 import { prisma } from "../index";
 import { authenticateAdmin } from "./adminAuth";
-
-interface AuthenticatedRequest extends Request {
-  admin?: { id: number };
-}
+import "../types/express.js";
 
 const router = Router();
 
@@ -14,7 +11,7 @@ router.get(
   "/by-name/:officeName",
   authenticateAdmin,
   param("officeName").notEmpty().withMessage("Office name is required"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -64,7 +61,7 @@ router.get(
   "/:officeId/posts",
   authenticateAdmin,
   param("officeId").isInt().withMessage("Office ID must be a valid integer"),
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -123,7 +120,7 @@ router.post(
     body("description").optional().isString(),
     body("department").optional().isString(),
   ],
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -199,7 +196,7 @@ router.post(
       .isFloat({ min: 0 })
       .withMessage("Salary must be a positive number"),
   ],
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -281,7 +278,7 @@ router.put(
     body("phone").notEmpty().withMessage("Phone is required"),
     body("designation").notEmpty().withMessage("Designation is required"),
   ],
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -352,7 +349,7 @@ router.delete(
       .isInt()
       .withMessage("Employee ID must be a valid integer"),
   ],
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {

@@ -1,7 +1,8 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import { body, validationResult, param } from "express-validator";
 import { PrismaClient } from "../../generated/prisma/index.js";
 import { authenticateAdmin } from "./adminAuth";
+import "../types/express.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -43,7 +44,7 @@ router.post(
       }),
     body("offlineAddress").optional().trim(),
   ],
-  async (req: any, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -59,6 +60,11 @@ router.post(
         onlineUrl,
         offlineAddress,
       } = req.body;
+
+      // Ensure admin is authenticated
+      if (!req.admin) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
 
       // Check if scheme service with same name exists
       const existingService = await prisma.schemeService.findFirst({
@@ -189,11 +195,16 @@ router.get(
   "/:id",
   authenticateAdmin,
   [param("id").isInt().withMessage("Invalid service ID")],
-  async (req: any, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Ensure admin is authenticated
+      if (!req.admin) {
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const serviceId = parseInt(req.params.id);
@@ -249,11 +260,16 @@ router.put(
     body("contacts").optional().isArray(),
     body("documents").optional().isArray(),
   ],
-  async (req: any, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Ensure admin is authenticated
+      if (!req.admin) {
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const serviceId = parseInt(req.params.id);
@@ -420,11 +436,16 @@ router.patch(
   "/:id/publish",
   authenticateAdmin,
   [param("id").isInt().withMessage("Invalid service ID")],
-  async (req: any, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Ensure admin is authenticated
+      if (!req.admin) {
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const serviceId = parseInt(req.params.id);
@@ -512,11 +533,16 @@ router.patch(
     param("id").isInt().withMessage("Invalid service ID"),
     body("isActive").isBoolean().withMessage("isActive must be a boolean"),
   ],
-  async (req: any, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Ensure admin is authenticated
+      if (!req.admin) {
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const serviceId = parseInt(req.params.id);
@@ -566,11 +592,16 @@ router.delete(
   "/:id",
   authenticateAdmin,
   [param("id").isInt().withMessage("Invalid service ID")],
-  async (req: any, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Ensure admin is authenticated
+      if (!req.admin) {
+        return res.status(401).json({ error: "Authentication required" });
       }
 
       const serviceId = parseInt(req.params.id);
@@ -660,7 +691,7 @@ router.get("/public/list", async (req, res) => {
 router.get(
   "/public/:id",
   [param("id").isInt().withMessage("Invalid service ID")],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {

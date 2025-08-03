@@ -633,13 +633,16 @@ export default function UserGrievancesService() {
               Grievance Submitted Successfully!
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Your grievance has been successfully submitted. Please save your tracking ID for future reference.
+              Your grievance has been successfully submitted. Please save your
+              tracking ID for future reference.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-green-800 mb-2">Your Tracking ID:</p>
+              <p className="text-sm font-medium text-green-800 mb-2">
+                Your Tracking ID:
+              </p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-white border border-green-200 rounded px-3 py-2 font-mono text-sm text-green-700 select-all">
                   {newTrackingId}
@@ -658,27 +661,33 @@ export default function UserGrievancesService() {
                 </Button>
               </div>
             </div>
-            
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
                 <strong>What's next?</strong>
               </p>
               <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                <li>• Use your tracking ID to check the status of your grievance</li>
-                <li>• You will receive updates via email at the provided address</li>
-                <li>• Our team will review and respond within 7 business days</li>
+                <li>
+                  • Use your tracking ID to check the status of your grievance
+                </li>
+                <li>
+                  • You will receive updates via email at the provided address
+                </li>
+                <li>
+                  • Our team will review and respond within 7 business days
+                </li>
               </ul>
             </div>
-            
+
             <div className="flex gap-2 pt-2">
-              <Button 
+              <Button
                 onClick={() => setShowSuccessModal(false)}
                 className="flex-1"
               >
                 Continue
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => {
                   copyToClipboard(newTrackingId);
                   setShowSuccessModal(false);
