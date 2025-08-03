@@ -11,9 +11,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ServicesMenu } from "@/components/ui/sidebar";
-import { AlertTriangle, FileText, Clock, CheckCircle, MapPin } from "lucide-react";
+import {
+  AlertTriangle,
+  FileText,
+  Clock,
+  CheckCircle,
+  MapPin,
+} from "lucide-react";
 import { apiClient } from "../../shared/api";
 import type { Grievance, CreateGrievanceRequest } from "../../shared/api";
 
@@ -57,10 +69,14 @@ export default function UserGrievancesService() {
       // Calculate stats
       setStats({
         totalGrievances: grievances.length,
-        newGrievances: grievances.filter(g => g.status === "new").length,
-        pendingGrievances: grievances.filter(g => g.status === "pending").length,
-        solvedGrievances: grievances.filter(g => g.status === "solved").length,
-        highPriority: grievances.filter(g => g.priority === "high" || g.priority === "urgent").length,
+        newGrievances: grievances.filter((g) => g.status === "new").length,
+        pendingGrievances: grievances.filter((g) => g.status === "pending")
+          .length,
+        solvedGrievances: grievances.filter((g) => g.status === "solved")
+          .length,
+        highPriority: grievances.filter(
+          (g) => g.priority === "high" || g.priority === "urgent",
+        ).length,
       });
     } catch (error) {
       console.error("Error fetching grievances:", error);
@@ -69,20 +85,23 @@ export default function UserGrievancesService() {
     }
   };
 
-  const handleInputChange = (field: keyof CreateGrievanceRequest, value: string | string[]) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof CreateGrievanceRequest,
+    value: string | string[],
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    
+
     try {
       const response = await apiClient.createGrievance(formData);
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -95,11 +114,13 @@ export default function UserGrievancesService() {
         priority: "medium",
         attachments: [],
       });
-      
+
       // Refresh grievance list
       fetchGrievances();
-      
-      alert(`Grievance submitted successfully! Your tracking ID is: ${response.trackingId}`);
+
+      alert(
+        `Grievance submitted successfully! Your tracking ID is: ${response.grievance?.trackingId}`,
+      );
     } catch (error) {
       console.error("Error submitting grievance:", error);
       alert("Failed to submit grievance. Please try again.");
@@ -110,9 +131,11 @@ export default function UserGrievancesService() {
 
   const handleTrackGrievance = async () => {
     if (!trackingId.trim()) return;
-    
+
     try {
-      const response = await apiClient.getGrievanceByTracking(trackingId.trim());
+      const response = await apiClient.getGrievanceByTracking(
+        trackingId.trim(),
+      );
       setTrackingResult(response.grievance || null);
     } catch (error) {
       console.error("Error tracking grievance:", error);
@@ -123,26 +146,36 @@ export default function UserGrievancesService() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "urgent":
+        return "bg-red-100 text-red-800";
+      case "high":
+        return "bg-orange-100 text-orange-800";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "low":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-orange-100 text-orange-800';
-      case 'solved': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "new":
+        return "bg-blue-100 text-blue-800";
+      case "pending":
+        return "bg-orange-100 text-orange-800";
+      case "solved":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const filteredGrievances = userGrievances.filter((g) =>
-    g.subject.toLowerCase().includes(search.toLowerCase()) ||
-    g.description.toLowerCase().includes(search.toLowerCase())
+  const filteredGrievances = userGrievances.filter(
+    (g) =>
+      g.subject.toLowerCase().includes(search.toLowerCase()) ||
+      g.description.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -168,57 +201,43 @@ export default function UserGrievancesService() {
                 <div className="text-2xl font-bold text-blue-600">
                   {stats.totalGrievances}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  All submissions
-                </p>
+                <p className="text-xs text-muted-foreground">All submissions</p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  New
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">New</CardTitle>
                 <FileText className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
                   {stats.newGrievances}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Under review
-                </p>
+                <p className="text-xs text-muted-foreground">Under review</p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Pending
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Pending</CardTitle>
                 <Clock className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
                   {stats.pendingGrievances}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  In progress
-                </p>
+                <p className="text-xs text-muted-foreground">In progress</p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Solved
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Solved</CardTitle>
                 <CheckCircle className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
                   {stats.solvedGrievances}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Resolved
-                </p>
+                <p className="text-xs text-muted-foreground">Resolved</p>
               </CardContent>
             </Card>
             <Card className="hover:shadow-lg transition-shadow">
@@ -232,9 +251,7 @@ export default function UserGrievancesService() {
                 <div className="text-2xl font-bold text-red-600">
                   {stats.highPriority}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Urgent cases
-                </p>
+                <p className="text-xs text-muted-foreground">Urgent cases</p>
               </CardContent>
             </Card>
           </div>
@@ -248,7 +265,8 @@ export default function UserGrievancesService() {
                   Submit New Grievance
                 </CardTitle>
                 <CardDescription>
-                  Fill out this form to submit your grievance. You'll receive a tracking ID to monitor progress.
+                  Fill out this form to submit your grievance. You'll receive a
+                  tracking ID to monitor progress.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -261,7 +279,9 @@ export default function UserGrievancesService() {
                       <Input
                         type="text"
                         value={formData.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("name", e.target.value)
+                        }
                         required
                         placeholder="Your full name"
                       />
@@ -273,7 +293,9 @@ export default function UserGrievancesService() {
                       <Input
                         type="email"
                         value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("email", e.target.value)
+                        }
                         required
                         placeholder="your.email@example.com"
                       />
@@ -288,7 +310,9 @@ export default function UserGrievancesService() {
                       <Input
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("phone", e.target.value)
+                        }
                         required
                         placeholder="Your phone number"
                       />
@@ -297,7 +321,12 @@ export default function UserGrievancesService() {
                       <label className="block text-sm font-medium mb-1">
                         Priority
                       </label>
-                      <Select value={formData.priority} onValueChange={(value) => handleInputChange("priority", value as any)}>
+                      <Select
+                        value={formData.priority}
+                        onValueChange={(value) =>
+                          handleInputChange("priority", value as any)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
@@ -318,7 +347,9 @@ export default function UserGrievancesService() {
                     <Input
                       type="text"
                       value={formData.address}
-                      onChange={(e) => handleInputChange("address", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("address", e.target.value)
+                      }
                       required
                       placeholder="Your complete address"
                     />
@@ -328,15 +359,26 @@ export default function UserGrievancesService() {
                     <label className="block text-sm font-medium mb-1">
                       Category
                     </label>
-                    <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) =>
+                        handleInputChange("category", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="service-related">Service Related</SelectItem>
-                        <SelectItem value="technical">Technical Issue</SelectItem>
+                        <SelectItem value="service-related">
+                          Service Related
+                        </SelectItem>
+                        <SelectItem value="technical">
+                          Technical Issue
+                        </SelectItem>
                         <SelectItem value="policy">Policy Related</SelectItem>
-                        <SelectItem value="infrastructure">Infrastructure</SelectItem>
+                        <SelectItem value="infrastructure">
+                          Infrastructure
+                        </SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -349,7 +391,9 @@ export default function UserGrievancesService() {
                     <Input
                       type="text"
                       value={formData.subject}
-                      onChange={(e) => handleInputChange("subject", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("subject", e.target.value)
+                      }
                       required
                       placeholder="Brief subject of your grievance"
                     />
@@ -361,15 +405,17 @@ export default function UserGrievancesService() {
                     </label>
                     <Textarea
                       value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("description", e.target.value)
+                      }
                       required
                       placeholder="Provide detailed description of your grievance..."
                       rows={4}
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="w-full bg-blue-600 hover:bg-blue-700"
                     disabled={submitting}
                   >
@@ -402,7 +448,7 @@ export default function UserGrievancesService() {
                       onChange={(e) => setTrackingId(e.target.value)}
                       placeholder="Enter your tracking ID"
                     />
-                    <Button 
+                    <Button
                       onClick={handleTrackGrievance}
                       disabled={!trackingId.trim()}
                     >
@@ -415,22 +461,40 @@ export default function UserGrievancesService() {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-semibold mb-2">Grievance Status</h4>
                     <div className="space-y-2 text-sm">
-                      <div><strong>Subject:</strong> {trackingResult.subject}</div>
+                      <div>
+                        <strong>Subject:</strong> {trackingResult.subject}
+                      </div>
                       <div className="flex items-center gap-2">
                         <strong>Status:</strong>
-                        <Badge className={getStatusColor(trackingResult.status)} variant="secondary">
+                        <Badge
+                          className={getStatusColor(trackingResult.status)}
+                          variant="secondary"
+                        >
                           {trackingResult.status}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2">
                         <strong>Priority:</strong>
-                        <Badge className={getPriorityColor(trackingResult.priority)} variant="secondary">
+                        <Badge
+                          className={getPriorityColor(trackingResult.priority)}
+                          variant="secondary"
+                        >
                           {trackingResult.priority}
                         </Badge>
                       </div>
-                      <div><strong>Submitted:</strong> {new Date(trackingResult.createdAt).toLocaleDateString()}</div>
+                      <div>
+                        <strong>Submitted:</strong>{" "}
+                        {new Date(
+                          trackingResult.createdAt,
+                        ).toLocaleDateString()}
+                      </div>
                       {trackingResult.resolvedAt && (
-                        <div><strong>Resolved:</strong> {new Date(trackingResult.resolvedAt).toLocaleDateString()}</div>
+                        <div>
+                          <strong>Resolved:</strong>{" "}
+                          {new Date(
+                            trackingResult.resolvedAt,
+                          ).toLocaleDateString()}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -441,7 +505,9 @@ export default function UserGrievancesService() {
 
           {/* Recent Grievances */}
           <div>
-            <h2 className="text-2xl font-bold mb-4">Recent Community Grievances</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              Recent Community Grievances
+            </h2>
             <div className="mb-4">
               <Input
                 type="text"
@@ -461,24 +527,35 @@ export default function UserGrievancesService() {
             ) : filteredGrievances.length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center text-gray-500">
-                  {search ? `No grievances found matching "${search}".` : "No grievances yet."}
+                  {search
+                    ? `No grievances found matching "${search}".`
+                    : "No grievances yet."}
                 </CardContent>
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredGrievances.slice(0, 9).map((grievance) => (
-                  <Card key={grievance.id} className="hover:shadow-lg transition-shadow">
+                  <Card
+                    key={grievance.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between text-lg">
                         <span className="truncate">{grievance.subject}</span>
-                        <Badge className={getPriorityColor(grievance.priority)} variant="secondary">
+                        <Badge
+                          className={getPriorityColor(grievance.priority)}
+                          variant="secondary"
+                        >
                           {grievance.priority}
                         </Badge>
                       </CardTitle>
                       <CardDescription>
                         <div className="flex items-center gap-2">
                           <span>{grievance.name}</span>
-                          <Badge className={getStatusColor(grievance.status)} variant="secondary">
+                          <Badge
+                            className={getStatusColor(grievance.status)}
+                            variant="secondary"
+                          >
                             {grievance.status}
                           </Badge>
                         </div>
@@ -499,7 +576,8 @@ export default function UserGrievancesService() {
                     </CardContent>
                     <CardFooter>
                       <div className="text-xs text-gray-500">
-                        Submitted: {new Date(grievance.createdAt).toLocaleDateString()}
+                        Submitted:{" "}
+                        {new Date(grievance.createdAt).toLocaleDateString()}
                       </div>
                     </CardFooter>
                   </Card>

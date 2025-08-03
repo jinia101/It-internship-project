@@ -93,6 +93,7 @@ export interface SchemeService {
   onlineUrl?: string;
   offlineAddress?: string;
   status: "draft" | "pending" | "published";
+  isActive?: boolean; // New field for admin dashboard control
   createdAt: string;
   updatedAt: string;
 
@@ -130,6 +131,7 @@ export interface CertificateService {
   onlineUrl?: string;
   offlineAddress?: string;
   status: "draft" | "pending" | "published";
+  isActive?: boolean; // New field for admin dashboard control
   createdAt: string;
   updatedAt: string;
 
@@ -169,6 +171,7 @@ export interface ContactService {
   onlineUrl?: string;
   offlineAddress?: string;
   status: "draft" | "pending" | "published";
+  isActive?: boolean; // New field for admin dashboard control
   createdAt: string;
   updatedAt: string;
 
@@ -353,6 +356,7 @@ export interface UpdateSchemeServiceRequest {
   docSurrender?: string;
   contacts?: ContactPerson[];
   documents?: SupportiveDocument[];
+  isActive?: boolean; // Admin dashboard control
 }
 
 export interface UpdateCertificateServiceRequest {
@@ -366,6 +370,7 @@ export interface UpdateCertificateServiceRequest {
   eligibilityItems?: CertificateEligibility[];
   documents?: CertificateDocument[];
   contacts?: CertificateContact[];
+  isActive?: boolean; // Admin dashboard control
 }
 
 export interface CreateContactServiceRequest {
@@ -385,6 +390,7 @@ export interface UpdateContactServiceRequest {
   applicationMode?: "emergency" | "regular";
   onlineUrl?: string;
   offlineAddress?: string;
+  isActive?: boolean; // Admin dashboard control
 }
 
 export interface LoginRequest {
@@ -1016,6 +1022,59 @@ export class ApiClient {
     return this.makeRequest<ApiResponse>(`/grievances/${id}`, {
       method: "DELETE",
     });
+  }
+
+  // Service activation/deactivation methods for admin dashboard
+  async toggleSchemeServiceActive(
+    id: number,
+    isActive: boolean,
+  ): Promise<SchemeServiceResponse> {
+    return this.makeRequest<SchemeServiceResponse>(`/scheme-services/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ isActive }),
+    });
+  }
+
+  async toggleCertificateServiceActive(
+    id: number,
+    isActive: boolean,
+  ): Promise<CertificateServiceResponse> {
+    return this.makeRequest<CertificateServiceResponse>(
+      `/certificate-services/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ isActive }),
+      },
+    );
+  }
+
+  async toggleContactServiceActive(
+    id: number,
+    isActive: boolean,
+  ): Promise<ContactServiceResponse> {
+    return this.makeRequest<ContactServiceResponse>(`/contact-services/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ isActive }),
+    });
+  }
+
+  // Get all published services for admin dashboard
+  async getAllPublishedServices(): Promise<{
+    schemeServices: SchemeService[];
+    certificateServices: CertificateService[];
+    contactServices: ContactService[];
+  }> {
+    const [schemes, certificates, contacts] = await Promise.all([
+      this.getSchemeServices({ status: "published" }),
+      this.getCertificateServices({ status: "published" }),
+      this.getContactServices({ status: "published" }),
+    ]);
+
+    return {
+      schemeServices: schemes.schemeServices || [],
+      certificateServices: certificates.certificateServices || [],
+      contactServices: contacts.contactServices || [],
+    };
   }
 }
 

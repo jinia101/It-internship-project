@@ -28,6 +28,7 @@ export default function UserContactService() {
   const [modalService, setModalService] = useState(null);
   const [filterType, setFilterType] = useState("State"); // 'State' or 'District'
   const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [departmentTypeFilter, setDepartmentTypeFilter] = useState("all"); // 'all', 'emergency', 'regular'
   const [loading, setLoading] = useState(false);
   const [officeDetails, setOfficeDetails] = useState({});
 
@@ -128,10 +129,11 @@ export default function UserContactService() {
     setLoading(true);
     try {
       const response = await apiClient.getContactServices();
-      const publishedServices = (response.contactServices || []).filter(
-        (service) => service.status === "published",
+      const activeServices = (response.contactServices || []).filter(
+        (service) =>
+          service.status === "published" && service.isActive !== false,
       );
-      setApiContactServices(publishedServices);
+      setApiContactServices(activeServices);
     } catch (error) {
       console.error("Error fetching contact services:", error);
     } finally {
@@ -140,9 +142,13 @@ export default function UserContactService() {
   };
 
   // Filter services from API
-  const filteredApiServices = apiContactServices.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredApiServices = apiContactServices.filter((s) => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
+    const matchesDepartmentType =
+      departmentTypeFilter === "all" ||
+      s.applicationMode === departmentTypeFilter;
+    return matchesSearch && matchesDepartmentType;
+  });
 
   const stats = {
     published: apiContactServices.length,
@@ -216,6 +222,19 @@ export default function UserContactService() {
               onChange={(e) => setSearch(e.target.value)}
               className="w-full md:w-1/2"
             />
+            <Select
+              value={departmentTypeFilter}
+              onValueChange={setDepartmentTypeFilter}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Department Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="emergency">Emergency Services</SelectItem>
+                <SelectItem value="regular">Regular Services</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {/* Cards Grid */}
           {loading && (

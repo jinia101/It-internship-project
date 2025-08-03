@@ -47,10 +47,11 @@ export default function UserCertificateService() {
     setLoading(true);
     try {
       const response = await apiClient.getCertificateServices();
-      const publishedServices = (response.certificateServices || []).filter(
-        (service) => service.status === "published",
+      const activeServices = (response.certificateServices || []).filter(
+        (service) =>
+          service.status === "published" && service.isActive !== false,
       );
-      setApiCertificateServices(publishedServices);
+      setApiCertificateServices(activeServices);
     } catch (error) {
       console.error("Error fetching certificate services:", error);
     } finally {

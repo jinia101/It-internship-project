@@ -52,10 +52,11 @@ export default function UserSchemeService() {
     setLoading(true);
     try {
       const response = await apiClient.getSchemeServices();
-      const publishedServices = (response.schemeServices || []).filter(
-        (service) => service.status === "published",
+      const activeServices = (response.schemeServices || []).filter(
+        (service) =>
+          service.status === "published" && service.isActive !== false,
       );
-      setApiSchemeServices(publishedServices);
+      setApiSchemeServices(activeServices);
     } catch (error) {
       console.error("Error fetching scheme services:", error);
     } finally {
