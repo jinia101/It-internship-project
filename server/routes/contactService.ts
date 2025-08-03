@@ -352,6 +352,75 @@ router.patch(
   },
 );
 
+// PATCH /api/contact-services/:id - Toggle contact service active status
+router.patch(
+  "/:id",
+  authenticateAdmin,
+  [
+    param("id").isInt().withMessage("Invalid service ID"),
+    body("isActive").isBoolean().withMessage("isActive must be a boolean"),
+  ],
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const serviceId = parseInt(req.params.id);
+      const { isActive } = req.body;
+
+      // Verify ownership
+      const existingService = await prisma.contactService.findFirst({
+        where: {
+          id: serviceId,
+          adminId: req.admin.id,
+        },
+      });
+
+      if (!existingService) {
+        return res.status(404).json({
+          success: false,
+          message: "Contact service not found",
+        });
+      }
+
+      // Update isActive status
+      const updatedService = await prisma.contactService.update({
+        where: { id: serviceId },
+        data: {
+          isActive: isActive,
+          updatedAt: new Date(),
+        },
+        include: {
+          admin: {
+            select: { id: true, name: true, email: true },
+          },
+          contacts: true,
+          documents: true,
+        },
+      });
+
+      res.json({
+        success: true,
+        message: `Contact service ${isActive ? "activated" : "deactivated"} successfully`,
+        contactService: updatedService,
+      });
+    } catch (error) {
+      console.error("Toggle contact service active status error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to toggle contact service status",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
 // DELETE /api/contact-services/:id - Delete contact service
 router.delete(
   "/:id",
