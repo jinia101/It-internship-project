@@ -809,14 +809,14 @@ export class ApiClient {
 
   // Office Management API methods
 
-  // Get office by name
-  async getOfficeByName(
-    officeName: string,
+  // Get office by id
+  async getOfficeById(
+    officeId: number,
   ): Promise<{ success: boolean; office: ContactServiceContact }> {
     return this.makeRequest<{
       success: boolean;
       office: ContactServiceContact;
-    }>(`/offices/by-name/${encodeURIComponent(officeName)}`);
+    }>(`/offices/by-id/${officeId}`);
   }
 
   // Get all offices for a contact service
