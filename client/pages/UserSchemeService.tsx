@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ServicesMenu } from "@/components/ui/sidebar";
 import { Search } from "lucide-react";
 import { apiClient } from "../../shared/api";
@@ -15,15 +22,21 @@ import type { SchemeService } from "../../shared/api";
 
 export default function UserSchemeService() {
   const [search, setSearch] = useState("");
+  const [schemeTypeFilter, setSchemeTypeFilter] = useState("all"); // Initialize with "all"
   const [modalScheme, setModalScheme] = useState(null);
   const [apiSchemeServices, setApiSchemeServices] = useState<SchemeService[]>(
     [],
   );
   const [loading, setLoading] = useState(false);
 
-  const filteredApiSchemes = apiSchemeServices.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredApiSchemes = apiSchemeServices.filter((s) => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
+    const matchesType =
+      !schemeTypeFilter ||
+      schemeTypeFilter === "all" ||
+      s.type === schemeTypeFilter;
+    return matchesSearch && matchesType;
+  });
 
   const stats = {
     published: apiSchemeServices.length,
@@ -114,6 +127,25 @@ export default function UserSchemeService() {
               onChange={(e) => setSearch(e.target.value)}
               className="w-full md:w-1/2"
             />
+            <Select
+              value={schemeTypeFilter}
+              onValueChange={(value) => setSchemeTypeFilter(value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="Central">Central Government</SelectItem>
+                <SelectItem value="State">State Government</SelectItem>
+                <SelectItem value="Social Welfare">Social Welfare</SelectItem>
+                <SelectItem value="Education">Education</SelectItem>
+                <SelectItem value="Healthcare">Healthcare</SelectItem>
+                <SelectItem value="Agriculture">Agriculture</SelectItem>
+                <SelectItem value="Employment">Employment</SelectItem>
+                <SelectItem value="Housing">Housing</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {/* Cards Grid */}
           {loading && (
@@ -183,21 +215,31 @@ export default function UserSchemeService() {
               ))}
 
               {/* No Services Message */}
-              {filteredApiSchemes.length === 0 && search && (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500">
-                    No scheme services found matching "{search}".
-                  </p>
-                </div>
-              )}
+              {filteredApiSchemes.length === 0 &&
+                (search ||
+                  (schemeTypeFilter && schemeTypeFilter !== "all")) && (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-gray-500">
+                      No scheme services found matching the current filters
+                      {search && ` "${search}"`}
+                      {schemeTypeFilter &&
+                        schemeTypeFilter !== "all" &&
+                        ` (${schemeTypeFilter})`}
+                      .
+                    </p>
+                  </div>
+                )}
 
-              {filteredApiSchemes.length === 0 && !search && !loading && (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500">
-                    No published scheme services available.
-                  </p>
-                </div>
-              )}
+              {filteredApiSchemes.length === 0 &&
+                !search &&
+                (!schemeTypeFilter || schemeTypeFilter === "all") &&
+                !loading && (
+                  <div className="col-span-full text-center py-8">
+                    <p className="text-gray-500">
+                      No published scheme services available.
+                    </p>
+                  </div>
+                )}
             </div>
           )}
           {/* Modal for Scheme Details */}
