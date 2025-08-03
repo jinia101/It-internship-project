@@ -760,6 +760,12 @@ export default function UserCertificateService() {
                           </a>
                         </div>
                       )}
+                      {cert.offlineAddress && (
+                        <div>
+                          <span className="font-semibold">Office Address:</span>{" "}
+                          {cert.offlineAddress}
+                        </div>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -774,49 +780,55 @@ export default function UserCertificateService() {
                             .toUpperCase(),
                           // Transform API data to match modal expectations
                           processSteps: {
-                            "New Application": cert.processNew
-                              ? cert.processNew
-                                  .split("\n")
-                                  .filter((step) => step.trim())
-                                  .map((step, index) => ({
-                                    slNo: (index + 1).toString(),
-                                    stepDetails: step.trim(),
-                                  }))
-                              : [],
-                            "Update Application": cert.processUpdate
-                              ? cert.processUpdate
-                                  .split("\n")
-                                  .filter((step) => step.trim())
-                                  .map((step, index) => ({
-                                    slNo: (index + 1).toString(),
-                                    stepDetails: step.trim(),
-                                  }))
-                              : [],
-                            "Lost Application": cert.processLost
-                              ? cert.processLost
-                                  .split("\n")
-                                  .filter((step) => step.trim())
-                                  .map((step, index) => ({
-                                    slNo: (index + 1).toString(),
-                                    stepDetails: step.trim(),
-                                  }))
-                              : [],
-                            "Surrender Application": cert.processSurrender
-                              ? cert.processSurrender
-                                  .split("\n")
-                                  .filter((step) => step.trim())
-                                  .map((step, index) => ({
-                                    slNo: (index + 1).toString(),
-                                    stepDetails: step.trim(),
-                                  }))
-                              : [],
+                            "New Application":
+                              cert.processSteps
+                                ?.filter(
+                                  (step) =>
+                                    step.applicationType === "New Application",
+                                )
+                                .map((step, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  stepDetails: step.stepDetails,
+                                })) || [],
+                            "Update Application":
+                              cert.processSteps
+                                ?.filter(
+                                  (step) =>
+                                    step.applicationType ===
+                                    "Update Application",
+                                )
+                                .map((step, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  stepDetails: step.stepDetails,
+                                })) || [],
+                            "Lost Application":
+                              cert.processSteps
+                                ?.filter(
+                                  (step) =>
+                                    step.applicationType === "Lost Application",
+                                )
+                                .map((step, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  stepDetails: step.stepDetails,
+                                })) || [],
+                            "Surrender Application":
+                              cert.processSteps
+                                ?.filter(
+                                  (step) =>
+                                    step.applicationType ===
+                                    "Surrender Application",
+                                )
+                                .map((step, index) => ({
+                                  slNo: (index + 1).toString(),
+                                  stepDetails: step.stepDetails,
+                                })) || [],
                           },
                           documents: {
                             "New Application":
                               cert.documents
                                 ?.filter(
                                   (doc) =>
-                                    doc.applicationType === "New" ||
+                                    doc.applicationType === "New Application" ||
                                     !doc.applicationType,
                                 )
                                 .map((doc, index) => ({
@@ -827,7 +839,9 @@ export default function UserCertificateService() {
                             "Update Application":
                               cert.documents
                                 ?.filter(
-                                  (doc) => doc.applicationType === "Update",
+                                  (doc) =>
+                                    doc.applicationType ===
+                                    "Update Application",
                                 )
                                 .map((doc, index) => ({
                                   slNo: (index + 1).toString(),
@@ -837,7 +851,8 @@ export default function UserCertificateService() {
                             "Lost Application":
                               cert.documents
                                 ?.filter(
-                                  (doc) => doc.applicationType === "Lost",
+                                  (doc) =>
+                                    doc.applicationType === "Lost Application",
                                 )
                                 .map((doc, index) => ({
                                   slNo: (index + 1).toString(),
@@ -847,7 +862,9 @@ export default function UserCertificateService() {
                             "Surrender Application":
                               cert.documents
                                 ?.filter(
-                                  (doc) => doc.applicationType === "Surrender",
+                                  (doc) =>
+                                    doc.applicationType ===
+                                    "Surrender Application",
                                 )
                                 .map((doc, index) => ({
                                   slNo: (index + 1).toString(),
@@ -856,32 +873,62 @@ export default function UserCertificateService() {
                                 })) || [],
                           },
                           eligibility: {
-                            "New Application": cert.eligibilityDetails || [],
-                            "Update Application": cert.eligibilityDetails || [],
-                            "Lost Application": cert.eligibilityDetails || [],
+                            "New Application":
+                              cert.eligibilityItems
+                                ?.filter(
+                                  (item) =>
+                                    item.applicationType === "New Application",
+                                )
+                                .map((item) => item.eligibilityDetail) || [],
+                            "Update Application":
+                              cert.eligibilityItems
+                                ?.filter(
+                                  (item) =>
+                                    item.applicationType ===
+                                    "Update Application",
+                                )
+                                .map((item) => item.eligibilityDetail) || [],
+                            "Lost Application":
+                              cert.eligibilityItems
+                                ?.filter(
+                                  (item) =>
+                                    item.applicationType === "Lost Application",
+                                )
+                                .map((item) => item.eligibilityDetail) || [],
                             "Surrender Application":
-                              cert.eligibilityDetails || [],
+                              cert.eligibilityItems
+                                ?.filter(
+                                  (item) =>
+                                    item.applicationType ===
+                                    "Surrender Application",
+                                )
+                                .map((item) => item.eligibilityDetail) || [],
                           },
                           contact: {
                             "New Application":
                               cert.contacts?.filter(
                                 (contact) =>
-                                  contact.applicationType === "New" ||
+                                  contact.applicationType ===
+                                    "New Application" ||
                                   !contact.applicationType,
                               ) || [],
                             "Update Application":
                               cert.contacts?.filter(
                                 (contact) =>
-                                  contact.applicationType === "Update",
+                                  contact.applicationType ===
+                                  "Update Application",
                               ) || [],
                             "Lost Application":
                               cert.contacts?.filter(
-                                (contact) => contact.applicationType === "Lost",
+                                (contact) =>
+                                  contact.applicationType ===
+                                  "Lost Application",
                               ) || [],
                             "Surrender Application":
                               cert.contacts?.filter(
                                 (contact) =>
-                                  contact.applicationType === "Surrender",
+                                  contact.applicationType ===
+                                  "Surrender Application",
                               ) || [],
                           },
                         })

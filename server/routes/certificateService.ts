@@ -27,6 +27,8 @@ router.get(
         include: {
           contacts: true,
           documents: true,
+          processSteps: true,
+          eligibilityItems: true,
           admin: {
             select: { id: true, name: true, email: true },
           },
@@ -226,6 +228,8 @@ router.patch(
       const {
         contacts,
         documents,
+        processSteps,
+        eligibilityItems,
         admin,
         createdAt,
         updatedAt,
@@ -266,12 +270,37 @@ router.patch(
         };
       }
 
+      // Handle process steps if provided
+      if (processSteps && Array.isArray(processSteps)) {
+        prismaUpdateData.processSteps = {
+          deleteMany: {}, // Clear existing process steps
+          create: processSteps.map((step: any) => ({
+            slNo: step.slNo || 1,
+            stepDetails: step.stepDetails,
+            applicationType: step.applicationType || "New Application",
+          })),
+        };
+      }
+
+      // Handle eligibility items if provided
+      if (eligibilityItems && Array.isArray(eligibilityItems)) {
+        prismaUpdateData.eligibilityItems = {
+          deleteMany: {}, // Clear existing eligibility items
+          create: eligibilityItems.map((item: any) => ({
+            eligibilityDetail: item.eligibilityDetail,
+            applicationType: item.applicationType || "New Application",
+          })),
+        };
+      }
+
       const updatedService = await prisma.certificateService.update({
         where: { id },
         data: prismaUpdateData,
         include: {
           contacts: true,
           documents: true,
+          processSteps: true,
+          eligibilityItems: true,
           admin: {
             select: { id: true, name: true, email: true },
           },

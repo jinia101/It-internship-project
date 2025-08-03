@@ -171,12 +171,8 @@ export default function CreateCertificateService() {
           | "online"
           | "offline"
           | "both",
-        onlineUrl:
-          formData.applicationMode === "online"
-            ? "https://example.com"
-            : undefined,
-        offlineAddress:
-          formData.applicationMode === "offline" ? "Office Address" : undefined,
+        onlineUrl: formData.onlineUrl || undefined,
+        offlineAddress: formData.offlineAddress || undefined,
         status: "draft",
       };
 

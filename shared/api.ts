@@ -62,6 +62,19 @@ export interface CertificateDocument {
   applicationType?: string;
 }
 
+export interface CertificateProcessStep {
+  id?: number;
+  slNo: number;
+  stepDetails: string;
+  applicationType?: string;
+}
+
+export interface CertificateEligibility {
+  id?: number;
+  eligibilityDetail: string;
+  applicationType?: string;
+}
+
 export interface ContactServiceDocument {
   id?: number;
   slNo: number;
@@ -142,6 +155,8 @@ export interface CertificateService {
   adminId: number;
   contacts: CertificateContact[];
   documents: CertificateDocument[];
+  processSteps: CertificateProcessStep[];
+  eligibilityItems: CertificateEligibility[];
 }
 
 export interface ContactService {
@@ -338,6 +353,19 @@ export interface UpdateSchemeServiceRequest {
   docSurrender?: string;
   contacts?: ContactPerson[];
   documents?: SupportiveDocument[];
+}
+
+export interface UpdateCertificateServiceRequest {
+  name?: string;
+  summary?: string;
+  type?: string;
+  applicationMode?: string;
+  onlineUrl?: string;
+  offlineAddress?: string;
+  processSteps?: CertificateProcessStep[];
+  eligibilityItems?: CertificateEligibility[];
+  documents?: CertificateDocument[];
+  contacts?: CertificateContact[];
 }
 
 export interface LoginRequest {
@@ -648,7 +676,7 @@ export class ApiClient {
 
   async updateCertificateService(
     id: number,
-    data: UpdateSchemeServiceRequest,
+    data: UpdateCertificateServiceRequest,
   ): Promise<CertificateServiceResponse> {
     return this.makeRequest<CertificateServiceResponse>(
       `/certificate-services/${id}`,

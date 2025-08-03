@@ -127,6 +127,8 @@ model CertificateService {
   // Related entities
   contacts           CertificateContact[]
   documents          CertificateDocument[]
+  processSteps       CertificateProcessStep[]
+  eligibilityItems   CertificateEligibility[]
 }
 
 model CertificateContact {
@@ -151,6 +153,25 @@ model CertificateDocument {
   documentType         String
   validProof           String
   isRequired           Boolean @default(true)
+  applicationType      String  @default("New Application") // New Application, Lost Application, etc.
+  
+  certificateServiceId Int
+  certificateService   CertificateService @relation(fields: [certificateServiceId], references: [id], onDelete: Cascade)
+}
+
+model CertificateProcessStep {
+  id                   Int     @id @default(autoincrement())
+  slNo                 Int
+  stepDetails          String
+  applicationType      String  @default("New Application") // New Application, Lost Application, etc.
+  
+  certificateServiceId Int
+  certificateService   CertificateService @relation(fields: [certificateServiceId], references: [id], onDelete: Cascade)
+}
+
+model CertificateEligibility {
+  id                   Int     @id @default(autoincrement())
+  eligibilityDetail    String
   applicationType      String  @default("New Application") // New Application, Lost Application, etc.
   
   certificateServiceId Int
