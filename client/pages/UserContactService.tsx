@@ -63,14 +63,17 @@ export default function UserContactService() {
           console.log("Posts not found for office:", error);
         }
 
-        console.log("Office data from API:", office);
-        console.log("office.designation:", office.designation);
-        console.log("office.district:", office.district);
+        console.log(
+          "Processing office data:",
+          office.name,
+          "Level:",
+          office.designation,
+        );
 
         return {
           offices: [
             {
-              officeName: office.serviceName,
+              officeName: office.name, // Use the actual office name from the contact
               level: office.designation, // Use the designation field which stores the actual level
               district: office.district,
               subDistrict: office.subDistrict,
@@ -83,24 +86,30 @@ export default function UserContactService() {
               name: office.name,
             },
           ],
-          posts: posts.map((post, index) => ({
-            postName: post.postName,
-            postRank: post.rank,
-            officeIndex: 0,
-            description: post.description,
-            department: post.department,
-            status: post.status,
-          })),
-          employees: employees.map((employee, index) => ({
-            employeeName: employee.name,
-            email: employee.email,
-            phone: employee.phone,
-            designation: employee.designation,
-            employeeId: employee.employeeId,
-            salary: employee.salary,
-            status: employee.status,
-            postIndex: 0, // You might need to map this properly
-          })),
+          posts:
+            posts.length > 0
+              ? posts.map((post, index) => ({
+                  postName: post.postName,
+                  postRank: post.rank,
+                  officeIndex: 0,
+                  description: post.description,
+                  department: post.department,
+                  status: post.status,
+                }))
+              : [],
+          employees:
+            employees.length > 0
+              ? employees.map((employee, index) => ({
+                  employeeName: employee.name,
+                  email: employee.email,
+                  phone: employee.phone,
+                  designation: employee.designation,
+                  employeeId: employee.employeeId,
+                  salary: employee.salary,
+                  status: employee.status,
+                  postIndex: 0, // You might need to map this properly
+                }))
+              : [],
         };
       }
     } catch (error) {
@@ -519,11 +528,8 @@ export default function UserContactService() {
                               ...service,
                               offices:
                                 service.contacts?.map((contact, index) => ({
-                                  officeName: `${contact.serviceName} Office - ${contact.district}`,
-                                  level:
-                                    contact.district === "West Tripura"
-                                      ? "State"
-                                      : "District",
+                                  officeName: contact.name, // Use the actual office name
+                                  level: contact.designation, // Use designation which stores the correct level
                                   district: contact.district,
                                   subDistrict: contact.subDistrict,
                                   block: contact.block,
@@ -534,20 +540,8 @@ export default function UserContactService() {
                                   designation: contact.designation,
                                   name: contact.name,
                                 })) || [],
-                              posts:
-                                service.contacts?.map((contact, index) => ({
-                                  postName: contact.designation,
-                                  postRank: contact.designation,
-                                  officeIndex: index,
-                                })) || [],
-                              employees:
-                                service.contacts?.map((contact, index) => ({
-                                  employeeName: contact.name,
-                                  email: contact.email,
-                                  phone: contact.contact,
-                                  designation: contact.designation,
-                                  postIndex: index,
-                                })) || [],
+                              posts: [], // No posts data when using fallback
+                              employees: [], // No employees data when using fallback
                             });
                           }
                         } catch (error) {
@@ -674,67 +668,75 @@ export default function UserContactService() {
                           </p>
 
                           {/* Posts within this office */}
-                          {modalService.posts &&
+                          <div className="mt-3">
+                            <h5 className="font-semibold text-md mb-1">
+                              Posts:
+                            </h5>
+                            {modalService.posts &&
                             modalService.posts.filter(
                               (post) =>
                                 post.officeIndex ===
                                 modalService.offices.indexOf(office),
-                            ).length > 0 && (
-                              <div className="mt-3">
-                                <h5 className="font-semibold text-md mb-1">
-                                  Posts:
-                                </h5>
-                                <ul className="list-disc pl-6">
-                                  {modalService.posts
-                                    .filter(
-                                      (post) =>
-                                        post.officeIndex ===
-                                        modalService.offices.indexOf(office),
-                                    )
-                                    .map((post, postIdx) => (
-                                      <li key={postIdx} className="mb-2">
-                                        <span className="font-medium">
-                                          {post.postName}
-                                        </span>{" "}
-                                        ({post.postRank})
-                                        {/* Employees within this post */}
-                                        {modalService.employees &&
-                                          modalService.employees.filter(
-                                            (emp) =>
-                                              emp.postIndex ===
-                                              modalService.posts.indexOf(post),
-                                          ).length > 0 && (
-                                            <div className="ml-4 mt-1">
-                                              <h6 className="font-semibold text-sm mb-1">
-                                                Employees:
-                                              </h6>
-                                              <ul className="list-disc pl-4">
-                                                {modalService.employees
-                                                  .filter(
-                                                    (emp) =>
-                                                      emp.postIndex ===
-                                                      modalService.posts.indexOf(
-                                                        post,
-                                                      ),
-                                                  )
-                                                  .map((emp, empIdx) => (
-                                                    <li key={empIdx}>
-                                                      {emp.employeeName} (
-                                                      {emp.designation})
-                                                      {emp.email &&
-                                                        `, Email: ${emp.email}`}
-                                                      {emp.phone &&
-                                                        `, Phone: ${emp.phone}`}
-                                                    </li>
-                                                  ))}
-                                              </ul>
-                                            </div>
-                                          )}
-                                      </li>
-                                    ))}
-                                </ul>
-                              </div>
+                            ).length > 0 ? (
+                              <ul className="list-disc pl-6">
+                                {modalService.posts
+                                  .filter(
+                                    (post) =>
+                                      post.officeIndex ===
+                                      modalService.offices.indexOf(office),
+                                  )
+                                  .map((post, postIdx) => (
+                                    <li key={postIdx} className="mb-2">
+                                      <span className="font-medium">
+                                        {post.postName}
+                                      </span>{" "}
+                                      ({post.postRank})
+                                      {/* Employees within this post */}
+                                      {modalService.employees &&
+                                      modalService.employees.filter(
+                                        (emp) =>
+                                          emp.postIndex ===
+                                          modalService.posts.indexOf(post),
+                                      ).length > 0 ? (
+                                        <div className="ml-4 mt-1">
+                                          <h6 className="font-semibold text-sm mb-1">
+                                            Employees:
+                                          </h6>
+                                          <ul className="list-disc pl-4">
+                                            {modalService.employees
+                                              .filter(
+                                                (emp) =>
+                                                  emp.postIndex ===
+                                                  modalService.posts.indexOf(
+                                                    post,
+                                                  ),
+                                              )
+                                              .map((emp, empIdx) => (
+                                                <li key={empIdx}>
+                                                  {emp.employeeName} (
+                                                  {emp.designation})
+                                                  {emp.email &&
+                                                    `, Email: ${emp.email}`}
+                                                  {emp.phone &&
+                                                    `, Phone: ${emp.phone}`}
+                                                </li>
+                                              ))}
+                                          </ul>
+                                        </div>
+                                      ) : (
+                                        <div className="ml-4 mt-1 text-sm text-gray-500">
+                                          No employee details present
+                                        </div>
+                                      )}
+                                    </li>
+                                  ))}
+                              </ul>
+                            ) : (
+                              <p className="text-sm text-gray-500 pl-2">
+                                No post details present
+                              </p>
                             )}
+                          </div>
                         </div>
                       ))}
                   </div>

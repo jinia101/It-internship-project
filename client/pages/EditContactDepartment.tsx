@@ -232,10 +232,7 @@ export default function EditContactDepartment() {
       block: newOffice.block,
     };
 
-    console.log("newContact to be added:", newContact);
-    console.log("newOffice.level:", newOffice.level);
-    console.log("designation field:", newContact.designation);
-    console.log("district field:", newContact.district);
+    console.log("Creating office with level:", newOffice.level);
 
     try {
       // Create update data with all contacts including the new one
