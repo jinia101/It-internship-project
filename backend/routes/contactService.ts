@@ -8,40 +8,36 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // GET /api/contact-services - Get all contact services
-router.get(
-  "/",
-  authenticateAdmin,
-  async (req: Request, res: Response) => {
-    try {
-      console.log("Fetching contact services for admin:", req.admin?.id);
+router.get("/", authenticateAdmin, async (req: Request, res: Response) => {
+  try {
+    console.log("Fetching contact services for admin:", req.admin?.id);
 
-      const contactServices = await prisma.contactService.findMany({
-        include: {
-          contacts: true,
-          documents: true,
-          admin: {
-            select: { id: true, name: true, email: true },
-          },
+    const contactServices = await prisma.contactService.findMany({
+      include: {
+        contacts: true,
+        documents: true,
+        admin: {
+          select: { id: true, name: true, email: true },
         },
-        orderBy: { createdAt: "desc" },
-      });
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-      console.log(`Found ${contactServices.length} contact services`);
+    console.log(`Found ${contactServices.length} contact services`);
 
-      res.json({
-        success: true,
-        contactServices,
-      });
-    } catch (error) {
-      console.error("Error fetching contact services:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch contact services",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  },
-);
+    res.json({
+      success: true,
+      contactServices,
+    });
+  } catch (error) {
+    console.error("Error fetching contact services:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch contact services",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 // GET /api/contact-services/:id - Get specific contact service
 router.get(

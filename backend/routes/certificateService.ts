@@ -8,42 +8,38 @@ const router = express.Router();
 const prisma = new PrismaClient();
 
 // GET /api/certificate-services - Get all certificate services
-router.get(
-  "/",
-  authenticateAdmin,
-  async (req: Request, res: Response) => {
-    try {
-      console.log("Fetching certificate services for admin:", req.admin?.id);
+router.get("/", authenticateAdmin, async (req: Request, res: Response) => {
+  try {
+    console.log("Fetching certificate services for admin:", req.admin?.id);
 
-      const certificateServices = await prisma.certificateService.findMany({
-        include: {
-          contacts: true,
-          documents: true,
-          processSteps: true,
-          eligibilityItems: true,
-          admin: {
-            select: { id: true, name: true, email: true },
-          },
+    const certificateServices = await prisma.certificateService.findMany({
+      include: {
+        contacts: true,
+        documents: true,
+        processSteps: true,
+        eligibilityItems: true,
+        admin: {
+          select: { id: true, name: true, email: true },
         },
-        orderBy: { createdAt: "desc" },
-      });
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-      console.log(`Found ${certificateServices.length} certificate services`);
+    console.log(`Found ${certificateServices.length} certificate services`);
 
-      res.json({
-        success: true,
-        certificateServices,
-      });
-    } catch (error) {
-      console.error("Error fetching certificate services:", error);
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch certificate services",
-        error: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  },
-);
+    res.json({
+      success: true,
+      certificateServices,
+    });
+  } catch (error) {
+    console.error("Error fetching certificate services:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch certificate services",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 // GET /api/certificate-services/:id - Get specific certificate service
 router.get(
