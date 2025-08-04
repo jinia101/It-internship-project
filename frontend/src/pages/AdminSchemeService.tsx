@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { apiClient } from "../types/api";
+import type { SchemeService } from "../types/api";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function AdminSchemeService() {
@@ -20,7 +21,7 @@ export default function AdminSchemeService() {
   const [activeTab, setActiveTab] = useState(
     searchParams.get("tab") || "create",
   );
-  const [schemes, setSchemes] = useState([]);
+  const [schemes, setSchemes] = useState<SchemeService[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -50,24 +51,41 @@ export default function AdminSchemeService() {
 
   const pendingSchemes = schemes.filter((s) => s.status === "draft");
   const publishedSchemes = schemes.filter((s) => s.status === "published");
+  const activeSchemes = publishedSchemes.filter((s) => s.isActive !== false);
+  const inactiveSchemes = publishedSchemes.filter((s) => s.isActive === false);
 
   const stats = {
     published: publishedSchemes.length,
-    active: 0,
+    active: activeSchemes.length,
     total: schemes.length,
-    users: 0,
+    inactive: inactiveSchemes.length,
     pending: pendingSchemes.length,
   };
 
-  const handleEdit = (scheme) => {
+  const handleEdit = (scheme: SchemeService) => {
     navigate(`/admin/edit-scheme-service/${scheme.id}`);
   };
 
-  const handleView = (scheme) => {
+  const handleView = (scheme: SchemeService) => {
     navigate(`/admin/view-scheme-service/${encodeURIComponent(scheme.name)}`);
   };
 
-  const handleDelete = async (scheme) => {
+  const handleToggleActive = async (scheme: SchemeService) => {
+    try {
+      await apiClient.updateSchemeService(scheme.id, {
+        isActive: !scheme.isActive,
+      });
+
+      // Refresh the schemes list
+      const response = await apiClient.getSchemeServices();
+      setSchemes(response.schemeServices || []);
+    } catch (error) {
+      console.error("Error updating scheme status:", error);
+      setError("Failed to update scheme status");
+    }
+  };
+
+  const handleDelete = async (scheme: SchemeService) => {
     try {
       await apiClient.deleteSchemeService(scheme.id);
       // Refresh the schemes list
@@ -157,15 +175,17 @@ export default function AdminSchemeService() {
 
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Users</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Inactive Services
+                    </CardTitle>
                     <Users className="h-4 w-4 text-purple-600" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-purple-600">
-                      {stats.users}
+                      {stats.inactive}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Users who saw service details
+                      Hidden from users
                     </p>
                   </CardContent>
                 </Card>
@@ -337,9 +357,33 @@ export default function AdminSchemeService() {
                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                                       {scheme.type}
                                     </span>
+                                    <span
+                                      className={`px-2 py-1 text-xs rounded ${
+                                        scheme.isActive !== false
+                                          ? "bg-green-100 text-green-800"
+                                          : "bg-red-100 text-red-800"
+                                      }`}
+                                    >
+                                      {scheme.isActive !== false
+                                        ? "Active"
+                                        : "Inactive"}
+                                    </span>
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant={
+                                      scheme.isActive !== false
+                                        ? "destructive"
+                                        : "default"
+                                    }
+                                    onClick={() => handleToggleActive(scheme)}
+                                  >
+                                    {scheme.isActive !== false
+                                      ? "Deactivate"
+                                      : "Activate"}
+                                  </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"

@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { apiClient } from "../types/api";
+import type { CertificateService } from "../types/api";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function AdminCertificateService() {
@@ -20,7 +21,7 @@ export default function AdminCertificateService() {
   const [activeTab, setActiveTab] = useState(
     searchParams.get("tab") || "create",
   );
-  const [certificates, setCertificates] = useState([]);
+  const [certificates, setCertificates] = useState<CertificateService[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -50,25 +51,43 @@ export default function AdminCertificateService() {
 
   const pendingCerts = certificates.filter((s) => s.status === "draft");
   const publishedCerts = certificates.filter((s) => s.status === "published");
+  const activeCerts = publishedCerts.filter((s) => s.isActive !== false);
+  const inactiveCerts = publishedCerts.filter((s) => s.isActive === false);
 
   const stats = {
     published: publishedCerts.length,
-    active: 0,
+    active: activeCerts.length,
     total: certificates.length,
-    users: 0,
+    inactive: inactiveCerts.length,
     pending: pendingCerts.length,
   };
-  const handleEdit = (cert) => {
+
+  const handleEdit = (cert: CertificateService) => {
     navigate(`/admin/edit-certificate-service/${cert.id}`);
   };
 
-  const handleView = (cert) => {
+  const handleView = (cert: CertificateService) => {
     navigate(
       `/admin/view-certificate-service/${encodeURIComponent(cert.name)}`,
     );
   };
 
-  const handleDelete = async (cert) => {
+  const handleToggleActive = async (cert: CertificateService) => {
+    try {
+      await apiClient.updateCertificateService(cert.id, {
+        isActive: !cert.isActive,
+      });
+
+      // Refresh the certificates list
+      const response = await apiClient.getCertificateServices();
+      setCertificates(response.certificateServices || []);
+    } catch (error) {
+      console.error("Error updating certificate status:", error);
+      setError("Failed to update certificate status");
+    }
+  };
+
+  const handleDelete = async (cert: CertificateService) => {
     try {
       await apiClient.deleteCertificateService(cert.id);
       // Refresh the certificates list
@@ -154,15 +173,17 @@ export default function AdminCertificateService() {
                 </Card>
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Users</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Inactive Services
+                    </CardTitle>
                     <Users className="h-4 w-4 text-purple-600" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-purple-600">
-                      {stats.users}
+                      {stats.inactive}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Users who saw service details
+                      Hidden from users
                     </p>
                   </CardContent>
                 </Card>
@@ -326,9 +347,33 @@ export default function AdminCertificateService() {
                                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                                       {cert.applicationMode}
                                     </span>
+                                    <span
+                                      className={`px-2 py-1 text-xs rounded ${
+                                        cert.isActive !== false
+                                          ? "bg-green-100 text-green-800"
+                                          : "bg-red-100 text-red-800"
+                                      }`}
+                                    >
+                                      {cert.isActive !== false
+                                        ? "Active"
+                                        : "Inactive"}
+                                    </span>
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant={
+                                      cert.isActive !== false
+                                        ? "destructive"
+                                        : "default"
+                                    }
+                                    onClick={() => handleToggleActive(cert)}
+                                  >
+                                    {cert.isActive !== false
+                                      ? "Deactivate"
+                                      : "Activate"}
+                                  </Button>
                                   <Button
                                     variant="outline"
                                     size="sm"

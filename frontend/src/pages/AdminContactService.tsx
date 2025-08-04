@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { apiClient } from "../types/api";
+import type { ContactService } from "../types/api";
 import { useAuth } from "../contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -21,7 +22,7 @@ export default function AdminContactService() {
   const [activeTab, setActiveTab] = useState(
     searchParams.get("tab") || "create",
   );
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<ContactService[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -51,20 +52,50 @@ export default function AdminContactService() {
 
   const pendingServices = services.filter((s) => s.status === "draft");
   const publishedServices = services.filter((s) => s.status === "published");
+  const activeServices = publishedServices.filter((s) => s.isActive !== false);
+  const inactiveServices = publishedServices.filter(
+    (s) => s.isActive === false,
+  );
 
   const stats = {
     published: publishedServices.length,
-    active: 0,
+    active: activeServices.length,
     total: services.length,
-    users: 0,
+    inactive: inactiveServices.length,
     pending: pendingServices.length,
   };
 
-  const handleEdit = (service) => {
+  const handleEdit = (service: ContactService) => {
     navigate(`/admin/edit-contact-department/${service.id}`);
   };
 
-  const handleDelete = async (service) => {
+  const handleToggleActive = async (service: ContactService) => {
+    try {
+      await apiClient.updateContactService(service.id, {
+        isActive: !service.isActive,
+      });
+
+      // Refresh the services list
+      const response = await apiClient.getContactServices();
+      setServices(response.contactServices || []);
+
+      toast({
+        title: "Success",
+        description: `Service ${
+          service.isActive ? "deactivated" : "activated"
+        } successfully`,
+      });
+    } catch (error) {
+      console.error("Error updating service status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update service status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (service: ContactService) => {
     try {
       await apiClient.deleteContactService(service.id);
       // Refresh the services list
@@ -148,31 +179,33 @@ export default function AdminContactService() {
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Total Services
+                      Active Services
                     </CardTitle>
-                    <Users className="h-4 w-4 text-purple-600" />
+                    <Activity className="h-4 w-4 text-blue-600" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {stats.total}
+                    <div className="text-2xl font-bold text-blue-600">
+                      {stats.active}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      All services
+                      Currently active
                     </p>
                   </CardContent>
                 </Card>
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Active Users
+                      Inactive Services
                     </CardTitle>
-                    <Activity className="h-4 w-4 text-blue-600" />
+                    <Users className="h-4 w-4 text-purple-600" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {stats.users}
+                    <div className="text-2xl font-bold text-purple-600">
+                      {stats.inactive}
                     </div>
-                    <p className="text-xs text-muted-foreground">This month</p>
+                    <p className="text-xs text-muted-foreground">
+                      Hidden from users
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -299,9 +332,33 @@ export default function AdminContactService() {
                                 <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                                   {service.applicationMode}
                                 </span>
+                                <span
+                                  className={`px-2 py-1 text-xs rounded ${
+                                    service.isActive !== false
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  {service.isActive !== false
+                                    ? "Active"
+                                    : "Inactive"}
+                                </span>
                               </div>
                             </div>
                             <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant={
+                                  service.isActive !== false
+                                    ? "destructive"
+                                    : "default"
+                                }
+                                onClick={() => handleToggleActive(service)}
+                              >
+                                {service.isActive !== false
+                                  ? "Deactivate"
+                                  : "Activate"}
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
