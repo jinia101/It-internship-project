@@ -19,9 +19,22 @@ import { ServicesMenu } from "@/components/ui/sidebar";
 import { apiClient } from "../types/api";
 import type { CertificateService } from "../types/api";
 
+// Extended type for modal with additional properties
+interface ModalCertificateService
+  extends Omit<CertificateService, "documents" | "processSteps"> {
+  abbreviation?: string;
+  processSteps?: any;
+  documents?: any;
+  eligibility?: any;
+  contact?: any;
+  serviceDetails?: string;
+}
+
 export default function UserCertificateService() {
   const [search, setSearch] = useState("");
-  const [modalCert, setModalCert] = useState(null);
+  const [modalCert, setModalCert] = useState<ModalCertificateService | null>(
+    null,
+  );
   const [selectedApplicationType, setSelectedApplicationType] =
     useState("New Application");
   const [apiCertificateServices, setApiCertificateServices] = useState<
@@ -163,8 +176,8 @@ export default function UserCertificateService() {
                         {cert.applicationMode === "both"
                           ? "Online/Offline"
                           : cert.applicationMode === "online"
-                            ? "Online"
-                            : "Offline"}
+                          ? "Online"
+                          : "Offline"}
                       </div>
                       {cert.onlineUrl && (
                         <div>
@@ -423,7 +436,7 @@ export default function UserCertificateService() {
                       </h3>
                       <ul className="list-disc pl-6 space-y-1">
                         {modalCert.processSteps[selectedApplicationType].map(
-                          (step, idx) => (
+                          (step: any, idx: number) => (
                             <li key={idx}>
                               <span className="font-medium">{step.slNo}.</span>{" "}
                               {step.stepDetails}
@@ -443,7 +456,7 @@ export default function UserCertificateService() {
                       </h3>
                       <ul className="list-disc pl-6 space-y-1">
                         {modalCert.documents[selectedApplicationType].map(
-                          (doc, idx) => (
+                          (doc: any, idx: number) => (
                             <li key={idx}>
                               <span className="font-medium">{doc.slNo}.</span>{" "}
                               <span className="font-medium">
@@ -466,7 +479,7 @@ export default function UserCertificateService() {
                       </h3>
                       <ul className="list-disc pl-6 space-y-1">
                         {modalCert.eligibility[selectedApplicationType].map(
-                          (criteria, idx) => (
+                          (criteria: any, idx: number) => (
                             <li key={idx}>{criteria}</li>
                           ),
                         )}
@@ -482,7 +495,7 @@ export default function UserCertificateService() {
                         Contact Details for {selectedApplicationType}
                       </h3>
                       {modalCert.contact[selectedApplicationType].map(
-                        (contactItem, idx) => (
+                        (contactItem: any, idx: number) => (
                           <div
                             key={idx}
                             className="border border-gray-200 rounded-lg p-4 mb-4"
@@ -543,12 +556,16 @@ export default function UserCertificateService() {
                       <h3 className="font-semibold mb-2">Process Steps</h3>
                       <ul className="list-disc pl-6">
                         {modalCert.processSteps &&
-                          modalCert.processSteps.map((step, idx) => (
-                            <li key={idx}>
-                              <span className="font-medium">{step.slNo}.</span>{" "}
-                              {step.stepDetails}
-                            </li>
-                          ))}
+                          modalCert.processSteps.map(
+                            (step: any, idx: number) => (
+                              <li key={idx}>
+                                <span className="font-medium">
+                                  {step.slNo}.
+                                </span>{" "}
+                                {step.stepDetails}
+                              </li>
+                            ),
+                          )}
                       </ul>
                     </div>
                     <div className="mb-4">
@@ -557,7 +574,7 @@ export default function UserCertificateService() {
                       </h3>
                       <ul className="list-disc pl-6">
                         {modalCert.documents &&
-                          modalCert.documents.map((doc, idx) => (
+                          modalCert.documents.map((doc: any, idx: number) => (
                             <li key={idx}>
                               <span className="font-medium">{doc.slNo}.</span>{" "}
                               {doc.documentType} (Valid Proof: {doc.validProof})

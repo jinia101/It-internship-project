@@ -16,14 +16,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ServicesMenu } from "@/components/ui/sidebar";
-import { Search } from "lucide-react";
 import { apiClient } from "../types/api";
 import type { SchemeService } from "../types/api";
 
 export default function UserSchemeService() {
   const [search, setSearch] = useState("");
   const [schemeTypeFilter, setSchemeTypeFilter] = useState("all"); // Initialize with "all"
-  const [modalScheme, setModalScheme] = useState(null);
+  const [modalScheme, setModalScheme] = useState<SchemeService | null>(null);
   const [apiSchemeServices, setApiSchemeServices] = useState<SchemeService[]>(
     [],
   );
@@ -177,8 +176,8 @@ export default function UserSchemeService() {
                         {scheme.applicationMode === "both"
                           ? "Online/Offline"
                           : scheme.applicationMode === "online"
-                            ? "Online"
-                            : "Offline"}
+                          ? "Online"
+                          : "Offline"}
                       </div>
                       {scheme.targetAudience &&
                         scheme.targetAudience.length > 0 && (
@@ -270,8 +269,8 @@ export default function UserSchemeService() {
                       {modalScheme.applicationMode === "both"
                         ? "Online/Offline"
                         : modalScheme.applicationMode === "online"
-                          ? "Online"
-                          : "Offline"}
+                        ? "Online"
+                        : "Offline"}
                     </p>
                   </div>
                   {modalScheme.targetAudience &&
@@ -327,11 +326,13 @@ export default function UserSchemeService() {
                         Eligibility Criteria
                       </h3>
                       <ul className="list-disc pl-6 space-y-1">
-                        {modalScheme.eligibilityDetails.map((item, idx) => (
-                          <li key={idx} className="text-gray-700">
-                            {item}
-                          </li>
-                        ))}
+                        {modalScheme.eligibilityDetails.map(
+                          (item: any, idx: number) => (
+                            <li key={idx} className="text-gray-700">
+                              {item}
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -342,11 +343,13 @@ export default function UserSchemeService() {
                     <div className="mb-6">
                       <h3 className="font-semibold mb-2">Scheme Details</h3>
                       <ul className="list-disc pl-6 space-y-1">
-                        {modalScheme.schemeDetails.map((item, idx) => (
-                          <li key={idx} className="text-gray-700">
-                            {item}
-                          </li>
-                        ))}
+                        {modalScheme.schemeDetails.map(
+                          (item: any, idx: number) => (
+                            <li key={idx} className="text-gray-700">
+                              {item}
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -359,11 +362,13 @@ export default function UserSchemeService() {
                         Application Process
                       </h3>
                       <ul className="list-disc pl-6 space-y-1">
-                        {modalScheme.processDetails.map((item, idx) => (
-                          <li key={idx} className="text-gray-700">
-                            {item}
-                          </li>
-                        ))}
+                        {modalScheme.processDetails.map(
+                          (item: any, idx: number) => (
+                            <li key={idx} className="text-gray-700">
+                              {item}
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   )}

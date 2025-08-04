@@ -20,17 +20,15 @@ import { apiClient } from "../types/api";
 import type { ContactService } from "../types/api";
 
 export default function UserContactService() {
-  const [services, setServices] = useState([]);
   const [apiContactServices, setApiContactServices] = useState<
     ContactService[]
   >([]);
   const [search, setSearch] = useState("");
-  const [modalService, setModalService] = useState(null);
+  const [modalService, setModalService] = useState<any>(null);
   const [filterType, setFilterType] = useState("State"); // 'State' or 'District'
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [departmentTypeFilter, setDepartmentTypeFilter] = useState("all"); // 'all', 'emergency', 'regular'
   const [loading, setLoading] = useState(false);
-  const [officeDetails, setOfficeDetails] = useState({});
 
   const tripuraDistricts = [
     "Dhalai",
@@ -43,7 +41,7 @@ export default function UserContactService() {
     "West Tripura",
   ];
 
-  const fetchOfficeDetails = async (service) => {
+  const fetchOfficeDetails = async (service: any) => {
     try {
       // Instead of looking for an office by service name,
       // iterate through the service's contacts (offices) and get posts for each
@@ -275,7 +273,7 @@ export default function UserContactService() {
                             setModalService({
                               ...service,
                               offices:
-                                service.contacts?.map((contact, index) => ({
+                                service.contacts?.map((contact) => ({
                                   officeName: contact.name, // Use the actual office name
                                   level: contact.designation, // Use designation which stores the correct level
                                   district: contact.district,
@@ -390,7 +388,7 @@ export default function UserContactService() {
                       Department Structure
                     </h3>
                     {modalService.offices
-                      .filter((office) => {
+                      .filter((office: any) => {
                         if (filterType === "State") {
                           return office.level === "State";
                         } else if (
@@ -402,7 +400,7 @@ export default function UserContactService() {
                         }
                         return true; // Show all if no filter or initial state
                       })
-                      .map((office, officeIdx) => (
+                      .map((office: any, officeIdx: number) => (
                         <div
                           key={officeIdx}
                           className="mb-4 p-3 border rounded-md bg-gray-50"
@@ -422,18 +420,18 @@ export default function UserContactService() {
                             </h5>
                             {modalService.posts &&
                             modalService.posts.filter(
-                              (post) =>
+                              (post: any) =>
                                 post.officeIndex ===
                                 modalService.offices.indexOf(office),
                             ).length > 0 ? (
                               <ul className="list-disc pl-6">
                                 {modalService.posts
                                   .filter(
-                                    (post) =>
+                                    (post: any) =>
                                       post.officeIndex ===
                                       modalService.offices.indexOf(office),
                                   )
-                                  .map((post, postIdx) => (
+                                  .map((post: any, postIdx: number) => (
                                     <li key={postIdx} className="mb-2">
                                       <span className="font-medium">
                                         {post.postName}
@@ -442,7 +440,7 @@ export default function UserContactService() {
                                       {/* Employees within this post */}
                                       {modalService.employees &&
                                       modalService.employees.filter(
-                                        (emp) =>
+                                        (emp: any) =>
                                           emp.postIndex ===
                                           modalService.posts.indexOf(post),
                                       ).length > 0 ? (
@@ -453,22 +451,24 @@ export default function UserContactService() {
                                           <ul className="list-disc pl-4">
                                             {modalService.employees
                                               .filter(
-                                                (emp) =>
+                                                (emp: any) =>
                                                   emp.postIndex ===
                                                   modalService.posts.indexOf(
                                                     post,
                                                   ),
                                               )
-                                              .map((emp, empIdx) => (
-                                                <li key={empIdx}>
-                                                  {emp.employeeName} (
-                                                  {emp.designation})
-                                                  {emp.email &&
-                                                    `, Email: ${emp.email}`}
-                                                  {emp.phone &&
-                                                    `, Phone: ${emp.phone}`}
-                                                </li>
-                                              ))}
+                                              .map(
+                                                (emp: any, empIdx: number) => (
+                                                  <li key={empIdx}>
+                                                    {emp.employeeName} (
+                                                    {emp.designation})
+                                                    {emp.email &&
+                                                      `, Email: ${emp.email}`}
+                                                    {emp.phone &&
+                                                      `, Phone: ${emp.phone}`}
+                                                  </li>
+                                                ),
+                                              )}
                                           </ul>
                                         </div>
                                       ) : (
