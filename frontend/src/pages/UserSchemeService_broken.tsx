@@ -8,23 +8,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ServicesMenu } from "@/components/ui/sidebar";
-import {
-  Search,
-  Filter,
-  Star,
-  Award,
-  X,
-  Globe,
-  MapPin,
-  Users,
-  Calendar,
-} from "lucide-react";
+import { Search, Filter, Star, Award, X, Globe, MapPin, Users, Calendar } from "lucide-react";
 import { apiClient } from "../types/api";
 import type { SchemeService } from "../types/api";
 
 export default function UserSchemeService() {
   const [search, setSearch] = useState("");
-  const [schemeTypeFilter, setSchemeTypeFilter] = useState("all");
+  const [schemeTypeFilter, setSchemeTypeFilter] = useState("all"); // Initialize with "all"
   const [modalScheme, setModalScheme] = useState<SchemeService | null>(null);
   const [apiSchemeServices, setApiSchemeServices] = useState<SchemeService[]>(
     [],
@@ -53,7 +43,7 @@ export default function UserSchemeService() {
   const fetchApiSchemeServices = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getPublicSchemeServices();
+      const response = await apiClient.getSchemeServices();
       const activeServices = (response.schemeServices || []).filter(
         (service) =>
           service.status === "published" && service.isActive !== false,
@@ -74,9 +64,7 @@ export default function UserSchemeService() {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <div className="flex flex-col space-y-2">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Government Schemes
-              </h1>
+              <h1 className="text-3xl font-bold text-gray-900">Government Schemes</h1>
               <p className="text-gray-600 text-lg">
                 Discover and explore government schemes and benefits programs
               </p>
@@ -90,31 +78,21 @@ export default function UserSchemeService() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Total Schemes
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.total}
-                  </p>
-                  <p className="text-xs text-green-600 mt-1">
-                    Available programs
-                  </p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Total Schemes</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                  <p className="text-xs text-green-600 mt-1">Available programs</p>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <Star className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
             </div>
-
+            
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Published
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {stats.published}
-                  </p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Published</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.published}</p>
                   <p className="text-xs text-green-600 mt-1">Active schemes</p>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
@@ -126,11 +104,9 @@ export default function UserSchemeService() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Categories
-                  </p>
+                  <p className="text-sm font-medium text-gray-600 mb-1">Categories</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {new Set(apiSchemeServices.map((s) => s.type)).size || 0}
+                    {new Set(apiSchemeServices.map(s => s.type)).size || 0}
                   </p>
                   <p className="text-xs text-purple-600 mt-1">Scheme types</p>
                 </div>
@@ -155,10 +131,7 @@ export default function UserSchemeService() {
                 />
               </div>
               <div className="md:w-64">
-                <Select
-                  value={schemeTypeFilter}
-                  onValueChange={setSchemeTypeFilter}
-                >
+                <Select value={schemeTypeFilter} onValueChange={setSchemeTypeFilter}>
                   <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                     <Filter className="h-4 w-4 mr-2 text-gray-400" />
                     <SelectValue placeholder="Filter by type" />
@@ -167,9 +140,7 @@ export default function UserSchemeService() {
                     <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="Central">Central Government</SelectItem>
                     <SelectItem value="State">State Government</SelectItem>
-                    <SelectItem value="Social Welfare">
-                      Social Welfare
-                    </SelectItem>
+                    <SelectItem value="Social Welfare">Social Welfare</SelectItem>
                     <SelectItem value="Education">Education</SelectItem>
                     <SelectItem value="Healthcare">Healthcare</SelectItem>
                     <SelectItem value="Agriculture">Agriculture</SelectItem>
@@ -184,9 +155,7 @@ export default function UserSchemeService() {
           {/* Schemes Grid */}
           {loading && (
             <div className="text-center py-8">
-              <div className="text-lg text-gray-600">
-                Loading scheme services...
-              </div>
+              <div className="text-lg text-gray-600">Loading scheme services...</div>
             </div>
           )}
 
@@ -208,7 +177,9 @@ export default function UserSchemeService() {
                           {scheme.name}
                         </h3>
                         {scheme.type && (
-                          <p className="text-sm text-gray-500">{scheme.type}</p>
+                          <p className="text-sm text-gray-500">
+                            {scheme.type}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -225,29 +196,22 @@ export default function UserSchemeService() {
                         <span className="text-gray-600">{scheme.type}</span>
                       </div>
                     )}
-                    {scheme.targetAudience &&
-                      scheme.targetAudience.length > 0 && (
-                        <div className="flex items-center text-sm">
-                          <Users className="h-3 w-3 text-gray-400 mr-2" />
-                          <span className="text-gray-600">
-                            Target: {scheme.targetAudience.join(", ")}
-                          </span>
-                        </div>
-                      )}
-                    {scheme.applicationMode && (
+                    {scheme.type && (
+                      <div className="flex items-center text-sm">
+                        <Users className="h-3 w-3 text-gray-400 mr-2" />
+                        <span className="text-gray-600">Eligibility criteria available</span>
+                      </div>
+                    )}
+                    {scheme.summary && (
                       <div className="flex items-center text-sm">
                         <Calendar className="h-3 w-3 text-gray-400 mr-2" />
-                        <span className="text-gray-600">
-                          {scheme.applicationMode}
-                        </span>
+                        <span className="text-gray-600">Application process defined</span>
                       </div>
                     )}
                   </div>
 
                   <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                    <span className="text-xs text-gray-500">
-                      Click to view details
-                    </span>
+                    <span className="text-xs text-gray-500">Click to view details</span>
                     <div className="p-1 rounded-full bg-gray-50 group-hover:bg-blue-50 transition-colors">
                       <Award className="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
                     </div>
@@ -283,7 +247,6 @@ export default function UserSchemeService() {
                 )}
             </div>
           )}
-
           {/* Modal for Scheme Details */}
           {modalScheme && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
@@ -303,7 +266,7 @@ export default function UserSchemeService() {
                     <div>
                       <h2 className="text-2xl font-bold">{modalScheme.name}</h2>
                       <p className="text-blue-100">
-                        {modalScheme.type || "Government Scheme"}
+                        {modalScheme.type || 'Government Scheme'}
                       </p>
                     </div>
                   </div>
@@ -313,12 +276,8 @@ export default function UserSchemeService() {
                 <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                   {/* Summary */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      Overview
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {modalScheme.summary}
-                    </p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Overview</h3>
+                    <p className="text-gray-600 leading-relaxed">{modalScheme.summary}</p>
                   </div>
 
                   {/* Key Information */}
@@ -347,27 +306,22 @@ export default function UserSchemeService() {
                       </p>
                     </div>
 
-                    {modalScheme.targetAudience &&
-                      modalScheme.targetAudience.length > 0 && (
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
-                            <Users className="h-4 w-4 mr-2 text-purple-600" />
-                            Target Audience
-                          </h4>
-                          <p className="text-gray-600">
-                            {modalScheme.targetAudience.join(", ")}
-                          </p>
-                        </div>
-                      )}
+                    {modalScheme.targetAudience && modalScheme.targetAudience.length > 0 && (
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                          <Users className="h-4 w-4 mr-2 text-purple-600" />
+                          Target Audience
+                        </h4>
+                        <p className="text-gray-600">{modalScheme.targetAudience.join(", ")}</p>
+                      </div>
+                    )}
 
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
                         <Calendar className="h-4 w-4 mr-2 text-orange-600" />
                         Status
                       </h4>
-                      <p className="text-gray-600 capitalize">
-                        {modalScheme.status}
-                      </p>
+                      <p className="text-gray-600 capitalize">{modalScheme.status}</p>
                     </div>
 
                     {modalScheme.onlineUrl && (
@@ -388,81 +342,109 @@ export default function UserSchemeService() {
                     )}
                   </div>
 
+                {/* Application Links */}
+                {(modalScheme.onlineUrl || modalScheme.offlineAddress) && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold mb-2">How to Apply</h3>
+                    {modalScheme.onlineUrl && (
+                      <div className="mb-2">
+                        <span className="font-medium">Online:</span>{" "}
                   {/* Detailed Information Sections */}
-                  {modalScheme.eligibilityDetails &&
-                    modalScheme.eligibilityDetails.length > 0 && (
+                  {modalScheme.eligibilityDetails && modalScheme.eligibilityDetails.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <Users className="h-5 w-5 mr-2 text-purple-600" />
+                        Eligibility Criteria
+                      </h3>
+                      <div className="bg-purple-50 rounded-lg p-4">
+                        <ul className="space-y-2">
+                          {modalScheme.eligibilityDetails.map((item: any, idx: number) => (
+                            <li key={idx} className="flex items-start space-x-2">
+                              <span className="flex-shrink-0 w-2 h-2 bg-purple-600 rounded-full mt-2"></span>
+                              <span className="text-gray-700">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {modalScheme.schemeDetails && modalScheme.schemeDetails.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <Award className="h-5 w-5 mr-2 text-blue-600" />
+                        Scheme Details
+                      </h3>
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <ul className="space-y-2">
+                          {modalScheme.schemeDetails.map((item: any, idx: number) => (
+                            <li key={idx} className="flex items-start space-x-2">
+                              <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2"></span>
+                              <span className="text-gray-700">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {modalScheme.processDetails && modalScheme.processDetails.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <Calendar className="h-5 w-5 mr-2 text-green-600" />
+                        Application Process
+                      </h3>
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <ul className="space-y-2">
+                          {modalScheme.processDetails.map((item: any, idx: number) => (
+                            <li key={idx} className="flex items-start space-x-2">
+                              <span className="flex-shrink-0 w-2 h-2 bg-green-600 rounded-full mt-2"></span>
+                              <span className="text-gray-700">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Process Steps and Documents Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {modalScheme.processNew && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                          <Users className="h-5 w-5 mr-2 text-purple-600" />
-                          Eligibility Criteria
-                        </h3>
-                        <div className="bg-purple-50 rounded-lg p-4">
-                          <ul className="space-y-2">
-                            {modalScheme.eligibilityDetails.map(
-                              (item: any, idx: number) => (
-                                <li
-                                  key={idx}
-                                  className="flex items-start space-x-2"
-                                >
-                                  <span className="flex-shrink-0 w-2 h-2 bg-purple-600 rounded-full mt-2"></span>
-                                  <span className="text-gray-700">{item}</span>
-                                </li>
-                              ),
-                            )}
-                          </ul>
+                        <h4 className="font-semibold text-gray-900 mb-2">New Application Process</h4>
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{modalScheme.processNew}</p>
                         </div>
                       </div>
                     )}
 
-                  {modalScheme.schemeDetails &&
-                    modalScheme.schemeDetails.length > 0 && (
+                    {modalScheme.docNew && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                          <Award className="h-5 w-5 mr-2 text-blue-600" />
-                          Scheme Details
-                        </h3>
+                        <h4 className="font-semibold text-gray-900 mb-2">Documents for New Application</h4>
                         <div className="bg-blue-50 rounded-lg p-4">
-                          <ul className="space-y-2">
-                            {modalScheme.schemeDetails.map(
-                              (item: any, idx: number) => (
-                                <li
-                                  key={idx}
-                                  className="flex items-start space-x-2"
-                                >
-                                  <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2"></span>
-                                  <span className="text-gray-700">{item}</span>
-                                </li>
-                              ),
-                            )}
-                          </ul>
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{modalScheme.docNew}</p>
                         </div>
                       </div>
                     )}
 
-                  {modalScheme.processDetails &&
-                    modalScheme.processDetails.length > 0 && (
+                    {modalScheme.processUpdate && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                          <Calendar className="h-5 w-5 mr-2 text-green-600" />
-                          Application Process
-                        </h3>
-                        <div className="bg-green-50 rounded-lg p-4">
-                          <ul className="space-y-2">
-                            {modalScheme.processDetails.map(
-                              (item: any, idx: number) => (
-                                <li
-                                  key={idx}
-                                  className="flex items-start space-x-2"
-                                >
-                                  <span className="flex-shrink-0 w-2 h-2 bg-green-600 rounded-full mt-2"></span>
-                                  <span className="text-gray-700">{item}</span>
-                                </li>
-                              ),
-                            )}
-                          </ul>
+                        <h4 className="font-semibold text-gray-900 mb-2">Update Process</h4>
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{modalScheme.processUpdate}</p>
                         </div>
                       </div>
                     )}
+
+                    {modalScheme.docUpdate && (
+                      <div className="mb-6">
+                        <h4 className="font-semibold text-gray-900 mb-2">Documents for Update</h4>
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{modalScheme.docUpdate}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Contact Information */}
                   {modalScheme.contacts && modalScheme.contacts.length > 0 && (
@@ -473,22 +455,12 @@ export default function UserSchemeService() {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {modalScheme.contacts.map((contact, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-400"
-                          >
-                            <h4 className="font-medium text-gray-900">
-                              {contact.name}
-                            </h4>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {contact.designation}
-                            </p>
+                          <div key={idx} className="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-400">
+                            <h4 className="font-medium text-gray-900">{contact.name}</h4>
+                            <p className="text-sm text-gray-600 mb-2">{contact.designation}</p>
                             <div className="space-y-1 text-sm text-gray-600">
                               <p>{contact.serviceName}</p>
-                              <p>
-                                {contact.district}, {contact.subDistrict},{" "}
-                                {contact.block}
-                              </p>
+                              <p>{contact.district}, {contact.subDistrict}, {contact.block}</p>
                               <p>📞 {contact.contact}</p>
                               <p>✉️ {contact.email}</p>
                             </div>
@@ -502,12 +474,10 @@ export default function UserSchemeService() {
                   <div className="mt-6 pt-4 border-t border-gray-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
                       <div>
-                        <span className="font-medium">Created:</span>{" "}
-                        {new Date(modalScheme.createdAt).toLocaleDateString()}
+                        <span className="font-medium">Created:</span> {new Date(modalScheme.createdAt).toLocaleDateString()}
                       </div>
                       <div>
-                        <span className="font-medium">Updated:</span>{" "}
-                        {new Date(modalScheme.updatedAt).toLocaleDateString()}
+                        <span className="font-medium">Updated:</span> {new Date(modalScheme.updatedAt).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
