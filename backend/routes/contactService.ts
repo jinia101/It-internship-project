@@ -403,7 +403,9 @@ router.patch(
 
       res.json({
         success: true,
-        message: `Contact service ${isActive ? "activated" : "deactivated"} successfully`,
+        message: `Contact service ${
+          isActive ? "activated" : "deactivated"
+        } successfully`,
         contactService: updatedService,
       });
     } catch (error) {
@@ -467,5 +469,65 @@ router.delete(
     }
   },
 );
+
+// PUBLIC ROUTES (no authentication required)
+
+// GET /api/contact-services/public/list - Get all published contact services (public)
+router.get("/public/list", async (req: Request, res: Response) => {
+  try {
+    const { page = 1, limit = 10, search } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    let whereClause: any = {
+      status: "published",
+      isActive: true,
+    };
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search as string, mode: "insensitive" } },
+        { summary: { contains: search as string, mode: "insensitive" } },
+      ];
+    }
+
+    const [contactServices, total] = await Promise.all([
+      prisma.contactService.findMany({
+        where: whereClause,
+        include: {
+          contacts: true,
+          documents: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limitNum,
+      }),
+      prisma.contactService.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      success: true,
+      contactServices,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: totalPages,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching public contact services:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch contact services",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 export default router;

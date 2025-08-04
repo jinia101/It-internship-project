@@ -401,4 +401,107 @@ router.delete(
   },
 );
 
+// PUBLIC ROUTES (no authentication required for user dashboard)
+
+// GET /api/offices/public/by-name/:officeName - Get office by name (Public)
+router.get(
+  "/public/by-name/:officeName",
+  param("officeName").notEmpty().withMessage("Office name is required"),
+  async (req: Request, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const officeName = req.params.officeName;
+
+      // Find office by name
+      const office = await prisma.contactServiceContact.findFirst({
+        where: {
+          name: {
+            equals: officeName,
+            mode: "insensitive", // Case-insensitive search
+          },
+        },
+      });
+
+      if (!office) {
+        return res.status(404).json({
+          success: false,
+          message: "Office not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        office,
+      });
+    } catch (error) {
+      console.error("Error fetching office by name:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch office",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
+// GET /api/offices/public/:officeId/posts - Get all posts for an office (Public)
+router.get(
+  "/public/:officeId/posts",
+  param("officeId").isInt().withMessage("Office ID must be a valid integer"),
+  async (req: Request, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Validation failed",
+          errors: errors.array(),
+        });
+      }
+
+      const officeId = parseInt(req.params.officeId);
+
+      // First verify the office exists
+      const office = await prisma.contactServiceContact.findUnique({
+        where: { id: officeId },
+      });
+
+      if (!office) {
+        return res.status(404).json({
+          success: false,
+          message: "Office not found",
+        });
+      }
+
+      const posts = await prisma.post.findMany({
+        where: { officeId },
+        include: {
+          employees: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      res.json({
+        success: true,
+        posts,
+      });
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch posts",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+);
+
 export default router;

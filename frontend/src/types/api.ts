@@ -784,29 +784,6 @@ export class ApiClient {
     });
   }
 
-  // Public methods (no auth required)
-  async getPublicSchemeServices(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-  }): Promise<SchemeServicesListResponse> {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append("page", params.page.toString());
-    if (params?.limit) queryParams.append("limit", params.limit.toString());
-    if (params?.search) queryParams.append("search", params.search);
-
-    const query = queryParams.toString();
-    return this.makeRequest<SchemeServicesListResponse>(
-      `/scheme-services/public/list${query ? `?${query}` : ""}`,
-    );
-  }
-
-  async getPublicSchemeService(id: number): Promise<SchemeServiceResponse> {
-    return this.makeRequest<SchemeServiceResponse>(
-      `/scheme-services/public/${id}`,
-    );
-  }
-
   // Office Management API methods
 
   // Get office by name
@@ -1062,6 +1039,90 @@ export class ApiClient {
         body: JSON.stringify({ isActive }),
       },
     );
+  }
+
+  // PUBLIC API METHODS (for user dashboard - no authentication required)
+
+  // Get published contact services (public)
+  async getPublicContactServices(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<ContactServicesListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.search) queryParams.append("search", params.search);
+
+    const query = queryParams.toString();
+    return this.makeRequest<ContactServicesListResponse>(
+      `/contact-services/public/list${query ? `?${query}` : ""}`,
+    );
+  }
+
+  // Get published scheme services (public)
+  async getPublicSchemeServices(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<SchemeServicesListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.search) queryParams.append("search", params.search);
+
+    const query = queryParams.toString();
+    return this.makeRequest<SchemeServicesListResponse>(
+      `/scheme-services/public/list${query ? `?${query}` : ""}`,
+    );
+  }
+
+  // Get single published scheme service (public)
+  async getPublicSchemeService(id: number): Promise<SchemeServiceResponse> {
+    return this.makeRequest<SchemeServiceResponse>(
+      `/scheme-services/public/${id}`,
+    );
+  }
+
+  // Get published certificate services (public)
+  async getPublicCertificateServices(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<CertificateServicesListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.search) queryParams.append("search", params.search);
+
+    const query = queryParams.toString();
+    return this.makeRequest<CertificateServicesListResponse>(
+      `/certificate-services/public/list${query ? `?${query}` : ""}`,
+    );
+  }
+
+  // Get single published certificate service (public)
+  async getPublicCertificateService(
+    id: number,
+  ): Promise<CertificateServiceResponse> {
+    return this.makeRequest<CertificateServiceResponse>(
+      `/certificate-services/public/${id}`,
+    );
+  }
+
+  // Get office by name (public)
+  async getPublicOfficeByName(
+    officeName: string,
+  ): Promise<{ success: boolean; office: ContactServiceContact }> {
+    return this.makeRequest<{
+      success: boolean;
+      office: ContactServiceContact;
+    }>(`/offices/public/by-name/${encodeURIComponent(officeName)}`);
+  }
+
+  // Get all posts for an office (public)
+  async getPublicOfficePosts(officeId: number): Promise<PostsResponse> {
+    return this.makeRequest<PostsResponse>(`/offices/public/${officeId}/posts`);
   }
 
   // Get all published services for admin dashboard

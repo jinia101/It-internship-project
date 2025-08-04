@@ -437,7 +437,9 @@ router.patch(
 
       res.json({
         success: true,
-        message: `Certificate service ${isActive ? "activated" : "deactivated"} successfully`,
+        message: `Certificate service ${
+          isActive ? "activated" : "deactivated"
+        } successfully`,
         certificateService: updatedService,
       });
     } catch (error) {
@@ -501,5 +503,114 @@ router.delete(
     }
   },
 );
+
+// PUBLIC ROUTES (no authentication required)
+
+// GET /api/certificate-services/public/list - Get all published certificate services (public)
+router.get("/public/list", async (req: Request, res: Response) => {
+  try {
+    const { page = 1, limit = 10, search } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    let whereClause: any = {
+      status: "published",
+      isActive: true,
+    };
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search as string, mode: "insensitive" } },
+        { summary: { contains: search as string, mode: "insensitive" } },
+      ];
+    }
+
+    const [certificateServices, total] = await Promise.all([
+      prisma.certificateService.findMany({
+        where: whereClause,
+        include: {
+          contacts: true,
+          documents: true,
+          processSteps: true,
+          eligibilityItems: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip: offset,
+        take: limitNum,
+      }),
+      prisma.certificateService.count({
+        where: whereClause,
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+
+    res.json({
+      success: true,
+      certificateServices,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        pages: totalPages,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching public certificate services:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch certificate services",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// GET /api/certificate-services/public/:id - Get specific published certificate service (public)
+router.get("/public/:id", async (req: Request, res: Response) => {
+  try {
+    const serviceId = parseInt(req.params.id);
+
+    if (isNaN(serviceId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid service ID",
+      });
+    }
+
+    const certificateService = await prisma.certificateService.findFirst({
+      where: {
+        id: serviceId,
+        status: "published",
+        isActive: true,
+      },
+      include: {
+        contacts: true,
+        documents: true,
+        processSteps: true,
+        eligibilityItems: true,
+      },
+    });
+
+    if (!certificateService) {
+      return res.status(404).json({
+        success: false,
+        message: "Certificate service not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      certificateService,
+    });
+  } catch (error) {
+    console.error("Error fetching public certificate service:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch certificate service",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 export default router;

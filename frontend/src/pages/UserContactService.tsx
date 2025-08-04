@@ -43,64 +43,36 @@ export default function UserContactService() {
     "West Tripura",
   ];
 
-  const fetchOfficeDetails = async (serviceName) => {
+  const fetchOfficeDetails = async (service) => {
     try {
-      // Fetch office details for the service
-      const officeResponse = await apiClient.getOfficeByName(serviceName);
-      if (officeResponse.success && officeResponse.office) {
-        const office = officeResponse.office;
+      // Instead of looking for an office by service name,
+      // iterate through the service's contacts (offices) and get posts for each
+      const allPosts = [];
+      const allEmployees = [];
+      const officeDetails = [];
 
-        // Fetch posts for this office (assuming office has an ID)
-        let posts = [];
-        let employees = [];
-        try {
-          const postsResponse = await apiClient.getOfficePosts(office.id || 1);
-          if (postsResponse.success) {
-            posts = postsResponse.posts || [];
-            // Extract employees from posts
-            employees = posts.flatMap((post) => post.employees || []);
-          }
-        } catch (error) {
-          console.log("Posts not found for office:", error);
-        }
+      if (service.contacts && service.contacts.length > 0) {
+        for (const contact of service.contacts) {
+          try {
+            // Get posts for this office using the contact's ID as officeId
+            const postsResponse = await apiClient.getPublicOfficePosts(
+              contact.id,
+            );
+            if (postsResponse.success && postsResponse.posts) {
+              // Format posts to match expected structure
+              const formattedPosts = postsResponse.posts.map((post) => ({
+                postName: post.postName,
+                postRank: post.rank,
+                officeIndex: 0,
+                description: post.description,
+                department: post.department,
+                status: post.status,
+              }));
+              allPosts.push(...formattedPosts);
 
-        console.log(
-          "Processing office data:",
-          office.name,
-          "Level:",
-          office.designation,
-        );
-
-        return {
-          offices: [
-            {
-              officeName: office.name, // Use the actual office name from the contact
-              level: office.designation, // Use the designation field which stores the actual level
-              district: office.district,
-              subDistrict: office.subDistrict,
-              block: office.block,
-              pincode: "799001", // Default
-              address: `${office.subDistrict}, ${office.block}, ${office.district}`,
-              contact: office.contact,
-              email: office.email,
-              designation: office.designation,
-              name: office.name,
-            },
-          ],
-          posts:
-            posts.length > 0
-              ? posts.map((post, index) => ({
-                  postName: post.postName,
-                  postRank: post.rank,
-                  officeIndex: 0,
-                  description: post.description,
-                  department: post.department,
-                  status: post.status,
-                }))
-              : [],
-          employees:
-            employees.length > 0
-              ? employees.map((employee, index) => ({
+              // Extract and format employees from posts
+              const employees = postsResponse.posts.flatMap((post) =>
+                (post.employees || []).map((employee) => ({
                   employeeName: employee.name,
                   email: employee.email,
                   phone: employee.phone,
@@ -108,17 +80,45 @@ export default function UserContactService() {
                   employeeId: employee.employeeId,
                   salary: employee.salary,
                   status: employee.status,
-                  postIndex: 0, // You might need to map this properly
-                }))
-              : [],
-        };
-      }
-    } catch (error) {
-      console.error("Error fetching office details:", error);
-    }
+                  postIndex: 0,
+                })),
+              );
+              allEmployees.push(...employees);
+            }
 
-    // Fallback to contact data if office details not found
-    return null;
+            // Add office details
+            officeDetails.push({
+              officeName: contact.name,
+              level: contact.designation,
+              district: contact.district,
+              subDistrict: contact.subDistrict,
+              block: contact.block,
+              pincode: "799001", // Default pincode
+              address: `${contact.subDistrict}, ${contact.block}, ${contact.district}`,
+              contact: contact.contact,
+              email: contact.email,
+              designation: contact.designation,
+              name: contact.name,
+            });
+          } catch (error) {
+            console.error(
+              `Error fetching posts for office ${contact.name}:`,
+              error,
+            );
+            // Continue with other offices even if one fails
+          }
+        }
+      }
+
+      return {
+        offices: officeDetails,
+        posts: allPosts,
+        employees: allEmployees,
+      };
+    } catch (error) {
+      console.error("Error in fetchOfficeDetails:", error);
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -128,7 +128,7 @@ export default function UserContactService() {
   const fetchApiContactServices = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getContactServices();
+      const response = await apiClient.getPublicContactServices();
       const activeServices = (response.contactServices || []).filter(
         (service) =>
           service.status === "published" && service.isActive !== false,
@@ -263,9 +263,7 @@ export default function UserContactService() {
                       onClick={async () => {
                         setLoading(true);
                         try {
-                          const officeData = await fetchOfficeDetails(
-                            service.name,
-                          );
+                          const officeData = await fetchOfficeDetails(service);
 
                           if (officeData) {
                             setModalService({
