@@ -5,7 +5,6 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
@@ -64,10 +63,6 @@ export default function AdminSchemeService() {
 
   const handleEdit = (scheme: SchemeService) => {
     navigate(`/admin/edit-scheme-service/${scheme.id}`);
-  };
-
-  const handleView = (scheme: SchemeService) => {
-    navigate(`/admin/view-scheme-service/${encodeURIComponent(scheme.name)}`);
   };
 
   const handleToggleActive = async (scheme: SchemeService) => {

@@ -5,7 +5,6 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle, Activity, Clock, Users } from "lucide-react";
@@ -64,12 +63,6 @@ export default function AdminCertificateService() {
 
   const handleEdit = (cert: CertificateService) => {
     navigate(`/admin/edit-certificate-service/${cert.id}`);
-  };
-
-  const handleView = (cert: CertificateService) => {
-    navigate(
-      `/admin/view-certificate-service/${encodeURIComponent(cert.name)}`,
-    );
   };
 
   const handleToggleActive = async (cert: CertificateService) => {
